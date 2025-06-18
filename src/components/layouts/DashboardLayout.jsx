@@ -59,9 +59,7 @@ const DashboardLayout = ({ children, role }) => {
   const getMenuItems = () => {
     const commonItems = [
       { text: 'Dashboard', icon: <DashboardIcon />, path: `/${role}/dashboard` },
-    ];
-
-    const roleSpecificItems = {
+    ];    const roleSpecificItems = {
       admin: [
         { text: 'Quản lý học viên', icon: <SchoolIcon />, path: '/admin/students' },
         { text: 'Quản lý giáo viên', icon: <PersonIcon />, path: '/admin/teachers' },
@@ -77,6 +75,10 @@ const DashboardLayout = ({ children, role }) => {
       student: [
         { text: 'Lịch học', icon: <ClassIcon />, path: '/student/schedule' },
         { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/student/classes' },
+      ],
+      parent: [
+        { text: 'Con em', icon: <SchoolIcon />, path: '/parent/children' },
+        { text: 'Thanh toán', icon: <AssessmentIcon />, path: '/parent/payments' },
       ],
     };
 
