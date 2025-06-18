@@ -1,17 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  IconButton,
-  Button,
-  Dialog,
-  DialogContent,
-  Paper,
-  Slide,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions
+import { Box, Typography, IconButton, Button, Dialog, Paper, Slide, Card, CardMedia, CardContent, CardActions
 } from '@mui/material';
 import { Close as CloseIcon, ArrowForward } from '@mui/icons-material';
 
@@ -99,7 +87,7 @@ const Advertisement = ({
   useEffect(() => {
     if (mode === 'slider' && advertisements.length > 1) {
       const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => 
+        setCurrentIndex((prevIndex) =>
           prevIndex === advertisements.length - 1 ? 0 : prevIndex + 1
         );
       }, 5000); // Chuyển slide mỗi 5 giây
@@ -149,7 +137,7 @@ const Advertisement = ({
           >
             <CloseIcon />
           </IconButton>
-          
+
           {advertisements[0] && (
             <Card sx={{ boxShadow: 'none' }}>
               <CardMedia
@@ -234,11 +222,11 @@ const Advertisement = ({
 
         {/* Dots indicator */}
         {advertisements.length > 1 && (
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: 1, 
-            mt: 2 
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 1,
+            mt: 2
           }}>
             {advertisements.map((_, index) => (
               <Box
@@ -266,7 +254,7 @@ const Advertisement = ({
       <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
         🎯 Khóa học nổi bật
       </Typography>
-      
+
       <Box
         sx={{
           display: 'flex',

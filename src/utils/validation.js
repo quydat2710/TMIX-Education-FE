@@ -1,12 +1,12 @@
 export const validationRules = {
-  required: (value, message = 'Trường này là bắt buộc') => {
+  required: (message = 'Trường này là bắt buộc') => (value) => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       return message;
     }
     return null;
   },
 
-  email: (value, message = 'Email không hợp lệ') => {
+  email: (message = 'Email không hợp lệ') => (value) => {
     if (!value) return null;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
@@ -15,7 +15,7 @@ export const validationRules = {
     return null;
   },
 
-  phone: (value, message = 'Số điện thoại không hợp lệ') => {
+  phone: (message = 'Số điện thoại không hợp lệ') => (value) => {
     if (!value) return null;
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(value.replace(/\s/g, ''))) {
@@ -64,7 +64,7 @@ export const validationRules = {
     return null;
   },
 
-  date: (value, message = 'Ngày không hợp lệ') => {
+  date: (message = 'Ngày không hợp lệ') => (value) => {
     if (!value) return null;
     const date = new Date(value);
     if (isNaN(date.getTime())) {
@@ -73,7 +73,7 @@ export const validationRules = {
     return null;
   },
 
-  time: (value, message = 'Thời gian không hợp lệ') => {
+  time: (message = 'Thời gian không hợp lệ') => (value) => {
     if (!value) return null;
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(value)) {
@@ -82,7 +82,7 @@ export const validationRules = {
     return null;
   },
 
-  number: (value, message = 'Phải là số') => {
+  number: (message = 'Phải là số') => (value) => {
     if (value === null || value === undefined || value === '') return null;
     if (isNaN(Number(value))) {
       return message;
@@ -90,7 +90,7 @@ export const validationRules = {
     return null;
   },
 
-  positiveNumber: (value, message = 'Phải là số dương') => {
+  positiveNumber: (message = 'Phải là số dương') => (value) => {
     if (value === null || value === undefined || value === '') return null;
     if (isNaN(Number(value)) || Number(value) <= 0) {
       return message;

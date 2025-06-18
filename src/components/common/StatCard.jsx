@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Avatar,
-  useTheme
-} from '@mui/material';
+import { Box, Card, CardContent, Typography, Avatar, useTheme} from '@mui/material';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
 
 const StatCard = ({
@@ -23,7 +16,7 @@ const StatCard = ({
 
   const getTrendIcon = () => {
     if (!trend) return null;
-    
+
     return trend === 'up' ? (
       <TrendingUp sx={{ color: theme.palette.success.main, fontSize: 16 }} />
     ) : (

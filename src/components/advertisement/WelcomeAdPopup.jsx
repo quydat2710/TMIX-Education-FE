@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  IconButton,
-  Box,
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Button,
-  CardActions
-} from '@mui/material';
+import { Dialog, IconButton, Box, Card, CardMedia, CardContent, Typography, Button, CardActions } from '@mui/material';
 import { Close as CloseIcon, ArrowForward } from '@mui/icons-material';
 
 const WelcomeAdPopup = ({ open, onClose, userRole }) => {
@@ -79,8 +68,8 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
         },
       }}
     >
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           animation: 'welcomeSlideIn 0.6s ease-out',
           '@keyframes welcomeSlideIn': {
@@ -107,7 +96,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
             color: 'white',
             width: 40,
             height: 40,
-            '&:hover': { 
+            '&:hover': {
               bgcolor: 'error.dark',
               transform: 'scale(1.1)'
             },
@@ -156,20 +145,20 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
               filter: 'brightness(0.9)',
             }}
           />
-          
+
           <CardContent sx={{ p: 3 }}>
-            <Typography 
-              variant="h5" 
-              component="h2" 
-              gutterBottom 
+            <Typography
+              variant="h5"
+              component="h2"
+              gutterBottom
               fontWeight="bold"
               color="primary"
             >
               {welcomeAd.title}
             </Typography>
-            
-            <Typography 
-              variant="body1" 
+
+            <Typography
+              variant="body1"
               color="text.secondary"
               sx={{ mb: 3, lineHeight: 1.6 }}
             >
@@ -197,11 +186,11 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
               >
                 {welcomeAd.buttonText}
               </Button>
-              
+
               <Button
                 variant="outlined"
                 onClick={onClose}
-                sx={{ 
+                sx={{
                   minWidth: 100,
                   py: 1.5
                 }}
@@ -231,7 +220,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
             },
           }}
         />
-        
+
         <Box
           sx={{
             position: 'absolute',

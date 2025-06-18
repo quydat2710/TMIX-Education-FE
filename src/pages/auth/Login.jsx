@@ -25,6 +25,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
 import { loginValidationSchema } from '../../validations/loginValidation';
+import { getDashboardPath } from '../../utils/helpers';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,8 +42,7 @@ const Login = () => {
     handleBlur,
     isSubmitting,
     setIsSubmitting,
-    validateField,
-    validateForm
+    validate
   } = useForm(
     {
       email: '',
@@ -56,18 +56,25 @@ const Login = () => {
     setIsSubmitting(true);
     clearError();
 
-    const isValid = validateForm();
+    const isValid = validate();
     if (!isValid) {
       setIsSubmitting(false);
       return;
     }
 
     try {
-      await login({
+      const result = await login({
         email: values.email,
         password: values.password
       });
-      navigate(from, { replace: true });
+      
+      // Điều hướng đến dashboard phù hợp với role
+      if (result?.user?.role) {
+        const dashboardPath = getDashboardPath(result.user.role);
+        navigate(dashboardPath, { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       console.error('Login failed:', error);
     } finally {

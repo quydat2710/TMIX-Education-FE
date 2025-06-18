@@ -1,27 +1,15 @@
 import React from 'react';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
-  Box,
-  Badge
-} from '@mui/material';
-import {
-  AccountCircle,
-  Notifications,
-  ExitToApp,
-  Settings
-} from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Avatar, Box, Badge } from '@mui/material';
+import { Notifications, ExitToApp } from '@mui/icons-material';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../utils/helpers';
+import { useNavigate } from 'react-router-dom';
+import { COLORS } from '../../utils/colors';
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
 
@@ -46,11 +34,46 @@ const Header = () => {
     handleMenuClose();
   };
 
+  const handleProfile = () => {
+    navigate('/account');
+    handleMenuClose();
+  };
+
+  const handleLogoClick = () => {
+    // Navigate to dashboard based on user role
+    switch (user?.role) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'teacher':
+        navigate('/teacher/dashboard');
+        break;
+      case 'student':
+        navigate('/student/dashboard');
+        break;
+      case 'parent':
+        navigate('/parent/dashboard');
+        break;
+      default:
+        navigate('/');
+    }
+  };
+
   return (
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Trung Tâm Tiếng Anh
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            flexGrow: 1,
+            color: COLORS.white,
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+          onClick={handleLogoClick}
+        >
+          English Center
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -87,13 +110,19 @@ const Header = () => {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem onClick={handleMenuClose}>
-            <AccountCircle sx={{ mr: 1 }} />
-            Thông tin cá nhân
-          </MenuItem>
-          <MenuItem onClick={handleMenuClose}>
-            <Settings sx={{ mr: 1 }} />
-            Cài đặt
+          <MenuItem onClick={handleProfile}>
+            <Avatar
+              sx={{
+                width: 24,
+                height: 24,
+                mr: 1,
+                bgcolor: COLORS.primary,
+                fontSize: '0.75rem',
+              }}
+            >
+              {user?.name?.charAt(0)}
+            </Avatar>
+            Trang cá nhân
           </MenuItem>
           <MenuItem onClick={handleLogout}>
             <ExitToApp sx={{ mr: 1 }} />
@@ -112,36 +141,7 @@ const Header = () => {
             sx: { width: 320, maxHeight: 400 }
           }}
         >
-          <MenuItem onClick={handleNotificationClose}>
-            <Box>
-              <Typography variant="subtitle2">
-                Lớp 3.1 - 2025 có học sinh mới
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                5 phút trước
-              </Typography>
-            </Box>
-          </MenuItem>
-          <MenuItem onClick={handleNotificationClose}>
-            <Box>
-              <Typography variant="subtitle2">
-                Thanh toán học phí từ phụ huynh Nguyễn Văn A
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                1 giờ trước
-              </Typography>
-            </Box>
-          </MenuItem>
-          <MenuItem onClick={handleNotificationClose}>
-            <Box>
-              <Typography variant="subtitle2">
-                Giáo viên Trần Thị B xin nghỉ phép
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                2 giờ trước
-              </Typography>
-            </Box>
-          </MenuItem>
+          {/* Notification content will be added later */}
         </Menu>
       </Toolbar>
     </AppBar>

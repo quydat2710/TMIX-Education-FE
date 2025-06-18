@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  IconButton,
-  Fade
-} from '@mui/material';
+import { Box, Typography, Button, Card, CardMedia, IconButton, Fade } from '@mui/material';
 import {
   ArrowBackIos,
   ArrowForwardIos
@@ -98,7 +88,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
   useEffect(() => {
     if (autoPlay && advertisements.length > 1) {
       const timer = setInterval(() => {
-        setCurrentIndex((prevIndex) => 
+        setCurrentIndex((prevIndex) =>
           prevIndex === advertisements.length - 1 ? 0 : prevIndex + 1
         );
       }, interval);
@@ -108,12 +98,12 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
   }, [autoPlay, advertisements.length, interval]);
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === advertisements.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const handlePrev = () => {    setCurrentIndex((prevIndex) => 
+  const handlePrev = () => {    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? advertisements.length - 1 : prevIndex - 1
     );
   };
@@ -131,15 +121,15 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
 
   return (
     <Box sx={{ mb: 4 }}>
-      <Box sx={{ 
-        display: 'flex', 
+      <Box sx={{
+        display: 'flex',
         justifyContent: 'space-between',        alignItems: 'center',
-        mb: 3 
+        mb: 3
       }}>
         <Typography variant="h5" fontWeight="bold">
           🎯 Khóa học nổi bật
         </Typography>
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="caption" color="textSecondary">
             {currentIndex + 1} / {advertisements.length}
@@ -204,7 +194,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
                   objectFit: 'cover'
                 }}
               />
-              
+
               {/* Overlay */}
               <Box
                 sx={{
@@ -259,7 +249,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
               >
                 <ArrowBackIos />
               </IconButton>
-              
+
               <IconButton
                 onClick={handleNext}
                 sx={{
@@ -279,11 +269,11 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
 
         {/* Dots indicator */}
         {advertisements.length > 1 && (
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: 1, 
-            mt: 2 
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 1,
+            mt: 2
           }}>
             {advertisements.map((_, index) => (
               <Box

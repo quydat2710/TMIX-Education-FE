@@ -1,25 +1,53 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
 
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import Layout from './components/layouts/Layout';
+import DashboardLayout from './components/layouts/DashboardLayout';
 
 // Import custom theme
 import theme from './theme';
 
 // Pages
-import Home from './pages/Home';
+import Home from './pages/Home/Home';
+import Courses from './pages/Home/Courses';
+import Teachers from './pages/Home/Teachers';
+import About from './pages/Home/About';
+import Contact from './pages/Home/Contact';
 import Login from './pages/auth/Login';
+import Profile from './pages/Profile';
 
 // Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
 import AdvertisementManagement from './pages/admin/AdvertisementManagement';
+import ClassManagement from './pages/admin/ClassManagement';
+import StudentManagement from './pages/admin/StudentManagement';
+import TeacherManagement from './pages/admin/TeacherManagement';
+import ParentManagement from './pages/admin/ParentManagement';
+import Statistics from './pages/admin/Statistics';
+
+// Teacher Pages
+import TeacherDashboard from './pages/teacher/Dashboard';
+import TeacherMyClasses from './pages/teacher/MyClasses';
+import TeacherSchedule from './pages/teacher/Schedule';
+
+// Student Pages
+import StudentDashboard from './pages/student/Dashboard';
+import StudentMyClasses from './pages/student/MyClasses';
+import StudentSchedule from './pages/student/Schedule';
+
+// Parent Pages
+import ParentDashboard from './pages/parent/Dashboard';
+import ParentChildren from './pages/parent/Children';
+import ParentPayments from './pages/parent/Payments';
 
 import { USER_ROLES } from './utils/constants';
 
 function App() {
+  const { user } = useAuth();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -28,19 +56,34 @@ function App() {
           <Routes>
             {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
             <Route path="/" element={<Home />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/teachers" element={<Teachers />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
-            
+            <Route path="/profile" element={
+              !user ? <Navigate to="/" replace /> : (
+                <DashboardLayout>
+                  <Profile />
+                </DashboardLayout>
+              )
+            } />
+
             {/* Admin Routes */}
             <Route
               path="/admin/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.ADMIN}>
-                  <Layout>
                     <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
                       <Route path="advertisements" element={<AdvertisementManagement />} />
-                      <Route path="*" element={<Navigate to="/admin/advertisements" replace />} />
+                    <Route path="classes" element={<ClassManagement />} />
+                    <Route path="students" element={<StudentManagement />} />
+                    <Route path="teachers" element={<TeacherManagement />} />
+                    <Route path="parents" element={<ParentManagement />} />
+                    <Route path="statistics" element={<Statistics />} />
+                    <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
-                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -50,11 +93,12 @@ function App() {
               path="/teacher/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.TEACHER}>
-                  <Layout>
                     <Routes>
-                      <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="dashboard" element={<TeacherDashboard />} />
+                    <Route path="classes" element={<TeacherMyClasses />} />
+                    <Route path="schedule" element={<TeacherSchedule />} />
+                    <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                     </Routes>
-                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -64,11 +108,12 @@ function App() {
               path="/student/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.STUDENT}>
-                  <Layout>
                     <Routes>
-                      <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="dashboard" element={<StudentDashboard />} />
+                    <Route path="classes" element={<StudentMyClasses />} />
+                    <Route path="schedule" element={<StudentSchedule />} />
+                    <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                     </Routes>
-                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -78,11 +123,12 @@ function App() {
               path="/parent/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.PARENT}>
-                  <Layout>
                     <Routes>
-                      <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="dashboard" element={<ParentDashboard />} />
+                    <Route path="children" element={<ParentChildren />} />
+                    <Route path="payments" element={<ParentPayments />} />
+                    <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
                     </Routes>
-                  </Layout>
                 </ProtectedRoute>
               }
             />

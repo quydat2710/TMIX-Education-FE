@@ -1,276 +1,202 @@
 import React, { useState } from 'react';
 import {
-  AppBar,
   Box,
-  CssBaseline,
   Drawer,
-  IconButton,
+  AppBar,
+  Toolbar,
   List,
+  Typography,
+  Divider,
+  IconButton,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Toolbar,
-  Typography,
   Avatar,
   Menu,
-  MenuItem,
-  Divider,
-  useTheme,
-  useMediaQuery
+  MenuItem
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Dashboard,
-  School,
-  Person,
-  Groups,
-  FamilyRestroom,
-  Assignment,
-  Payment,
-  Announcement,
-  Analytics,
-  Settings,
-  AccountCircle,
-  Logout
+  Dashboard as DashboardIcon,
+  School as SchoolIcon,
+  Class as ClassIcon,
+  Person as PersonIcon,
+  Assessment as AssessmentIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
+  Group as GroupIcon,
+  Campaign as CampaignIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { USER_ROLES } from '../../constants/userRoles';
+import { COLORS } from '../../utils/colors';
 
 const drawerWidth = 240;
 
-const getMenuItems = (userRole) => {
-  const commonItems = [
-    { text: 'Trang chủ', icon: <Dashboard />, path: '/dashboard' }
-  ];
-
-  switch (userRole) {
-    case USER_ROLES.ADMIN:
-      return [
-        ...commonItems,
-        { text: 'Quản lý lớp học', icon: <School />, path: '/admin/classes' },
-        { text: 'Quản lý giáo viên', icon: <Person />, path: '/admin/teachers' },
-        { text: 'Quản lý học sinh', icon: <Groups />, path: '/admin/students' },
-        { text: 'Quản lý phụ huynh', icon: <FamilyRestroom />, path: '/admin/parents' },
-        { text: 'Điểm danh', icon: <Assignment />, path: '/admin/attendance' },
-        { text: 'Quản lý học phí', icon: <Payment />, path: '/admin/fees' },
-        { text: 'Thông báo', icon: <Announcement />, path: '/admin/announcements' },
-        { text: 'Thống kê', icon: <Analytics />, path: '/admin/statistics' },
-        { text: 'Cài đặt', icon: <Settings />, path: '/admin/settings' }
-      ];
-    
-    case USER_ROLES.TEACHER:
-      return [
-        ...commonItems,
-        { text: 'Lớp của tôi', icon: <School />, path: '/teacher/classes' },
-        { text: 'Điểm danh', icon: <Assignment />, path: '/teacher/attendance' },
-        { text: 'Lịch dạy', icon: <Analytics />, path: '/teacher/schedule' }
-      ];
-    
-    case USER_ROLES.STUDENT:
-      return [
-        ...commonItems,
-        { text: 'Lớp học', icon: <School />, path: '/student/class' },
-        { text: 'Điểm danh', icon: <Assignment />, path: '/student/attendance' },
-        { text: 'Lịch học', icon: <Analytics />, path: '/student/schedule' }
-      ];
-    
-    case USER_ROLES.PARENT:
-      return [
-        ...commonItems,
-        { text: 'Thông tin con em', icon: <Groups />, path: '/parent/children' },
-        { text: 'Điểm danh', icon: <Assignment />, path: '/parent/attendance' },
-        { text: 'Học phí', icon: <Payment />, path: '/parent/fees' },
-        { text: 'Lịch học', icon: <Analytics />, path: '/parent/schedule' }
-      ];
-    
-    default:
-      return commonItems;
-  }
-};
-
-const DashboardLayout = ({ children }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  
+const DashboardLayout = ({ children, role }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
-
-  const menuItems = getMenuItems(user?.role);
+  const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    setOpen(!open);
   };
 
-  const handleMenuClick = (event) => {
+  const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
+  const handleProfileMenuClose = () => {
     setAnchorEl(null);
   };
 
   const handleLogout = () => {
-    logout();
+    // TODO: Implement logout logic
     navigate('/login');
-    handleMenuClose();
   };
 
-  const handleNavigation = (path) => {
-    navigate(path);
-    if (isMobile) {
-      setMobileOpen(false);
-    }
+  const getMenuItems = () => {
+    const commonItems = [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: `/${role}/dashboard` },
+    ];
+
+    const roleSpecificItems = {
+      admin: [
+        { text: 'Quản lý học viên', icon: <SchoolIcon />, path: '/admin/students' },
+        { text: 'Quản lý giáo viên', icon: <PersonIcon />, path: '/admin/teachers' },
+        { text: 'Quản lý lớp học', icon: <ClassIcon />, path: '/admin/classes' },
+        { text: 'Quản lý phụ huynh', icon: <GroupIcon />, path: '/admin/parents' },
+        { text: 'Quản lý quảng cáo', icon: <CampaignIcon />, path: '/admin/advertisements' },
+        { text: 'Thống kê', icon: <AssessmentIcon />, path: '/admin/statistics' },
+      ],
+      teacher: [
+        { text: 'Lịch dạy', icon: <ClassIcon />, path: '/teacher/schedule' },
+        { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/teacher/classes' },
+      ],
+      student: [
+        { text: 'Lịch học', icon: <ClassIcon />, path: '/student/schedule' },
+        { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/student/classes' },
+      ],
+    };
+
+    return [...commonItems, ...(roleSpecificItems[role] || [])];
   };
 
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Trung tâm tiếng Anh
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => handleNavigation(item.path)}
-            >
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  );
+  const menuItems = getMenuItems();
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
+          width: '100%',
+          bgcolor: COLORS.primary.main,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            edge="start"
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ mr: 1 }}>
-              {user?.name}
+            English Center
             </Typography>
             <IconButton
-              onClick={handleMenuClick}
+            onClick={handleProfileMenuOpen}
               size="small"
               sx={{ ml: 2 }}
-              aria-controls={Boolean(anchorEl) ? 'account-menu' : undefined}
-              aria-haspopup="true"
-              aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
             >
-              <Avatar sx={{ width: 32, height: 32 }}>
-                <AccountCircle />
+            <Avatar sx={{ width: 32, height: 32, bgcolor: COLORS.secondary.main }}>
+              {role.charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
-      
       <Menu
         anchorEl={anchorEl}
-        id="account-menu"
         open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        onClick={handleMenuClose}
-        PaperProps={{
-          elevation: 0,
-          sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-            mt: 1.5,
-            '& .MuiAvatar-root': {
-              width: 32,
-              height: 32,
-              ml: -0.5,
-              mr: 1,
-            },
-          },
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        onClose={handleProfileMenuClose}
       >
-        <MenuItem onClick={() => navigate('/profile')}>
-          <Avatar /> Hồ sơ cá nhân
+        <MenuItem onClick={() => { navigate('/account'); handleProfileMenuClose(); }}>
+          <ListItemIcon>
+            <PersonIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Trang cá nhân</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          Đăng xuất
+          <ListItemText>Đăng xuất</ListItemText>
         </MenuItem>
       </Menu>
+        </Toolbar>
+      </AppBar>
 
-      <Box
-        component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-      >
+      <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Drawer
           variant="temporary"
-          open={mobileOpen}
+          open={open}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+              bgcolor: COLORS.background.default,
+              borderRight: `1px solid ${COLORS.border}`,
+              mt: '64px', // Height of AppBar
+            },
           }}
         >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
+          <List>
+            {menuItems.map((item) => (
+              <ListItem key={item.text} disablePadding>
+                <ListItemButton
+                  selected={location.pathname === item.path}
+                  onClick={() => {
+                    navigate(item.path);
+                    setOpen(false); // Close drawer after navigation
+                  }}
           sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                    '&.Mui-selected': {
+                      bgcolor: COLORS.primary.light,
+                      '&:hover': {
+                        bgcolor: COLORS.primary.light,
+                      },
+                    },
           }}
-          open
-        >
-          {drawer}
+                >
+                  <ListItemIcon sx={{ color: location.pathname === item.path ? COLORS.primary.main : 'inherit' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
         </Drawer>
-      </Box>
-      
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+            width: '100%',
+            bgcolor: COLORS.background.default,
+            mt: '64px', // Height of AppBar
         }}
       >
-        <Toolbar />
         {children}
+        </Box>
       </Box>
     </Box>
   );

@@ -90,28 +90,140 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      const response = await loginAPI(credentials.email, credentials.password);
+      console.log('Login attempt with credentials:', credentials);
 
-      if (response.data) {
-        localStorage.setItem('access_token', response.data.accessToken);
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
+      // Demo accounts for testing frontend
+      const demoAccounts = [
+        { 
+          email: 'admin@demo.com', 
+          password: 'admin123', 
+          role: 'admin', 
+          name: 'Admin User',
+          _id: 'demo_admin_1'
+        },
+        { 
+          email: 'teacher@demo.com', 
+          password: 'teacher123', 
+          role: 'teacher', 
+          name: 'Teacher User',
+          _id: 'demo_teacher_1'
+        },
+        { 
+          email: 'student@demo.com', 
+          password: 'student123', 
+          role: 'student', 
+          name: 'Student User',
+          _id: 'demo_student_1'
+        },
+        { 
+          email: 'parent@demo.com', 
+          password: 'parent123', 
+          role: 'parent', 
+          name: 'Parent User',
+          _id: 'demo_parent_1'
+        }
+      ];
+
+      // Check for demo account first
+      const demoUser = demoAccounts.find(
+        account => account.email === credentials.email && account.password === credentials.password
+      );
+
+      if (demoUser) {
+        // Use demo account
+        const userData = {
+          user: {
+            _id: demoUser._id,
+            name: demoUser.name,
+            email: demoUser.email,
+            role: demoUser.role
+          },
+          accessToken: 'demo-token-' + Date.now()
+        };
+
+        localStorage.setItem('access_token', userData.accessToken);
+        localStorage.setItem('userData', JSON.stringify(userData.user));
 
         dispatch({
           type: 'LOGIN_SUCCESS',
-          payload: response.data
+          payload: userData
         });
 
-        return response.data;
-      } else {
-        throw new Error(response.message || 'Đăng nhập thất bại');
+        return userData;
       }
+
+      // If not demo account, try API
+      const apiResponse = await Promise.race([
+        loginAPI({
+          email: credentials.email,
+          password: credentials.password
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
+        )
+      ]);
+
+      console.log('API Response:', apiResponse);
+
+      // Handle different response structures
+      let userData = null;
+      let accessToken = null;
+
+      if (apiResponse?.data?.data) {
+        // Nested data structure
+        userData = apiResponse.data.data.user;
+        accessToken = apiResponse.data.data.access_token || apiResponse.data.data.accessToken;
+      } else if (apiResponse?.data) {
+        // Direct data structure
+        userData = apiResponse.data.user;
+        accessToken = apiResponse.data.access_token || apiResponse.data.accessToken;
+      } else if (apiResponse?.user) {
+        // Direct response
+        userData = apiResponse.user;
+        accessToken = apiResponse.access_token || apiResponse.accessToken;
+      }
+
+      if (!userData || !accessToken) {
+        throw new Error('Invalid response structure: missing user data or token');
+      }
+
+      // Store in localStorage
+      localStorage.setItem('access_token', accessToken);
+      localStorage.setItem('userData', JSON.stringify(userData));
+
+      // Dispatch success
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: {
+          user: userData,
+          accessToken: accessToken
+        }
+      });
+
+      return { user: userData, accessToken };
+
     } catch (error) {
-      const errorMessage = error.message || 'Đăng nhập thất bại';
+      console.error('Login error:', error);
+      let errorMessage = 'Đăng nhập thất bại';
+
+      if (error.message === 'Request timeout') {
+        errorMessage = 'Kết nối API timeout. Vui lòng thử lại.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Email hoặc mật khẩu không đúng';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+      } else if (error.message && error.message !== 'Request timeout') {
+        errorMessage = error.message;
+      }
+
       dispatch({
         type: 'LOGIN_FAILURE',
         payload: errorMessage
       });
-      throw error;
+
+      throw new Error(errorMessage);
     }
   };
 

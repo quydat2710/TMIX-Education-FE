@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Badge,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-  Box,
-  Divider,
-} from '@mui/material';
-import {
-  Notifications as NotificationsIcon,
-} from '@mui/icons-material';
+import { Badge, IconButton, Menu, MenuItem, Typography, Box, Divider } from '@mui/material';
+import { Notifications as NotificationsIcon } from '@mui/icons-material';
 
 const NotificationBell = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -73,7 +63,7 @@ const NotificationBell = () => {
           <Typography variant="h6">Thông báo</Typography>
         </Box>
         <Divider />
-        
+
         {notifications.length > 0 ? (
           notifications.map((notification) => (
             <MenuItem
@@ -111,4 +101,4 @@ const NotificationBell = () => {
   );
 };
 
-export default NotificationBell; 
+export default NotificationBell;

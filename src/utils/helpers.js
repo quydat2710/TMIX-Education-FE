@@ -1,4 +1,5 @@
 // Utility functions for English Center Application
+import { USER_ROLES } from './constants';
 
 // Format currency (VND)
 export const formatCurrency = (amount, currency = 'VND') => {
@@ -338,6 +339,22 @@ export const storage = {
   }
 };
 
+// Get dashboard path based on user role
+export const getDashboardPath = (role) => {
+  switch (role) {
+    case USER_ROLES.ADMIN:
+      return '/admin/dashboard';
+    case USER_ROLES.TEACHER:
+      return '/teacher/dashboard';
+    case USER_ROLES.STUDENT:
+      return '/student/dashboard';
+    case USER_ROLES.PARENT:
+      return '/parent/dashboard';
+    default:
+      return '/';
+  }
+};
+
 export default {
   formatCurrency,
   formatDate,
@@ -361,5 +378,6 @@ export default {
   getAvatarColor,
   scrollToElement,
   copyToClipboard,
-  storage
+  storage,
+  getDashboardPath
 };
