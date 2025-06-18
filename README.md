@@ -93,28 +93,6 @@ npm run dev
 
 4. Mở trình duyệt tại http://localhost:5173
 
-## Tài khoản demo
-
-### Admin
-
-- **Username**: admin
-- **Password**: admin123
-
-### Giáo viên
-
-- **Username**: teacher
-- **Password**: teacher123
-
-### Học sinh
-
-- **Username**: student
-- **Password**: student123
-
-### Phụ huynh
-
-- **Username**: parent
-- **Password**: parent123
-
 ## Scripts
 
 - `npm run dev` - Chạy development server

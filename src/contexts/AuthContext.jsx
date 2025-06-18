@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { USER_ROLES } from '../utils/constants';
+import { loginAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -23,7 +24,7 @@ const authReducer = (state, action) => {
       return {
         ...state,
         user: action.payload.user,
-        token: action.payload.token,
+        token: action.payload.accessToken,
         isAuthenticated: true,
         loading: false,
         error: null
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check for stored token on app load
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('access_token');
     const userData = localStorage.getItem('userData');
 
     if (token && userData) {
@@ -74,62 +75,48 @@ export const AuthProvider = ({ children }) => {
         const user = JSON.parse(userData);
         dispatch({
           type: 'LOGIN_SUCCESS',
-          payload: { user, token }
+          payload: { user, accessToken: token }
         });
       } catch (error) {
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('access_token');
         localStorage.removeItem('userData');
       }
     }
-    
+
     dispatch({ type: 'SET_LOADING', payload: false });
   }, []);
 
   const login = async (credentials) => {
     dispatch({ type: 'LOGIN_START' });
-    
+
     try {
-      // Simulate API call - replace with actual API call
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          // Mock successful login
-          if (credentials.username && credentials.password) {
-            resolve({
-              user: {
-                id: 1,
-                username: credentials.username,
-                role: credentials.role || USER_ROLES.ADMIN,
-                name: 'Test User',
-                email: credentials.username + '@example.com'
-              },
-              token: 'mock-jwt-token'
-            });
-          } else {
-            throw new Error('Invalid credentials');
-          }
-        }, 1000);
-      });
+      const response = await loginAPI(credentials.email, credentials.password);
 
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
+      if (response.data) {
+        localStorage.setItem('access_token', response.data.accessToken);
+        localStorage.setItem('userData', JSON.stringify(response.data.user));
 
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: response
-      });
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: response.data
+        });
 
-      return response;
+        return response.data;
+      } else {
+        throw new Error(response.message || 'Đăng nhập thất bại');
+      }
     } catch (error) {
+      const errorMessage = error.message || 'Đăng nhập thất bại';
       dispatch({
         type: 'LOGIN_FAILURE',
-        payload: error.message
+        payload: errorMessage
       });
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('userData');
     dispatch({ type: 'LOGOUT' });
   };

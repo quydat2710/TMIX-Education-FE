@@ -8,30 +8,29 @@ import {
   Typography,
   Container,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   CircularProgress,
   InputAdornment,
-  IconButton
+  IconButton,
+  Paper,
+  Divider
 } from '@mui/material';
-import { Visibility, VisibilityOff, School } from '@mui/icons-material';
+import {
+  Visibility,
+  VisibilityOff,
+  School,
+  Email,
+  Lock
+} from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
-import { authValidationSchema } from '../../utils/validation';
-import { USER_ROLES } from '../../constants/userRoles';
+import { loginValidationSchema } from '../../validations/loginValidation';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, error: authError, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
 
   const from = location.state?.from?.pathname || '/';
 
@@ -41,17 +40,15 @@ const Login = () => {
     handleChange,
     handleBlur,
     isSubmitting,
-    setIsSubmitting
+    setIsSubmitting,
+    validateField,
+    validateForm
   } = useForm(
     {
-      username: '',
-      password: '',
-      role: USER_ROLES.ADMIN
+      email: '',
+      password: ''
     },
-    {
-      username: authValidationSchema.username,
-      password: authValidationSchema.password
-    }
+    loginValidationSchema
   );
 
   const handleSubmit = async (e) => {
@@ -59,11 +56,16 @@ const Login = () => {
     setIsSubmitting(true);
     clearError();
 
+    const isValid = validateForm();
+    if (!isValid) {
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       await login({
-        username: values.username,
-        password: values.password,
-        role: values.role
+        email: values.email,
+        password: values.password
       });
       navigate(from, { replace: true });
     } catch (error) {
@@ -78,32 +80,60 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Card sx={{ width: '100%', maxWidth: 400 }}>
-          <CardContent sx={{ p: 4 }}>
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'url(/images/login-bg.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        opacity: 0.1,
+        zIndex: 0
+      }
+    }}>
+      <Container component="main" maxWidth="sm" sx={{
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Card sx={{
+          width: '100%',
+          maxWidth: 450,
+          mx: 'auto',
+          borderRadius: 4,
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+          backdropFilter: 'blur(20px)',
+          background: 'rgba(255, 255, 255, 0.95)'
+        }}>
+          <CardContent sx={{ p: 5 }}>
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                mb: 3,
+                mb: 4,
               }}
             >
-              <School sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-              <Typography component="h1" variant="h4" gutterBottom>
+              <School sx={{
+                fontSize: 64,
+                color: 'primary.main',
+                mb: 2,
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+              }} />
+              <Typography component="h1" variant="h3" fontWeight="bold" gutterBottom>
                 Đăng nhập
               </Typography>
-              <Typography variant="body2" color="textSecondary" align="center">
-                Hệ thống quản lý trung tâm tiếng Anh
+              <Typography variant="body1" color="textSecondary" align="center" sx={{ maxWidth: 300 }}>
+                Chào mừng bạn đến với hệ thống quản lý English Center
               </Typography>
             </Box>
 
@@ -114,35 +144,33 @@ const Login = () => {
             )}
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Vai trò</InputLabel>
-                <Select
-                  name="role"
-                  value={values.role}
-                  label="Vai trò"
-                  onChange={handleChange}
-                >
-                  <MenuItem value={USER_ROLES.ADMIN}>Quản trị viên</MenuItem>
-                  <MenuItem value={USER_ROLES.TEACHER}>Giáo viên</MenuItem>
-                  <MenuItem value={USER_ROLES.STUDENT}>Học sinh</MenuItem>
-                  <MenuItem value={USER_ROLES.PARENT}>Phụ huynh</MenuItem>
-                </Select>
-              </FormControl>
-
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                id="username"
-                label="Tên đăng nhập"
-                name="username"
-                autoComplete="username"
+                id="email"
+                label="Email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 autoFocus
-                value={values.username}
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={!!errors.username}
-                helperText={errors.username}
+                error={!!errors.email}
+                helperText={errors.email}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Email sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
               />
 
               <TextField
@@ -160,6 +188,11 @@ const Login = () => {
                 error={!!errors.password}
                 helperText={errors.password}
                 InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
@@ -172,44 +205,45 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
               />
 
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 3, mb: 2 }}
                 disabled={isSubmitting}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  '&:hover': {
+                    boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+                    transform: 'translateY(-1px)'
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
               >
                 {isSubmitting ? (
-                  <CircularProgress size={24} />
+                  <CircularProgress size={24} color="inherit" />
                 ) : (
                   'Đăng nhập'
                 )}
               </Button>
             </Box>
-
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
-                Tài khoản demo:
-              </Typography>
-              <Typography variant="caption" display="block">
-                Admin: admin / 123456
-              </Typography>
-              <Typography variant="caption" display="block">
-                Giáo viên: teacher / 123456
-              </Typography>
-              <Typography variant="caption" display="block">
-                Học sinh: student / 123456
-              </Typography>
-              <Typography variant="caption" display="block">
-                Phụ huynh: parent / 123456
-              </Typography>
-            </Box>
           </CardContent>
         </Card>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

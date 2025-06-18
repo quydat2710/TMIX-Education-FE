@@ -26,62 +26,61 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public Routes */}
+            {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Protected Routes */}
+            {/* Admin Routes */}
             <Route
               path="/admin/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.ADMIN}>
                   <Layout>
                     <Routes>
-                      <Route path="dashboard" element={<Home />} />
                       <Route path="advertisements" element={<AdvertisementManagement />} />
-                      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="/admin/advertisements" replace />} />
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
               }
             />
 
+            {/* Teacher Routes */}
             <Route
               path="/teacher/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.TEACHER}>
                   <Layout>
                     <Routes>
-                      <Route path="dashboard" element={<Home />} />
-                      <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
               }
             />
 
+            {/* Student Routes */}
             <Route
               path="/student/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.STUDENT}>
                   <Layout>
                     <Routes>
-                      <Route path="dashboard" element={<Home />} />
-                      <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
               }
             />
 
+            {/* Parent Routes */}
             <Route
               path="/parent/*"
               element={
                 <ProtectedRoute requiredRole={USER_ROLES.PARENT}>
                   <Layout>
                     <Routes>
-                      <Route path="dashboard" element={<Home />} />
-                      <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
