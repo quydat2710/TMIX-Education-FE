@@ -55,78 +55,78 @@ const StudentManagement = () => {
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
-              Quản lý học sinh
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
+          Quản lý học sinh
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
               sx={commonStyles.primaryButton}
-            >
-              Thêm học sinh
-            </Button>
-          </Box>
+        >
+          Thêm học sinh
+        </Button>
+      </Box>
 
           <Paper sx={commonStyles.searchContainer}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm học sinh..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm học sinh..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
                   sx={commonStyles.searchField}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Lớp học</InputLabel>
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Lớp học</InputLabel>
                   <Select label="Lớp học" sx={commonStyles.filterSelect}>
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="a1">A1</MenuItem>
-                    <MenuItem value="a2">A2</MenuItem>
-                    <MenuItem value="b1">B1</MenuItem>
-                    <MenuItem value="b2">B2</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="a1">A1</MenuItem>
+                <MenuItem value="a2">A2</MenuItem>
+                <MenuItem value="b1">B1</MenuItem>
+                <MenuItem value="b2">B2</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
                   <Select label="Trạng thái" sx={commonStyles.filterSelect}>
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="active">Đang học</MenuItem>
-                    <MenuItem value="inactive">Nghỉ học</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="active">Đang học</MenuItem>
+                <MenuItem value="inactive">Nghỉ học</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
 
           <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-            <Table>
-              <TableHead>
-                <TableRow>
+        <Table>
+          <TableHead>
+            <TableRow>
                   <TableCell width="25%">Họ và tên</TableCell>
                   <TableCell width="20%">Email</TableCell>
                   <TableCell width="15%">Số điện thoại</TableCell>
                   <TableCell width="15%">Lớp học</TableCell>
                   <TableCell width="15%">Trạng thái</TableCell>
                   <TableCell width="10%" align="center">Thao tác</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {/* Dữ liệu sẽ được thêm sau khi có API */}
-              </TableBody>
-            </Table>
-          </TableContainer>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {/* Dữ liệu sẽ được thêm sau khi có API */}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
           <Dialog
             open={openDialog}
@@ -138,8 +138,8 @@ const StudentManagement = () => {
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-              {selectedStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
-            </DialogTitle>
+          {selectedStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
+        </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
               <Grid container spacing={2} sx={commonStyles.formGrid}>
                 <Grid item xs={12} sm={6}>
@@ -148,20 +148,20 @@ const StudentManagement = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Email" type="email" required sx={commonStyles.formField} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Mật khẩu" type="password" required sx={commonStyles.formField} />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Ngày sinh"
-                    type="date"
-                    required
-                    InputLabelProps={{ shrink: true }}
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Ngày sinh"
+                type="date"
+                required
+                InputLabelProps={{ shrink: true }}
                     sx={commonStyles.formField}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Số điện thoại" required sx={commonStyles.formField} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -173,11 +173,11 @@ const StudentManagement = () => {
                     <Select label="Giới tính" required>
                       <MenuItem value="male">Nam</MenuItem>
                       <MenuItem value="female">Nữ</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </DialogContent>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
             <DialogActions sx={commonStyles.formActions}>
               <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton}>
                 Hủy
@@ -186,11 +186,11 @@ const StudentManagement = () => {
                 variant="contained"
                 sx={commonStyles.primaryButton}
               >
-                {selectedStudent ? 'Cập nhật' : 'Thêm mới'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
+            {selectedStudent ? 'Cập nhật' : 'Thêm mới'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
       </Box>
     </DashboardLayout>
   );
