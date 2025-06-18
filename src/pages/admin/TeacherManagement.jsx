@@ -85,11 +85,12 @@ const TeacherManagement = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
                 <TableCell>Họ và tên</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Số điện thoại</TableCell>
-                <TableCell>Trình độ</TableCell>
+                <TableCell>Lương/buổi</TableCell>
+                <TableCell>Bằng cấp</TableCell>
+                <TableCell>Chuyên môn</TableCell>
                 <TableCell>Trạng thái</TableCell>
                 <TableCell align="center">Thao tác</TableCell>
               </TableRow>
@@ -108,44 +109,37 @@ const TeacherManagement = () => {
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Họ và tên"
-                  required
-                />
+                <TextField fullWidth label="Họ và tên" required />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  required
-                />
+                <TextField fullWidth label="Email" type="email" required />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Số điện thoại"
-                  required
-                />
+                <TextField fullWidth label="Mật khẩu" type="password" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Số điện thoại" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Lương/buổi (nghìn VND)" type="number" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Bằng cấp (phân tách bởi dấu phẩy)" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Chuyên môn (phân tách bởi dấu phẩy)" required />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Mô tả" multiline rows={2} />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Trình độ</InputLabel>
-                  <Select label="Trình độ">
-                    <MenuItem value="bachelor">Cử nhân</MenuItem>
-                    <MenuItem value="master">Thạc sĩ</MenuItem>
-                    <MenuItem value="phd">Tiến sĩ</MenuItem>
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select label="Trạng thái" required>
+                    <MenuItem value={true}>Đang hoạt động</MenuItem>
+                    <MenuItem value={false}>Ngừng hoạt động</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Địa chỉ"
-                  multiline
-                  rows={2}
-                />
               </Grid>
             </Grid>
           </DialogContent>

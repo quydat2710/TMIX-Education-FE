@@ -32,7 +32,9 @@ import {
   Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
+import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import AddClassForm from './AddClassForm';
 
 const ClassManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,121 +51,55 @@ const ClassManagement = () => {
     setOpenDialog(false);
   };
 
+  const handleAddClass = (data) => {
+    console.log('Dữ liệu gửi lên API:', data);
+    handleCloseDialog();
+  };
+
+  // Dữ liệu thực tế sẽ được lấy từ API
+  const classList = [];
+
   return (
     <DashboardLayout role="admin">
-      <Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h5" component="h1">
-            Quản lý lớp học
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ bgcolor: COLORS.primary }}
-          >
-            Thêm lớp học
-          </Button>
-        </Box>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Quản lý lớp học
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={commonStyles.primaryButton}
+            >
+              Thêm lớp học
+            </Button>
+          </Box>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                placeholder="Tìm kiếm lớp học..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Trình độ</InputLabel>
-                <Select label="Trình độ">
-                  <MenuItem value="">Tất cả</MenuItem>
-                  <MenuItem value="a1">A1</MenuItem>
-                  <MenuItem value="a2">A2</MenuItem>
-                  <MenuItem value="b1">B1</MenuItem>
-                  <MenuItem value="b2">B2</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Trạng thái</InputLabel>
-                <Select label="Trạng thái">
-                  <MenuItem value="">Tất cả</MenuItem>
-                  <MenuItem value="active">Đang học</MenuItem>
-                  <MenuItem value="inactive">Đã kết thúc</MenuItem>
-                  <MenuItem value="pending">Chưa khai giảng</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Mã lớp</TableCell>
-                <TableCell>Tên lớp</TableCell>
-                <TableCell>Giáo viên</TableCell>
-                <TableCell>Trình độ</TableCell>
-                <TableCell>Số học viên</TableCell>
-                <TableCell>Lịch học</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell align="center">Thao tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Dữ liệu sẽ được thêm sau khi có API */}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Dialog thêm/sửa lớp học */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogTitle>
-            {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
+          <Paper sx={commonStyles.searchContainer}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                  label="Mã lớp"
-                  required
+                  placeholder="Tìm kiếm lớp học..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  sx={commonStyles.searchField}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Tên lớp"
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Giáo viên</InputLabel>
-                  <Select label="Giáo viên">
-                    <MenuItem value="teacher1">Nguyễn Văn A</MenuItem>
-                    <MenuItem value="teacher2">Trần Thị B</MenuItem>
-                    <MenuItem value="teacher3">Lê Văn C</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth required>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
                   <InputLabel>Trình độ</InputLabel>
-                  <Select label="Trình độ">
+                  <Select label="Trình độ" sx={commonStyles.filterSelect}>
+                    <MenuItem value="">Tất cả</MenuItem>
                     <MenuItem value="a1">A1</MenuItem>
                     <MenuItem value="a2">A2</MenuItem>
                     <MenuItem value="b1">B1</MenuItem>
@@ -171,47 +107,87 @@ const ClassManagement = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Số học viên tối đa"
-                  type="number"
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Học phí"
-                  type="number"
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Lịch học"
-                  required
-                  placeholder="VD: Thứ 2, 4, 6 - 18:00-19:30"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Ghi chú"
-                  multiline
-                  rows={2}
-                />
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select label="Trạng thái" sx={commonStyles.filterSelect}>
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="active">Đang học</MenuItem>
+                    <MenuItem value="inactive">Đã kết thúc</MenuItem>
+                    <MenuItem value="pending">Chưa khai giảng</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Hủy</Button>
-            <Button variant="contained" sx={{ bgcolor: COLORS.primary }}>
-              {selectedClass ? 'Cập nhật' : 'Thêm mới'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </Paper>
+
+          <TableContainer component={Paper} sx={commonStyles.tableContainer}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell width="20%">Tên lớp</TableCell>
+                  <TableCell width="15%">Giáo viên</TableCell>
+                  <TableCell width="10%">Năm học</TableCell>
+                  <TableCell width="10%">Số lượng học sinh</TableCell>
+                  <TableCell width="15%">Thời gian học</TableCell>
+                  <TableCell width="15%">Trạng thái</TableCell>
+                  <TableCell width="15%" align="center">Thao tác</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {classList.map((cls) => (
+                  <TableRow key={cls.id}>
+                    <TableCell>{cls.name}</TableCell>
+                    <TableCell>{cls.teacher}</TableCell>
+                    <TableCell>{cls.schoolYear}</TableCell>
+                    <TableCell>{cls.studentCount}</TableCell>
+                    <TableCell>{cls.schedule}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={cls.status}
+                        color={
+                          cls.status === 'Đang học'
+                            ? 'success'
+                            : cls.status === 'Đã kết thúc'
+                            ? 'default'
+                            : 'warning'
+                        }
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton title="Xem chi tiết">
+                        <ViewIcon />
+                      </IconButton>
+                      <IconButton title="Chỉnh sửa" onClick={() => handleOpenDialog(cls)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton title="Kết thúc lớp học" color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Dialog
+            open={openDialog}
+            onClose={handleCloseDialog}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={commonStyles.dialogTitle}>
+              {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
+            </DialogTitle>
+            <DialogContent sx={commonStyles.dialogContent}>
+              <AddClassForm onSubmit={handleAddClass} onCancel={handleCloseDialog} />
+            </DialogContent>
+          </Dialog>
+        </Box>
       </Box>
     </DashboardLayout>
   );
