@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   Divider,
+  Paper,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/layouts/DashboardLayout';

@@ -3,9 +3,11 @@ import { COLORS } from './colors';
 export const commonStyles = {
   // Layout styles
   pageContainer: {
-    p: 3,
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    background: '#f7f9fb',
+    paddingLeft: '5vw',
+    paddingRight: '5vw',
+    boxSizing: 'border-box',
   },
   contentContainer: {
     backgroundColor: 'white',

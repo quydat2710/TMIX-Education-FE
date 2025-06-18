@@ -65,66 +65,66 @@ const ClassManagement = () => {
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
-              Quản lý lớp học
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
+          Quản lý lớp học
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
               sx={commonStyles.primaryButton}
-            >
-              Thêm lớp học
-            </Button>
-          </Box>
+        >
+          Thêm lớp học
+        </Button>
+      </Box>
 
           <Paper sx={commonStyles.searchContainer}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm lớp học..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm lớp học..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
                   sx={commonStyles.searchField}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Trình độ</InputLabel>
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Trình độ</InputLabel>
                   <Select label="Trình độ" sx={commonStyles.filterSelect}>
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="a1">A1</MenuItem>
-                    <MenuItem value="a2">A2</MenuItem>
-                    <MenuItem value="b1">B1</MenuItem>
-                    <MenuItem value="b2">B2</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="a1">A1</MenuItem>
+                <MenuItem value="a2">A2</MenuItem>
+                <MenuItem value="b1">B1</MenuItem>
+                <MenuItem value="b2">B2</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
                   <Select label="Trạng thái" sx={commonStyles.filterSelect}>
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="active">Đang học</MenuItem>
-                    <MenuItem value="inactive">Đã kết thúc</MenuItem>
-                    <MenuItem value="pending">Chưa khai giảng</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="active">Đang học</MenuItem>
+                <MenuItem value="inactive">Đã kết thúc</MenuItem>
+                <MenuItem value="pending">Chưa khai giảng</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
 
           <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-            <Table>
-              <TableHead>
-                <TableRow>
+        <Table>
+          <TableHead>
+            <TableRow>
                   <TableCell width="20%">Tên lớp</TableCell>
                   <TableCell width="15%">Giáo viên</TableCell>
                   <TableCell width="10%">Năm học</TableCell>
@@ -132,9 +132,9 @@ const ClassManagement = () => {
                   <TableCell width="15%">Thời gian học</TableCell>
                   <TableCell width="15%">Trạng thái</TableCell>
                   <TableCell width="15%" align="center">Thao tác</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+            </TableRow>
+          </TableHead>
+          <TableBody>
                 {classList.map((cls) => (
                   <TableRow key={cls.id}>
                     <TableCell>{cls.name}</TableCell>
@@ -167,9 +167,9 @@ const ClassManagement = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
           <Dialog
             open={openDialog}
@@ -181,13 +181,13 @@ const ClassManagement = () => {
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-              {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
-            </DialogTitle>
+          {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
+        </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
               <AddClassForm onSubmit={handleAddClass} onCancel={handleCloseDialog} />
-            </DialogContent>
-          </Dialog>
-        </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
       </Box>
     </DashboardLayout>
   );

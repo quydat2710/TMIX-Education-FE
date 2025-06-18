@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { commonStyles } from '../../utils/styles';
 
 const MyClasses = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,8 +129,9 @@ const MyClasses = () => {
 
   return (
     <DashboardLayout role="teacher">
-      <Box>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Typography variant="h4" gutterBottom>
         Lớp học của tôi
       </Typography>
       <Grid container spacing={3}>
@@ -310,7 +312,7 @@ const MyClasses = () => {
           <Button
             variant="contained"
             startIcon={<AssignmentIcon />}
-              sx={{ bgcolor: COLORS.primary }}
+                sx={{ bgcolor: COLORS.primary }}
           >
             Quản lý bài tập
           </Button>
@@ -388,13 +390,14 @@ const MyClasses = () => {
           <Button
             variant="contained"
             onClick={handleSaveAttendance}
-              sx={{ bgcolor: COLORS.primary }}
+                sx={{ bgcolor: COLORS.primary }}
           >
             Lưu điểm danh
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
+      </Box>
     </DashboardLayout>
   );
 };

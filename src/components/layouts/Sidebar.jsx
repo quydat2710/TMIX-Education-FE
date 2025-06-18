@@ -148,12 +148,6 @@ const menuItems = {
   ],
   [USER_ROLES.PARENT]: [
     {
-      text: 'Trang chủ',
-      icon: <Home />,
-      path: '/',
-      permission: null
-    },
-    {
       text: 'Dashboard',
       icon: <Dashboard />,
       path: '/parent/dashboard',
@@ -166,22 +160,10 @@ const menuItems = {
       permission: 'view_child_info'
     },
     {
-      text: 'Điểm danh',
-      icon: <Assignment />,
-      path: '/parent/attendance',
-      permission: 'view_child_attendance'
-    },
-    {
-      text: 'Học phí',
+      text: 'Thanh toán học phí',
       icon: <Payment />,
-      path: '/parent/fees',
+      path: '/parent/payments',
       permission: 'view_fees'
-    },
-    {
-      text: 'Lịch học',
-      icon: <Schedule />,
-      path: '/parent/schedule',
-      permission: 'view_schedule'
     }
   ]
 };
@@ -208,6 +190,7 @@ const Sidebar = ({ open, onClose }) => {
   };
 
   const hasPermission = (permission) => {
+    if (userRole === USER_ROLES.PARENT) return true;
     if (!permission) return true;
     return ROLE_PERMISSIONS[userRole]?.includes(permission) || false;
   };
@@ -221,10 +204,6 @@ const Sidebar = ({ open, onClose }) => {
   };
 
   const renderMenuItem = (item, index) => {
-    if (!hasPermission(item.permission)) {
-      return null;
-    }
-
     const hasChildren = item.children && item.children.length > 0;
     const isActive = hasChildren ? isParentPathActive(item.children) : isPathActive(item.path);
 

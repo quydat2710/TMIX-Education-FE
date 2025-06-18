@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { commonStyles } from '../../utils/styles';
 
 const TeacherManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,106 +51,110 @@ const TeacherManagement = () => {
 
   return (
     <DashboardLayout role="admin">
-      <Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h5" component="h1">
-            Quản lý giáo viên
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ bgcolor: COLORS.primary }}
-          >
-            Thêm giáo viên
-          </Button>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+              <Typography variant="h5" component="h1">
+                Quản lý giáo viên
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenDialog()}
+                sx={{ bgcolor: COLORS.primary }}
+              >
+                Thêm giáo viên
+              </Button>
+            </Box>
+
+            <Paper sx={{ p: 2, mb: 3 }}>
+              <TextField
+                fullWidth
+                placeholder="Tìm kiếm giáo viên..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Paper>
+
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Họ và tên</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Số điện thoại</TableCell>
+                    <TableCell>Lương/buổi</TableCell>
+                    <TableCell>Bằng cấp</TableCell>
+                    <TableCell>Chuyên môn</TableCell>
+                    <TableCell>Trạng thái</TableCell>
+                    <TableCell align="center">Thao tác</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {/* Dữ liệu sẽ được thêm sau khi có API */}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Dialog thêm/sửa giáo viên */}
+            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+              <DialogTitle>
+                {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
+              </DialogTitle>
+              <DialogContent>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Họ và tên" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Email" type="email" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Mật khẩu" type="password" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Số điện thoại" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Lương/buổi (nghìn VND)" type="number" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Bằng cấp (phân tách bởi dấu phẩy)" required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Chuyên môn (phân tách bởi dấu phẩy)" required />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Mô tả" multiline rows={2} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Trạng thái</InputLabel>
+                      <Select label="Trạng thái" required>
+                        <MenuItem value={true}>Đang hoạt động</MenuItem>
+                        <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialog}>Hủy</Button>
+                <Button variant="contained" sx={{ bgcolor: COLORS.primary }}>
+                  {selectedTeacher ? 'Cập nhật' : 'Thêm mới'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Box>
         </Box>
-
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Tìm kiếm giáo viên..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Paper>
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Họ và tên</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Số điện thoại</TableCell>
-                <TableCell>Lương/buổi</TableCell>
-                <TableCell>Bằng cấp</TableCell>
-                <TableCell>Chuyên môn</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell align="center">Thao tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Dữ liệu sẽ được thêm sau khi có API */}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Dialog thêm/sửa giáo viên */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogTitle>
-            {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Họ và tên" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Email" type="email" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Mật khẩu" type="password" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Số điện thoại" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Lương/buổi (nghìn VND)" type="number" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Bằng cấp (phân tách bởi dấu phẩy)" required />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Chuyên môn (phân tách bởi dấu phẩy)" required />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Mô tả" multiline rows={2} />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
-                  <Select label="Trạng thái" required>
-                    <MenuItem value={true}>Đang hoạt động</MenuItem>
-                    <MenuItem value={false}>Ngừng hoạt động</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Hủy</Button>
-            <Button variant="contained" sx={{ bgcolor: COLORS.primary }}>
-              {selectedTeacher ? 'Cập nhật' : 'Thêm mới'}
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
     </DashboardLayout>
   );

@@ -28,6 +28,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { commonStyles } from '../../utils/styles';
 
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -64,24 +65,25 @@ const Schedule = () => {
 
   return (
     <DashboardLayout role="teacher">
-      <Box>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Typography variant="h4" gutterBottom>
         Lịch dạy
       </Typography>
 
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DatePicker
-            label="Chọn ngày"
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            slotProps={{
-              textField: {
-                fullWidth: true,
-                sx: { mb: 3 }
-              }
-            }}
-          />
-        </LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+              label="Chọn ngày"
+              value={selectedDate}
+              onChange={(newValue) => setSelectedDate(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  sx: { mb: 3 }
+                }
+              }}
+            />
+          </LocalizationProvider>
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2}>
@@ -108,10 +110,10 @@ const Schedule = () => {
                   <Grid item xs={12} sm={6} md={4} key={slot.id}>
                     <Card
                       sx={{
-                          bgcolor: COLORS.background,
+                            bgcolor: COLORS.background,
                         cursor: 'pointer',
                         '&:hover': {
-                            bgcolor: COLORS.hover,
+                              bgcolor: COLORS.hover,
                         },
                       }}
                       onClick={() => handleOpenDialog()}
@@ -167,13 +169,14 @@ const Schedule = () => {
           <Button onClick={handleCloseDialog}>Đóng</Button>
           <Button
             variant="contained"
-              sx={{ bgcolor: COLORS.primary }}
+                sx={{ bgcolor: COLORS.primary }}
           >
             Cập nhật nội dung
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
+      </Box>
     </DashboardLayout>
   );
 };

@@ -72,7 +72,18 @@ export const AuthProvider = ({ children }) => {
 
     if (token && userData) {
       try {
-        const user = JSON.parse(userData);
+        let user = JSON.parse(userData);
+        // Nếu là parent và thiếu permissions thì bổ sung mặc định
+        if (user.role === 'parent' && !user.permissions) {
+          user.permissions = [
+            'view_child_info',
+            'view_child_attendance',
+            'view_fees',
+            'make_payment',
+            'view_schedule'
+          ];
+          localStorage.setItem('userData', JSON.stringify(user));
+        }
         dispatch({
           type: 'LOGIN_SUCCESS',
           payload: { user, accessToken: token }
@@ -94,33 +105,40 @@ export const AuthProvider = ({ children }) => {
 
       // Demo accounts for testing frontend
       const demoAccounts = [
-        { 
-          email: 'admin@demo.com', 
-          password: 'admin123', 
-          role: 'admin', 
+        {
+          email: 'admin@demo.com',
+          password: 'admin123',
+          role: 'admin',
           name: 'Admin User',
           _id: 'demo_admin_1'
         },
-        { 
-          email: 'teacher@demo.com', 
-          password: 'teacher123', 
-          role: 'teacher', 
+        {
+          email: 'teacher@demo.com',
+          password: 'teacher123',
+          role: 'teacher',
           name: 'Teacher User',
           _id: 'demo_teacher_1'
         },
-        { 
-          email: 'student@demo.com', 
-          password: 'student123', 
-          role: 'student', 
+        {
+          email: 'student@demo.com',
+          password: 'student123',
+          role: 'student',
           name: 'Student User',
           _id: 'demo_student_1'
         },
-        { 
-          email: 'parent@demo.com', 
-          password: 'parent123', 
-          role: 'parent', 
+        {
+          email: 'parent@demo.com',
+          password: 'parent123',
+          role: 'parent',
           name: 'Parent User',
-          _id: 'demo_parent_1'
+          _id: 'demo_parent_1',
+          permissions: [
+            'view_child_info',
+            'view_child_attendance',
+            'view_fees',
+            'make_payment',
+            'view_schedule'
+          ]
         }
       ];
 
@@ -132,11 +150,12 @@ export const AuthProvider = ({ children }) => {
       if (demoUser) {
         // Use demo account
         const userData = {
-          user: {
+              user: {
             _id: demoUser._id,
             name: demoUser.name,
             email: demoUser.email,
-            role: demoUser.role
+            role: demoUser.role,
+            permissions: demoUser.permissions
           },
           accessToken: 'demo-token-' + Date.now()
         };

@@ -32,6 +32,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { COLORS } from '../../utils/colors';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { commonStyles } from '../../utils/styles';
 
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -83,172 +84,174 @@ const Schedule = () => {
 
   return (
     <DashboardLayout role="student">
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Lịch học
-        </Typography>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Typography variant="h4" gutterBottom>
+            Lịch học
+          </Typography>
 
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DatePicker
-            label="Chọn ngày"
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            slotProps={{
-              textField: {
-                fullWidth: true,
-                sx: { mb: 3 }
-              }
-            }}
-          />
-        </LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+              label="Chọn ngày"
+              value={selectedDate}
+              onChange={(newValue) => setSelectedDate(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  sx: { mb: 3 }
+                }
+              }}
+            />
+          </LocalizationProvider>
 
-        <Grid container spacing={2}>
-          {/* Header với các ngày trong tuần */}
-          <Grid item xs={2}>
-            <Box sx={{ height: 50 }} />
-          </Grid>
-          {weekdays.map((day) => (
-            <Grid item xs={1.4} key={day}>
-              <Paper
-                sx={{
-                  p: 1,
-                  textAlign: 'center',
-                  bgcolor: COLORS.primary,
-                  color: 'white',
-                }}
-              >
-                <Typography variant="subtitle2">{day}</Typography>
-              </Paper>
+          <Grid container spacing={2}>
+            {/* Header với các ngày trong tuần */}
+            <Grid item xs={2}>
+              <Box sx={{ height: 50 }} />
             </Grid>
-          ))}
-
-          {/* Các khung giờ */}
-          {timeSlots.map((timeSlot) => (
-            <React.Fragment key={timeSlot}>
-              <Grid item xs={2}>
-                <Paper sx={{ p: 1, textAlign: 'center', height: '100%' }}>
-                  <Typography variant="body2">{timeSlot}</Typography>
+            {weekdays.map((day) => (
+              <Grid item xs={1.4} key={day}>
+                <Paper
+                  sx={{
+                    p: 1,
+                    textAlign: 'center',
+                    bgcolor: COLORS.primary,
+                    color: 'white',
+                  }}
+                >
+                  <Typography variant="subtitle2">{day}</Typography>
                 </Paper>
               </Grid>
-              {weekdays.map((day) => (
-                <Grid item xs={1.4} key={`${day}-${timeSlot}`}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        bgcolor: COLORS.background,
-                      },
-                    }}
-                    onClick={() => {
-                      const classData = schedule.find(
-                        (c) => c.day === day && c.timeSlot === timeSlot
-                      );
-                      if (classData) {
-                        handleOpenDialog(classData);
-                      }
-                    }}
-                  >
-                    <CardContent sx={{ p: 1 }}>
-                      {schedule
-                        .filter((c) => c.day === day && c.timeSlot === timeSlot)
-                        .map((classData) => (
-                          <Box key={classData.id}>
-                            <Typography variant="subtitle2" noWrap>
-                              {classData.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" noWrap>
-                              {classData.room}
-                            </Typography>
-                          </Box>
-                        ))}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </React.Fragment>
-          ))}
-        </Grid>
+            ))}
 
-        {/* Dialog xem chi tiết lớp học */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogTitle>
-            Chi tiết lớp học
-          </DialogTitle>
-          <DialogContent>
-            {selectedClass && (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Thông tin lớp học
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2">Tên lớp:</Typography>
-                      <Typography>{selectedClass.name}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2">Thời gian:</Typography>
-                      <Typography>{selectedClass.timeSlot}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2">Phòng học:</Typography>
-                      <Typography>{selectedClass.room}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2">Giáo viên:</Typography>
-                      <Typography>{selectedClass.teacher}</Typography>
+            {/* Các khung giờ */}
+            {timeSlots.map((timeSlot) => (
+              <React.Fragment key={timeSlot}>
+                <Grid item xs={2}>
+                  <Paper sx={{ p: 1, textAlign: 'center', height: '100%' }}>
+                    <Typography variant="body2">{timeSlot}</Typography>
+                  </Paper>
+                </Grid>
+                {weekdays.map((day) => (
+                  <Grid item xs={1.4} key={`${day}-${timeSlot}`}>
+                    <Card
+                      sx={{
+                        height: '100%',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          bgcolor: COLORS.background,
+                        },
+                      }}
+                      onClick={() => {
+                        const classData = schedule.find(
+                          (c) => c.day === day && c.timeSlot === timeSlot
+                        );
+                        if (classData) {
+                          handleOpenDialog(classData);
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 1 }}>
+                        {schedule
+                          .filter((c) => c.day === day && c.timeSlot === timeSlot)
+                          .map((classData) => (
+                            <Box key={classData.id}>
+                              <Typography variant="subtitle2" noWrap>
+                                {classData.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" noWrap>
+                                {classData.room}
+                              </Typography>
+                            </Box>
+                          ))}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </React.Fragment>
+            ))}
+          </Grid>
+
+          {/* Dialog xem chi tiết lớp học */}
+          <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+            <DialogTitle>
+              Chi tiết lớp học
+            </DialogTitle>
+            <DialogContent>
+              {selectedClass && (
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Thông tin lớp học
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2">Tên lớp:</Typography>
+                        <Typography>{selectedClass.name}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2">Thời gian:</Typography>
+                        <Typography>{selectedClass.timeSlot}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2">Phòng học:</Typography>
+                        <Typography>{selectedClass.room}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2">Giáo viên:</Typography>
+                        <Typography>{selectedClass.teacher}</Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
 
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Nội dung bài học
-                  </Typography>
-                  <Typography variant="body1" paragraph>
-                    {selectedClass.lessonContent}
-                  </Typography>
-                </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Nội dung bài học
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      {selectedClass.lessonContent}
+                    </Typography>
+                  </Grid>
 
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Bài tập về nhà
-                  </Typography>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Tên bài tập</TableCell>
-                          <TableCell>Hạn nộp</TableCell>
-                          <TableCell>Trạng thái</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {selectedClass.homework?.map((hw) => (
-                          <TableRow key={hw.id}>
-                            <TableCell>{hw.name}</TableCell>
-                            <TableCell>{hw.dueDate}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={hw.status}
-                                color={hw.status === 'completed' ? 'success' : 'warning'}
-                                size="small"
-                              />
-                            </TableCell>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Bài tập về nhà
+                    </Typography>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Tên bài tập</TableCell>
+                            <TableCell>Hạn nộp</TableCell>
+                            <TableCell>Trạng thái</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                          {selectedClass.homework?.map((hw) => (
+                            <TableRow key={hw.id}>
+                              <TableCell>{hw.name}</TableCell>
+                              <TableCell>{hw.dueDate}</TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={hw.status}
+                                  color={hw.status === 'completed' ? 'success' : 'warning'}
+                                  size="small"
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Grid>
                 </Grid>
-              </Grid>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Đóng</Button>
-          </DialogActions>
-        </Dialog>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Đóng</Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
       </Box>
     </DashboardLayout>
   );
