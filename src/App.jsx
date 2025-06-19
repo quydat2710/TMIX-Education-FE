@@ -11,11 +11,7 @@ import DashboardLayout from './components/layouts/DashboardLayout';
 import theme from './theme';
 
 // Pages
-import Home from './pages/Home/Home';
-import Courses from './pages/Home/Courses';
-import Teachers from './pages/Home/Teachers';
-import About from './pages/Home/About';
-import Contact from './pages/Home/Contact';
+import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Profile from './pages/Profile';
 
@@ -56,10 +52,6 @@ function App() {
           <Routes>
             {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
             <Route path="/" element={<Home />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/teachers" element={<Teachers />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={
               !user ? <Navigate to="/" replace /> : (
@@ -68,7 +60,7 @@ function App() {
                 </DashboardLayout>
               )
             } />
-            
+
             {/* Admin Routes */}
             <Route
               path="/admin/*"

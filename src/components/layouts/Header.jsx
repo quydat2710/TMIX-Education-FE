@@ -44,6 +44,7 @@ const Header = ({ onMenuClick }) => {
   };
   const handleLogout = () => {
     logout();
+    navigate('/');
     handleMenuClose();
   };
 
@@ -69,10 +70,10 @@ const Header = ({ onMenuClick }) => {
               {user?.name?.charAt(0) || user?.username?.charAt(0) || '?'}
             </Avatar>
           </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             sx={{ mt: 1 }}
@@ -85,12 +86,12 @@ const Header = ({ onMenuClick }) => {
             <MenuItem onClick={handleProfile}>
               <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
               Trang cá nhân
-            </MenuItem>
+          </MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
               Đăng xuất
-            </MenuItem>
-          </Menu>
+          </MenuItem>
+        </Menu>
         </Box>
       </Toolbar>
     </AppBar>

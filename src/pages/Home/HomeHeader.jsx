@@ -28,18 +28,42 @@ const HomeHeader = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [anchorEl, setAnchorEl] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero-section');
+
+  const sectionIds = [
+    { label: 'Trang chủ', id: 'hero-section' },
+    { label: 'Khóa học', id: 'courses-section' },
+    { label: 'Giáo viên', id: 'teachers-section' },
+    { label: 'Về chúng tôi', id: 'about-section' },
+    { label: 'Liên hệ', id: 'contact-section' },
+  ];
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      window.scrollTo({
+        top: el.offsetTop - 72, // trừ chiều cao header
+        behavior: 'smooth',
+      });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 50;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
+      const scrollY = window.scrollY;
+      let found = 'hero-section';
+      for (const sec of sectionIds) {
+        const el = document.getElementById(sec.id);
+        if (el && scrollY + 80 >= el.offsetTop) {
+          found = sec.id;
+        }
       }
+      setActiveSection(found);
+      setScrolled(scrollY > 50);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [scrolled]);
+  }, []);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -66,187 +90,71 @@ const HomeHeader = () => {
     <AppBar
       position="fixed"
       sx={{
-        bgcolor: scrolled ? 'white' : 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: scrolled ? 'none' : 'blur(8px)',
+        bgcolor: '#fff',
+        color: COLORS.text,
+        borderBottom: '1px solid #eee',
         boxShadow: scrolled ? 1 : 'none',
-        transition: 'all 0.3s ease-in-out',
+        transition: 'all 0.3s',
       }}
     >
-      <Container maxWidth="lg">
-        <Toolbar
-          disableGutters
-          sx={{
-            minHeight: { xs: 64, md: 70 },
-            transition: 'all 0.3s ease-in-out',
-          }}
-        >
-          {/* Logo */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-              },
-            }}
-            onClick={() => navigate('/')}
-          >
-            <SchoolIcon
+      <Toolbar sx={{ minHeight: 72, px: { xs: 1, md: 4 }, display: 'flex', justifyContent: 'space-between' }}>
+        {/* Logo */}
+        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => scrollToSection('hero-section')}>
+          <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary, mr: 1 }} />
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#111', fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+            English Center
+          </Typography>
+        </Box>
+        {/* Menu */}
+        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', ml: 4 }}>
+          {sectionIds.map((item) => (
+            <Button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
               sx={{
-                fontSize: 32,
-                color: scrolled ? COLORS.primary : 'white',
-                mr: 1,
-                transition: 'color 0.3s ease',
-              }}
-            />
-            <Typography
-              variant="h6"
-              sx={{
-                color: scrolled ? COLORS.primary : 'white',
-                fontWeight: 'bold',
-                transition: 'color 0.3s ease',
-                fontSize: { xs: '1.1rem', md: '1.25rem' },
+                mx: 1,
+                color: activeSection === item.id ? COLORS.primary : '#111',
+                fontWeight: activeSection === item.id ? 700 : 500,
+                fontSize: '1rem',
+                borderBottom: activeSection === item.id ? `2px solid ${COLORS.primary}` : '2px solid transparent',
+                borderRadius: 0,
+                bgcolor: 'transparent',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  color: COLORS.primary,
+                  bgcolor: 'transparent',
+                },
               }}
             >
-              English Center
-            </Typography>
-          </Box>
-
-          {isMobile ? (
-            <>
-              <Box sx={{ flexGrow: 1 }} />
-              <IconButton
-                size="large"
-                edge="end"
-                color={scrolled ? 'primary' : 'inherit'}
-                aria-label="menu"
-                onClick={handleMenu}
-                sx={{
-                  transition: 'color 0.3s ease',
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                PaperProps={{
-                  sx: {
-                    mt: 1.5,
-                    minWidth: 200,
-                    borderRadius: 2,
-                    boxShadow: 3,
-                  },
-                }}
-              >
-                {menuItems.map((item) => (
-                  <MenuItem
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    sx={{
-                      py: 1.5,
-                      '&:hover': {
-                        bgcolor: 'rgba(25, 118, 210, 0.08)',
-                      },
-                    }}
-                  >
-                    {item.label}
-                  </MenuItem>
-                ))}
-                <MenuItem
-                  onClick={() => handleNavigate('/login')}
-                  sx={{
-                    py: 1.5,
-                    color: COLORS.primary,
-                    fontWeight: 'bold',
-                    '&:hover': {
-                      bgcolor: 'rgba(25, 118, 210, 0.08)',
-                    },
-                  }}
-                >
-                  Đăng nhập
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <>
-              {/* Navigation Links */}
-              <Box
-                sx={{
-                  flexGrow: 1,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  ml: 4,
-                }}
-              >
-                {menuItems.map((item) => (
-                  <Button
-                    key={item.label}
-                    color="inherit"
-                    onClick={() => handleNavigate(item.path)}
-                    sx={{
-                      mx: 1,
-                      color: scrolled ? COLORS.text : 'white',
-                      fontWeight: 500,
-                      fontSize: '0.95rem',
-                      '&:hover': {
-                        color: COLORS.primary,
-                        bgcolor: 'transparent',
-                      },
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </Box>
-
-              {/* Right Side Actions */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Tooltip title="Tìm kiếm">
-                  <IconButton
-                    color={scrolled ? 'primary' : 'inherit'}
-                    sx={{
-                      transition: 'color 0.3s ease',
-                      '&:hover': {
-                        color: scrolled ? COLORS.primaryDark : 'rgba(255, 255, 255, 0.8)',
-                      }
-                    }}
-                  >
-                    <SearchIcon />
-                  </IconButton>
-                </Tooltip>
-
-                <Button
-                  variant="contained"
-                  onClick={() => handleNavigate('/login')}
-                  startIcon={<PersonIcon />}
-                  sx={{
-                    bgcolor: COLORS.primary,
-                    color: 'white',
-                    px: 2,
-                    py: 1,
-                    borderRadius: 2,
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 14px 0 rgba(0,118,255,0.39)',
-                    '&:hover': {
-                      bgcolor: COLORS.primaryDark,
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(0,118,255,0.23)',
-                    },
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  Đăng nhập
-                </Button>
-              </Box>
-            </>
-          )}
-        </Toolbar>
-      </Container>
+              {item.label}
+            </Button>
+          ))}
+        </Box>
+        {/* Đăng nhập */}
+        <Button
+          variant="contained"
+          onClick={() => navigate('/login')}
+          startIcon={<PersonIcon />}
+          sx={{
+            bgcolor: COLORS.primary,
+            color: 'white',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            fontWeight: 'bold',
+            boxShadow: '0 4px 14px 0 rgba(0,118,255,0.19)',
+            ml: { xs: 1, md: 3 },
+            '&:hover': {
+              bgcolor: COLORS.primaryDark,
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 20px rgba(0,118,255,0.23)',
+            },
+            transition: 'all 0.3s',
+          }}
+        >
+          Đăng nhập
+        </Button>
+      </Toolbar>
     </AppBar>
   );
 };

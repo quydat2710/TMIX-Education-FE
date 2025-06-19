@@ -6,43 +6,84 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Paper,
+  Avatar,
+  TextField,
   Button,
 } from '@mui/material';
-import { COLORS } from '../../utils/colors';
 import { commonStyles } from '../../utils/styles';
-import DashboardLayout from '../../components/layouts/DashboardLayout';
+import HomeHeader from './HomeHeader';
+import Footer from './Footer';
+import Advertisement from '../../components/advertisement/Advertisement';
+
+const courses = [
+  {
+    id: 1,
+    title: 'Tiếng Anh Giao Tiếp',
+    description: 'Khóa học giúp học viên tự tin giao tiếp tiếng Anh trong các tình huống hàng ngày',
+    image: 'https://source.unsplash.com/random/400x300?english',
+    level: 'Cơ bản đến Nâng cao',
+    duration: '3 tháng',
+    price: '2.500.000 VNĐ'
+  },
+  {
+    id: 2,
+    title: 'Luyện Thi IELTS',
+    description: 'Chương trình luyện thi IELTS chuyên sâu với giáo viên bản ngữ',
+    image: 'https://source.unsplash.com/random/400x300?ielts',
+    level: 'Trung cấp',
+    duration: '6 tháng',
+    price: '5.000.000 VNĐ'
+  },
+  {
+    id: 3,
+    title: 'Tiếng Anh Doanh Nghiệp',
+    description: 'Khóa học tiếng Anh chuyên ngành dành cho doanh nghiệp',
+    image: 'https://source.unsplash.com/random/400x300?business',
+    level: 'Trung cấp đến Nâng cao',
+    duration: '4 tháng',
+    price: '4.000.000 VNĐ'
+  }
+];
+
+const teachers = [
+  {
+    id: 1,
+    name: 'Sarah Johnson',
+    role: 'Giảng viên IELTS',
+    experience: '8 năm kinh nghiệm',
+    education: 'Thạc sĩ Ngôn ngữ học, Đại học Cambridge',
+    image: 'https://source.unsplash.com/random/400x400?teacher1',
+    description: 'Chuyên gia luyện thi IELTS với nhiều học viên đạt điểm cao'
+  },
+  {
+    id: 2,
+    name: 'Michael Brown',
+    role: 'Giảng viên Giao tiếp',
+    experience: '5 năm kinh nghiệm',
+    education: 'Cử nhân Giáo dục, Đại học Oxford',
+    image: 'https://source.unsplash.com/random/400x400?teacher2',
+    description: 'Chuyên gia về phương pháp giảng dạy tiếng Anh giao tiếp'
+  },
+  {
+    id: 3,
+    name: 'Emma Wilson',
+    role: 'Giảng viên Doanh nghiệp',
+    experience: '6 năm kinh nghiệm',
+    education: 'MBA, Đại học Harvard',
+    image: 'https://source.unsplash.com/random/400x400?teacher3',
+    description: 'Chuyên gia về tiếng Anh thương mại và đàm phán'
+  }
+];
 
 const Home = () => {
-  const courses = [
-    {
-      id: 1,
-      title: 'Khóa học A1',
-      description: 'Khóa học tiếng Anh cơ bản cho người mới bắt đầu',
-      image: 'https://via.placeholder.com/300x200',
-      price: '2,000,000 VNĐ',
-    },
-    {
-      id: 2,
-      title: 'Khóa học A2',
-      description: 'Khóa học tiếng Anh sơ cấp',
-      image: 'https://via.placeholder.com/300x200',
-      price: '2,500,000 VNĐ',
-    },
-    {
-      id: 3,
-      title: 'Khóa học B1',
-      description: 'Khóa học tiếng Anh trung cấp',
-      image: 'https://via.placeholder.com/300x200',
-      price: '3,000,000 VNĐ',
-    },
-  ];
-
   return (
-    <DashboardLayout>
-      <Box sx={commonStyles.pageContainer}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
+      <HomeHeader sx={{ bgcolor: '#fff', borderBottom: '1px solid #eee' }} />
+      <Box sx={{ width: '100%' }}>
         <Box sx={commonStyles.contentContainer}>
           {/* Hero Section */}
-          <Box
+          <Box id="hero-section"
             sx={{
               position: 'relative',
               height: '400px',
@@ -98,32 +139,92 @@ const Home = () => {
             </Box>
           </Box>
 
-          {/* Courses Section */}
-          <Box sx={{ mb: 4 }}>
+          {/* About Section */}
+          <Box id="about-section" sx={{ mb: 6 }}>
             <Typography
-              variant="h4"
-              sx={{
-                mb: 3,
-                fontWeight: 'bold',
-                color: COLORS.text,
-              }}
+              variant="h3"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 'bold' }}
             >
-              Khóa học nổi bật
+              Về chúng tôi
             </Typography>
-            <Grid container spacing={3}>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              paragraph
+              align="center"
+              sx={{ mb: 6 }}
+            >
+              Tìm hiểu thêm về English Center
+            </Typography>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
+                  <Typography variant="h5" gutterBottom>Sứ mệnh</Typography>
+                  <Typography paragraph>
+                    Chúng tôi cam kết mang đến chất lượng đào tạo tiếng Anh tốt nhất, giúp học viên tự tin giao tiếp và đạt được mục tiêu học tập của mình.
+                  </Typography>
+                  <Typography variant="h5" gutterBottom>Tầm nhìn</Typography>
+                  <Typography paragraph>
+                    Trở thành trung tâm đào tạo tiếng Anh hàng đầu, được tin tưởng bởi học viên và đối tác.
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
+                  <Typography variant="h5" gutterBottom>Giá trị cốt lõi</Typography>
+                  <Typography component="ul" sx={{ pl: 2 }}>
+                    <li>Chất lượng đào tạo xuất sắc</li>
+                    <li>Đội ngũ giảng viên chuyên nghiệp</li>
+                    <li>Phương pháp giảng dạy hiện đại</li>
+                    <li>Môi trường học tập thân thiện</li>
+                    <li>Hỗ trợ học viên tận tâm</li>
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12}>
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h5" gutterBottom>Lịch sử phát triển</Typography>
+                  <Typography paragraph>
+                    English Center được thành lập năm 2010 với sứ mệnh mang đến chất lượng đào tạo tiếng Anh tốt nhất cho học viên Việt Nam. Trải qua hơn 10 năm phát triển, chúng tôi đã đào tạo hơn 10,000 học viên và trở thành đối tác tin cậy của nhiều doanh nghiệp.
+                  </Typography>
+                  <Typography paragraph>
+                    Với đội ngũ giảng viên giàu kinh nghiệm và phương pháp giảng dạy hiện đại, chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất cho mọi học viên.
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Advertisement Banner */}
+          <Box sx={{ mb: 6 }}>
+            <Advertisement mode="banner" />
+          </Box>
+
+          {/* Courses Section */}
+          <Box id="courses-section" sx={{ mb: 6 }}>
+            <Typography
+              variant="h3"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 'bold' }}
+            >
+              Khóa học
+            </Typography>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              paragraph
+              align="center"
+              sx={{ mb: 6 }}
+            >
+              Khám phá các khóa học chất lượng của chúng tôi
+            </Typography>
+            <Grid container spacing={4}>
               {courses.map((course) => (
-                <Grid item xs={12} md={4} key={course.id}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'transform 0.2s',
-                      '&:hover': {
-                        transform: 'translateY(-5px)',
-                      },
-                    }}
-                  >
+                <Grid item key={course.id} xs={12} md={4}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <CardMedia
                       component="img"
                       height="200"
@@ -135,24 +236,38 @@ const Home = () => {
                         gutterBottom
                         variant="h5"
                         component="h2"
-                        sx={{ fontWeight: 'bold' }}
                       >
                         {course.title}
+                      </Typography>
+                      <Typography paragraph>{course.description}</Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        Trình độ: {course.level}
                       </Typography>
                       <Typography
                         variant="body2"
                         color="text.secondary"
-                        sx={{ mb: 2 }}
+                        paragraph
                       >
-                        {course.description}
+                        Thời lượng: {course.duration}
                       </Typography>
                       <Typography
                         variant="h6"
                         color="primary"
-                        sx={{ fontWeight: 'bold' }}
+                        paragraph
                       >
                         {course.price}
                       </Typography>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                      >
+                        Đăng ký ngay
+                      </Button>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -160,52 +275,194 @@ const Home = () => {
             </Grid>
           </Box>
 
-          {/* Features Section */}
-          <Box>
+          {/* Teachers Section */}
+          <Box id="teachers-section" sx={{ mb: 6 }}>
             <Typography
-              variant="h4"
-              sx={{
-                mb: 3,
-                fontWeight: 'bold',
-                color: COLORS.text,
-              }}
+              variant="h3"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 'bold' }}
             >
-              Tại sao chọn chúng tôi?
+              Đội ngũ giảng viên
             </Typography>
-            <Grid container spacing={3}>
-              {[
-                {
-                  title: 'Giáo viên chất lượng',
-                  description: 'Đội ngũ giảng viên giàu kinh nghiệm, nhiệt tình',
-                },
-                {
-                  title: 'Phương pháp hiện đại',
-                  description: 'Áp dụng công nghệ và phương pháp giảng dạy tiên tiến',
-                },
-                {
-                  title: 'Môi trường học tập',
-                  description: 'Cơ sở vật chất hiện đại, môi trường học tập thân thiện',
-                },
-              ].map((feature, index) => (
-                <Grid item xs={12} md={4} key={index}>
-                  <Card sx={{ height: '100%', p: 3 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{ mb: 2, fontWeight: 'bold' }}
-                    >
-                      {feature.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {feature.description}
-                    </Typography>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              paragraph
+              align="center"
+              sx={{ mb: 6 }}
+            >
+              Gặp gỡ đội ngũ giảng viên chuyên nghiệp của chúng tôi
+            </Typography>
+            <Grid container spacing={4}>
+              {teachers.map((teacher) => (
+                <Grid item key={teacher.id} xs={12} md={4}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ position: 'relative', paddingTop: '100%' }}>
+                      <CardMedia
+                        component="img"
+                        image={teacher.image}
+                        alt={teacher.name}
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </Box>
+                    <CardContent>
+                      <Typography
+                        gutterBottom
+                        variant="h5"
+                        component="h2"
+                      >
+                        {teacher.name}
+                      </Typography>
+                      <Typography
+                        variant="subtitle1"
+                        color="primary"
+                        gutterBottom
+                      >
+                        {teacher.role}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        {teacher.experience}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        {teacher.education}
+                      </Typography>
+                      <Typography variant="body1" paragraph>{teacher.description}</Typography>
+                    </CardContent>
                   </Card>
                 </Grid>
               ))}
             </Grid>
           </Box>
+
+          {/* Contact Section */}
+          <Box id="contact-section" sx={{ mb: 6 }}>
+            <Typography
+              variant="h3"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 'bold' }}
+            >
+              Liên hệ
+            </Typography>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              paragraph
+              align="center"
+              sx={{ mb: 6 }}
+            >
+              Hãy liên hệ với chúng tôi
+            </Typography>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h5" gutterBottom>Thông tin liên hệ</Typography>
+                  <Typography paragraph>
+                    <strong>Địa chỉ:</strong> 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                  </Typography>
+                  <Typography paragraph>
+                    <strong>Điện thoại:</strong> (028) 1234 5678
+                  </Typography>
+                  <Typography paragraph>
+                    <strong>Email:</strong> info@englishcenter.com
+                  </Typography>
+                  <Typography paragraph>
+                    <strong>Giờ làm việc:</strong>
+                    <br />Thứ 2 - Thứ 6: 8:00 - 21:00
+                    <br />Thứ 7: 8:00 - 17:00
+                    <br />Chủ nhật: 8:00 - 12:00
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h5" gutterBottom>Gửi tin nhắn cho chúng tôi</Typography>
+                  <Box
+                    component="form"
+                    noValidate
+                    sx={{ mt: 2 }}
+                  >
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Họ và tên"
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Email"
+                          variant="outlined"
+                          type="email"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Số điện thoại"
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Tiêu đề"
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Nội dung"
+                          variant="outlined"
+                          multiline
+                          rows={4}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          size="large"
+                          fullWidth
+                        >
+                          Gửi tin nhắn
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
         </Box>
       </Box>
-    </DashboardLayout>
+      <Footer />
+    </Box>
   );
 };
 
