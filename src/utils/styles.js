@@ -5,8 +5,8 @@ export const commonStyles = {
   pageContainer: {
     minHeight: '100vh',
     background: '#f7f9fb',
-    paddingLeft: '5vw',
-    paddingRight: '5vw',
+    paddingLeft: '3vw',
+    paddingRight: '3vw',
     boxSizing: 'border-box',
   },
   contentContainer: {
@@ -112,4 +112,3 @@ export const commonStyles = {
     minWidth: '200px',
   },
 };
- 

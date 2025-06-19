@@ -1,338 +1,131 @@
-import React, { useState } from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, ListItemButton, Collapse, Divider, Box, Typography} from '@mui/material';
-import { Dashboard, School, People, Person, FamilyRestroom, Assignment, Payment, Announcement, BarChart,
-  ExpandLess, ExpandMore, Class, Schedule, MonetizationOn, Home} from '@mui/icons-material';
+import React from 'react';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, ListItemButton, Divider, Tooltip, Box } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import ExploreIcon from '@mui/icons-material/Explore';
+import SubscriptionsIcon from '@mui/icons-material/Subscriptions';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import HistoryIcon from '@mui/icons-material/History';
+import SchoolIcon from '@mui/icons-material/School';
+import ClassIcon from '@mui/icons-material/Class';
+import GroupIcon from '@mui/icons-material/Group';
+import CampaignIcon from '@mui/icons-material/Campaign';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { USER_ROLES, ROLE_PERMISSIONS } from '../../constants/userRoles';
+import { COLORS } from '../../utils/colors';
 
-const DRAWER_WIDTH = 280;
+const drawerWidth = 220;
+const miniWidth = 72;
 
-const menuItems = {
-  [USER_ROLES.ADMIN]: [
-    {
-      text: 'Trang chủ',
-      icon: <Home />,
-      path: '/',
-      permission: null
-    },
-    {
-      text: 'Dashboard',
-      icon: <Dashboard />,
-      path: '/admin/dashboard',
-      permission: 'view_statistics'
-    },
-    {
-      text: 'Quản lý lớp học',
-      icon: <School />,
-      permission: 'manage_classes',
-      children: [
-        { text: 'Danh sách lớp', path: '/admin/classes', icon: <Class /> },
-        { text: 'Tạo lớp mới', path: '/admin/classes/create', icon: <School /> },
-        { text: 'Lịch học', path: '/admin/schedule', icon: <Schedule /> }
-      ]
-    },
-    {
-      text: 'Quản lý giáo viên',
-      icon: <People />,
-      permission: 'manage_teachers',
-      children: [
-        { text: 'Danh sách giáo viên', path: '/admin/teachers', icon: <People /> },
-        { text: 'Thêm giáo viên', path: '/admin/teachers/create', icon: <Person /> }
-      ]
-    },
-    {
-      text: 'Quản lý học sinh',
-      icon: <Person />,
-      permission: 'manage_students',
-      children: [
-        { text: 'Danh sách học sinh', path: '/admin/students', icon: <Person /> },
-        { text: 'Thêm học sinh', path: '/admin/students/create', icon: <Person /> },
-        { text: 'Điểm danh', path: '/admin/attendance', icon: <Assignment /> }
-      ]
-    },
-    {
-      text: 'Quản lý phụ huynh',
-      icon: <FamilyRestroom />,
-      permission: 'manage_parents',
-      children: [
-        { text: 'Danh sách phụ huynh', path: '/admin/parents', icon: <FamilyRestroom /> },
-        { text: 'Thêm phụ huynh', path: '/admin/parents/create', icon: <FamilyRestroom /> }
-      ]
-    },
-    {
-      text: 'Quản lý học phí',
-      icon: <Payment />,
-      permission: 'manage_fees',
-      children: [
-        { text: 'Học phí', path: '/admin/fees', icon: <MonetizationOn /> },
-        { text: 'Thanh toán', path: '/admin/payments', icon: <Payment /> }
-      ]
-    },
-    {
-      text: 'Thông báo',
-      icon: <Announcement />,
-      path: '/admin/announcements',
-      permission: 'manage_announcements'
-    },
-    {
-      text: 'Thống kê',
-      icon: <BarChart />,
-      path: '/admin/statistics',
-      permission: 'view_statistics'
-    }
-  ],
-  [USER_ROLES.TEACHER]: [
-    {
-      text: 'Trang chủ',
-      icon: <Home />,
-      path: '/',
-      permission: null
-    },
-    {
-      text: 'Dashboard',
-      icon: <Dashboard />,
-      path: '/teacher/dashboard',
-      permission: null
-    },
-    {
-      text: 'Lớp của tôi',
-      icon: <School />,
-      path: '/teacher/classes',
-      permission: 'view_my_classes'
-    },
-    {
-      text: 'Điểm danh',
-      icon: <Assignment />,
-      path: '/teacher/attendance',
-      permission: 'mark_attendance'
-    },
-    {
-      text: 'Lịch dạy',
-      icon: <Schedule />,
-      path: '/teacher/schedule',
-      permission: 'view_schedule'
-    }
-  ],
-  [USER_ROLES.STUDENT]: [
-    {
-      text: 'Trang chủ',
-      icon: <Home />,
-      path: '/',
-      permission: null
-    },
-    {
-      text: 'Dashboard',
-      icon: <Dashboard />,
-      path: '/student/dashboard',
-      permission: null
-    },
-    {
-      text: 'Lớp học của tôi',
-      icon: <School />,
-      path: '/student/class',
-      permission: 'view_my_class'
-    },
-    {
-      text: 'Điểm danh',
-      icon: <Assignment />,
-      path: '/student/attendance',
-      permission: 'view_attendance'
-    },
-    {
-      text: 'Lịch học',
-      icon: <Schedule />,
-      path: '/student/schedule',
-      permission: 'view_schedule'
-    }
-  ],
-  [USER_ROLES.PARENT]: [
-    {
-      text: 'Dashboard',
-      icon: <Dashboard />,
-      path: '/parent/dashboard',
-      permission: null
-    },
-    {
-      text: 'Thông tin con em',
-      icon: <Person />,
-      path: '/parent/children',
-      permission: 'view_child_info'
-    },
-    {
-      text: 'Thanh toán học phí',
-      icon: <Payment />,
-      path: '/parent/payments',
-      permission: 'view_fees'
-    }
-  ]
+const getMenuItemsByRole = (role) => {
+  switch (role) {
+    case 'admin':
+      return [
+        { text: 'Dashboard', icon: <HomeIcon />, path: '/admin/dashboard' },
+        { text: 'Quản lý học viên', icon: <SchoolIcon />, path: '/admin/students' },
+        { text: 'Quản lý giáo viên', icon: <GroupIcon />, path: '/admin/teachers' },
+        { text: 'Quản lý lớp học', icon: <ClassIcon />, path: '/admin/classes' },
+        { text: 'Quản lý phụ huynh', icon: <GroupIcon />, path: '/admin/parents' },
+        { text: 'Quản lý quảng cáo', icon: <CampaignIcon />, path: '/admin/advertisements' },
+        { text: 'Thống kê', icon: <AssessmentIcon />, path: '/admin/statistics' },
+      ];
+    case 'teacher':
+      return [
+        { text: 'Dashboard', icon: <HomeIcon />, path: '/teacher/dashboard' },
+        { text: 'Lịch dạy', icon: <ClassIcon />, path: '/teacher/schedule' },
+        { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/teacher/classes' },
+      ];
+    case 'student':
+      return [
+        { text: 'Dashboard', icon: <HomeIcon />, path: '/student/dashboard' },
+        { text: 'Lịch học', icon: <ClassIcon />, path: '/student/schedule' },
+        { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/student/classes' },
+      ];
+    case 'parent':
+      return [
+        { text: 'Dashboard', icon: <HomeIcon />, path: '/parent/dashboard' },
+        { text: 'Con em', icon: <SchoolIcon />, path: '/parent/children' },
+        { text: 'Thanh toán', icon: <PaymentIcon />, path: '/parent/payments' },
+      ];
+    default:
+      return [
+        { text: 'Trang chủ', icon: <HomeIcon />, path: '/' },
+        { text: 'Khám phá', icon: <ExploreIcon />, path: '/explore' },
+        { text: 'Kênh đăng ký', icon: <SubscriptionsIcon />, path: '/subscriptions' },
+        { text: 'Thư viện', icon: <VideoLibraryIcon />, path: '/library' },
+        { text: 'Lịch sử', icon: <HistoryIcon />, path: '/history' },
+      ];
+  }
 };
 
-const Sidebar = ({ open, onClose }) => {
+const Sidebar = ({ open }) => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const [openSubmenus, setOpenSubmenus] = useState({});
+  const role = user?.role || 'student';
+  const menuItems = getMenuItemsByRole(role);
 
-  const userRole = user?.role || USER_ROLES.ADMIN;
-  const userMenuItems = menuItems[userRole] || [];
-
-  const handleSubMenuToggle = (index) => {
-    setOpenSubmenus(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
-
-  const handleNavigation = (path) => {
-    navigate(path);
-    if (onClose) onClose();
-  };
-
-  const hasPermission = (permission) => {
-    if (userRole === USER_ROLES.PARENT) return true;
-    if (!permission) return true;
-    return ROLE_PERMISSIONS[userRole]?.includes(permission) || false;
-  };
-
-  const isPathActive = (path) => {
-    return location.pathname === path;
-  };
-
-  const isParentPathActive = (children) => {
-    return children?.some(child => location.pathname === child.path);
-  };
-
-  const renderMenuItem = (item, index) => {
-    const hasChildren = item.children && item.children.length > 0;
-    const isActive = hasChildren ? isParentPathActive(item.children) : isPathActive(item.path);
-
-    if (hasChildren) {
       return (
-        <React.Fragment key={index}>
-          <ListItem disablePadding>
+    <Drawer
+      variant="permanent"
+      open={open}
+      sx={{
+        width: open ? drawerWidth : miniWidth,
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+        boxSizing: 'border-box',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '& .MuiDrawer-paper': {
+          width: open ? drawerWidth : miniWidth,
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflowX: 'hidden',
+          bgcolor: '#fff',
+          borderRight: '1px solid #eee',
+        },
+      }}
+    >
+      <Box sx={{ mt: 8 }}>
+        <List>
+          {menuItems.map((item) => (
+            <Tooltip key={item.text} title={!open ? item.text : ''} placement="right" arrow>
+              <ListItem disablePadding sx={{ display: 'block' }}>
             <ListItemButton
-              onClick={() => handleSubMenuToggle(index)}
-              selected={isActive}
+                  selected={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}
               sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    borderRadius: 2,
+                    my: 0.5,
+                    transition: 'background 0.2s',
                 '&.Mui-selected': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  '& .MuiListItemIcon-root': {
-                    color: 'white'
-                  }
-                }
+                      bgcolor: COLORS.primary.light,
+                      color: COLORS.primary.main,
+                    },
               }}
             >
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-              {openSubmenus[index] ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-          </ListItem>
-          <Collapse in={openSubmenus[index]} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              {item.children.map((child, childIndex) => (
-                <ListItem key={childIndex} disablePadding>
-                  <ListItemButton
-                    sx={{ pl: 4 }}
-                    onClick={() => handleNavigation(child.path)}
-                    selected={isPathActive(child.path)}
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 2 : 'auto',
+                      justifyContent: 'center',
+                      color: location.pathname === item.path ? COLORS.primary.main : 'inherit',
+                    }}
                   >
-                    <ListItemIcon>
-                      {child.icon}
+                    {item.icon}
                     </ListItemIcon>
-                    <ListItemText primary={child.text} />
+                  {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />}
                   </ListItemButton>
                 </ListItem>
+            </Tooltip>
               ))}
             </List>
-          </Collapse>
-        </React.Fragment>
-      );
-    }
-
-    return (
-      <ListItem key={index} disablePadding>
-        <ListItemButton
-          onClick={() => handleNavigation(item.path)}
-          selected={isActive}
-          sx={{
-            '&.Mui-selected': {
-              backgroundColor: 'primary.main',
-              color: 'white',
-              '& .MuiListItemIcon-root': {
-                color: 'white'
-              }
-            }
-          }}
-        >
-          <ListItemIcon>
-            {item.icon}
-          </ListItemIcon>
-          <ListItemText primary={item.text} />
-        </ListItemButton>
-      </ListItem>
-    );
-  };
-
-  const drawerContent = (
-    <Box>
-      <Box sx={{ p: 2, mt: 8 }}>
-        <Typography variant="h6" color="primary">
-          {userRole === USER_ROLES.ADMIN && 'Quản trị viên'}
-          {userRole === USER_ROLES.TEACHER && 'Giáo viên'}
-          {userRole === USER_ROLES.STUDENT && 'Học sinh'}
-          {userRole === USER_ROLES.PARENT && 'Phụ huynh'}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {user?.name || user?.username}
-        </Typography>
       </Box>
       <Divider />
-      <List>
-        {userMenuItems.map(renderMenuItem)}
-      </List>
-    </Box>
-  );
-
-  return (
-    <>
-      {/* Desktop Drawer */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
-        {drawerContent}
       </Drawer>
-
-      {/* Mobile Drawer */}
-      <Drawer
-        variant="temporary"
-        open={open}
-        onClose={onClose}
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
-        {drawerContent}
-      </Drawer>
-    </>
   );
 };
 
 export default Sidebar;
-export { DRAWER_WIDTH };

@@ -185,7 +185,7 @@ export const GRADIENTS = {
   warning: `linear-gradient(135deg, ${COLORS.warning.main} 0%, ${COLORS.warning.light} 100%)`,
   error: `linear-gradient(135deg, ${COLORS.error.main} 0%, ${COLORS.error.light} 100%)`,
   info: `linear-gradient(135deg, ${COLORS.info.main} 0%, ${COLORS.info.light} 100%)`,
-  
+
   // Special gradients
   sunset: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
   ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
