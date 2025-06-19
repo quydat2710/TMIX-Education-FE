@@ -196,4 +196,4 @@ const StudentManagement = () => {
   );
 };
 
-export default StudentManagement;
+export default StudentManagement; 

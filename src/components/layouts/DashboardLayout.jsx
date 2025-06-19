@@ -58,7 +58,7 @@ const DashboardLayout = ({ children, role }) => {
 
   const getMenuItems = () => {
     const commonItems = [
-      { text: 'Dashboard', icon: <DashboardIcon />, path: `/${role}/dashboard` },
+      { text: 'Dashboard', icon: <DashboardIcon />, path: `/${role || 'student'}/dashboard` },
     ];    const roleSpecificItems = {
       admin: [
         { text: 'Quản lý học viên', icon: <SchoolIcon />, path: '/admin/students' },
@@ -116,7 +116,7 @@ const DashboardLayout = ({ children, role }) => {
               sx={{ ml: 2 }}
             >
             <Avatar sx={{ width: 32, height: 32, bgcolor: COLORS.secondary.main }}>
-              {role.charAt(0).toUpperCase()}
+              {(role || 'student').charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
       <Menu
@@ -124,7 +124,7 @@ const DashboardLayout = ({ children, role }) => {
         open={Boolean(anchorEl)}
         onClose={handleProfileMenuClose}
       >
-        <MenuItem onClick={() => { navigate('/account'); handleProfileMenuClose(); }}>
+        <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
           <ListItemIcon>
             <PersonIcon fontSize="small" />
           </ListItemIcon>

@@ -160,4 +160,4 @@ const TeacherManagement = () => {
   );
 };
 
-export default TeacherManagement;
+export default TeacherManagement; 

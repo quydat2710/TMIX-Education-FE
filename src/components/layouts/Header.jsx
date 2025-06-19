@@ -35,7 +35,7 @@ const Header = () => {
   };
 
   const handleProfile = () => {
-    navigate('/account');
+    navigate('/profile');
     handleMenuClose();
   };
 

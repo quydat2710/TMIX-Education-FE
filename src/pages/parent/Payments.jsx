@@ -87,17 +87,17 @@ const Payments = () => {
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
               Quản lý học phí
-            </Typography>
+      </Typography>
           </Box>
 
-          <Grid container spacing={3}>
-            {/* Card thông tin tổng quan */}
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
+      <Grid container spacing={3}>
+        {/* Card thông tin tổng quan */}
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    Thông tin thanh toán
-                  </Typography>
+                Thông tin thanh toán
+              </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <WalletIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
                     <Box>
@@ -131,12 +131,12 @@ const Payments = () => {
                       </Typography>
                     </Box>
                   </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
 
-            {/* Danh sách hóa đơn */}
-            <Grid item xs={12} md={8}>
+        {/* Danh sách hóa đơn */}
+        <Grid item xs={12} md={8}>
               <Box sx={commonStyles.searchContainer}>
                 <TextField
                   fullWidth
@@ -158,20 +158,20 @@ const Payments = () => {
                 <LinearProgress />
               ) : (
                 <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Mã hóa đơn</TableCell>
-                        <TableCell>Ngày tạo</TableCell>
-                        <TableCell>Học viên</TableCell>
-                        <TableCell>Lớp học</TableCell>
-                        <TableCell>Số tiền</TableCell>
-                        <TableCell>Trạng thái</TableCell>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Mã hóa đơn</TableCell>
+                  <TableCell>Ngày tạo</TableCell>
+                  <TableCell>Học viên</TableCell>
+                  <TableCell>Lớp học</TableCell>
+                  <TableCell>Số tiền</TableCell>
+                  <TableCell>Trạng thái</TableCell>
                         <TableCell align="center" sx={commonStyles.actionCell}>Thao tác</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredPayments.map((payment) => (
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPayments.map((payment) => (
                         <TableRow key={payment.id} sx={commonStyles.tableRow}>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -179,37 +179,37 @@ const Payments = () => {
                               {payment.invoiceCode}
                             </Box>
                           </TableCell>
-                          <TableCell>{payment.createdAt}</TableCell>
-                          <TableCell>{payment.studentName}</TableCell>
-                          <TableCell>{payment.className}</TableCell>
+                    <TableCell>{payment.createdAt}</TableCell>
+                    <TableCell>{payment.studentName}</TableCell>
+                    <TableCell>{payment.className}</TableCell>
                           <TableCell sx={{ fontWeight: 500 }}>
                             {payment.amount.toLocaleString('vi-VN')} VNĐ
                           </TableCell>
-                          <TableCell>
-                            <Chip
+                    <TableCell>
+                      <Chip
                               label={payment.status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                              color={payment.status === 'paid' ? 'success' : 'warning'}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton
-                              onClick={() => handleOpenDialog(payment)}
-                              color="primary"
-                            >
-                              <ViewIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                        color={payment.status === 'paid' ? 'success' : 'warning'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        onClick={() => handleOpenDialog(payment)}
+                        color="primary"
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
               )}
-            </Grid>
-          </Grid>
+        </Grid>
+      </Grid>
 
-          {/* Dialog xem chi tiết hóa đơn */}
+      {/* Dialog xem chi tiết hóa đơn */}
           <Dialog
             open={openDialog}
             onClose={handleCloseDialog}
@@ -217,66 +217,66 @@ const Payments = () => {
             fullWidth
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-              Chi tiết hóa đơn
-            </DialogTitle>
+          Chi tiết hóa đơn
+        </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
-              {selectedPayment && (
+          {selectedPayment && (
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>
-                      Thông tin hóa đơn
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Thông tin hóa đơn
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Mã hóa đơn:</Typography>
-                        <Typography>{selectedPayment.invoiceCode}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Ngày tạo:</Typography>
-                        <Typography>{selectedPayment.createdAt}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Học viên:</Typography>
-                        <Typography>{selectedPayment.studentName}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Lớp học:</Typography>
-                        <Typography>{selectedPayment.className}</Typography>
-                      </Grid>
-                    </Grid>
+                    <Typography>{selectedPayment.invoiceCode}</Typography>
                   </Grid>
+                  <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày tạo:</Typography>
+                    <Typography>{selectedPayment.createdAt}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" color="text.secondary">Học viên:</Typography>
+                    <Typography>{selectedPayment.studentName}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" color="text.secondary">Lớp học:</Typography>
+                    <Typography>{selectedPayment.className}</Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
 
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>
-                      Chi tiết thanh toán
-                    </Typography>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Chi tiết thanh toán
+                </Typography>
                     <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Mô tả</TableCell>
-                            <TableCell>Số lượng</TableCell>
-                            <TableCell>Đơn giá</TableCell>
-                            <TableCell>Thành tiền</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {selectedPayment.items?.map((item) => (
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Mô tả</TableCell>
+                        <TableCell>Số lượng</TableCell>
+                        <TableCell>Đơn giá</TableCell>
+                        <TableCell>Thành tiền</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {selectedPayment.items?.map((item) => (
                             <TableRow key={item.id} sx={commonStyles.tableRow}>
-                              <TableCell>{item.description}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>{item.unitPrice.toLocaleString('vi-VN')} VNĐ</TableCell>
+                          <TableCell>{item.description}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{item.unitPrice.toLocaleString('vi-VN')} VNĐ</TableCell>
                               <TableCell sx={{ fontWeight: 500 }}>
                                 {item.total.toLocaleString('vi-VN')} VNĐ
                               </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Grid>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Grid>
 
-                  <Grid item xs={12}>
+              <Grid item xs={12}>
                     <Box sx={{
                       display: 'flex',
                       justifyContent: 'flex-end',
@@ -286,29 +286,29 @@ const Payments = () => {
                       borderRadius: 1
                     }}>
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Tổng cộng: {selectedPayment.amount.toLocaleString('vi-VN')} VNĐ
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              )}
-            </DialogContent>
+                    Tổng cộng: {selectedPayment.amount.toLocaleString('vi-VN')} VNĐ
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
             <DialogActions sx={commonStyles.formActions}>
               <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton}>
                 Đóng
-              </Button>
-              {selectedPayment?.status !== 'paid' && (
-                <Button
-                  variant="contained"
+          </Button>
+          {selectedPayment?.status !== 'paid' && (
+            <Button
+              variant="contained"
                   sx={commonStyles.primaryButton}
-                  startIcon={<PaymentIcon />}
-                >
+              startIcon={<PaymentIcon />}
+            >
                   Thanh toán ngay
-                </Button>
-              )}
-            </DialogActions>
-          </Dialog>
-        </Box>
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+    </Box>
       </Box>
     </DashboardLayout>
   );
