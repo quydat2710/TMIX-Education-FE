@@ -139,140 +139,9 @@ const Home = () => {
             </Box>
           </Box>
 
-          {/* About Section */}
-          <Box id="about-section" sx={{ mb: 6 }}>
-            <Typography
-              variant="h3"
-              align="center"
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Về chúng tôi
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              paragraph
-              align="center"
-              sx={{ mb: 6 }}
-            >
-              Tìm hiểu thêm về English Center
-            </Typography>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
-                  <Typography variant="h5" gutterBottom>Sứ mệnh</Typography>
-                  <Typography paragraph>
-                    Chúng tôi cam kết mang đến chất lượng đào tạo tiếng Anh tốt nhất, giúp học viên tự tin giao tiếp và đạt được mục tiêu học tập của mình.
-                  </Typography>
-                  <Typography variant="h5" gutterBottom>Tầm nhìn</Typography>
-                  <Typography paragraph>
-                    Trở thành trung tâm đào tạo tiếng Anh hàng đầu, được tin tưởng bởi học viên và đối tác.
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
-                  <Typography variant="h5" gutterBottom>Giá trị cốt lõi</Typography>
-                  <Typography component="ul" sx={{ pl: 2 }}>
-                    <li>Chất lượng đào tạo xuất sắc</li>
-                    <li>Đội ngũ giảng viên chuyên nghiệp</li>
-                    <li>Phương pháp giảng dạy hiện đại</li>
-                    <li>Môi trường học tập thân thiện</li>
-                    <li>Hỗ trợ học viên tận tâm</li>
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 4 }}>
-                  <Typography variant="h5" gutterBottom>Lịch sử phát triển</Typography>
-                  <Typography paragraph>
-                    English Center được thành lập năm 2010 với sứ mệnh mang đến chất lượng đào tạo tiếng Anh tốt nhất cho học viên Việt Nam. Trải qua hơn 10 năm phát triển, chúng tôi đã đào tạo hơn 10,000 học viên và trở thành đối tác tin cậy của nhiều doanh nghiệp.
-                  </Typography>
-                  <Typography paragraph>
-                    Với đội ngũ giảng viên giàu kinh nghiệm và phương pháp giảng dạy hiện đại, chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất cho mọi học viên.
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Box>
-
           {/* Advertisement Banner */}
           <Box sx={{ mb: 6 }}>
             <Advertisement mode="banner" />
-          </Box>
-
-          {/* Courses Section */}
-          <Box id="courses-section" sx={{ mb: 6 }}>
-            <Typography
-              variant="h3"
-              align="center"
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Khóa học
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              paragraph
-              align="center"
-              sx={{ mb: 6 }}
-            >
-              Khám phá các khóa học chất lượng của chúng tôi
-            </Typography>
-            <Grid container spacing={4}>
-              {courses.map((course) => (
-                <Grid item key={course.id} xs={12} md={4}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={course.image}
-                      alt={course.title}
-                    />
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography
-                        gutterBottom
-                        variant="h5"
-                        component="h2"
-                      >
-                        {course.title}
-                      </Typography>
-                      <Typography paragraph>{course.description}</Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        paragraph
-                      >
-                        Trình độ: {course.level}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        paragraph
-                      >
-                        Thời lượng: {course.duration}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        color="primary"
-                        paragraph
-                      >
-                        {course.price}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                      >
-                        Đăng ký ngay
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
           </Box>
 
           {/* Teachers Section */}
@@ -349,119 +218,66 @@ const Home = () => {
               ))}
             </Grid>
           </Box>
-
-          {/* Contact Section */}
-          <Box id="contact-section" sx={{ mb: 6 }}>
-            <Typography
-              variant="h3"
-              align="center"
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Liên hệ
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              paragraph
-              align="center"
-              sx={{ mb: 6 }}
-            >
-              Hãy liên hệ với chúng tôi
-            </Typography>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 4 }}>
-                  <Typography variant="h5" gutterBottom>Thông tin liên hệ</Typography>
-                  <Typography paragraph>
-                    <strong>Địa chỉ:</strong> 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
-                  </Typography>
-                  <Typography paragraph>
-                    <strong>Điện thoại:</strong> (028) 1234 5678
-                  </Typography>
-                  <Typography paragraph>
-                    <strong>Email:</strong> info@englishcenter.com
-                  </Typography>
-                  <Typography paragraph>
-                    <strong>Giờ làm việc:</strong>
-                    <br />Thứ 2 - Thứ 6: 8:00 - 21:00
-                    <br />Thứ 7: 8:00 - 17:00
-                    <br />Chủ nhật: 8:00 - 12:00
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 4 }}>
-                  <Typography variant="h5" gutterBottom>Gửi tin nhắn cho chúng tôi</Typography>
-                  <Box
-                    component="form"
-                    noValidate
-                    sx={{ mt: 2 }}
-                  >
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          required
-                          fullWidth
-                          label="Họ và tên"
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          required
-                          fullWidth
-                          label="Email"
-                          variant="outlined"
-                          type="email"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          required
-                          fullWidth
-                          label="Số điện thoại"
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          required
-                          fullWidth
-                          label="Tiêu đề"
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          required
-                          fullWidth
-                          label="Nội dung"
-                          variant="outlined"
-                          multiline
-                          rows={4}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          size="large"
-                          fullWidth
-                        >
-                          Gửi tin nhắn
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Box>
         </Box>
+        {/* About Section chuyển xuống cuối */}
+        <Box id="about-section" sx={{ mb: 6 }}>
+          <Typography
+            variant="h3"
+            align="center"
+            gutterBottom
+            sx={{ fontWeight: 'bold' }}
+          >
+            Về chúng tôi
+          </Typography>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            paragraph
+            align="center"
+            sx={{ mb: 6 }}
+          >
+            Tìm hiểu thêm về English Center
+          </Typography>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
+                <Typography variant="h5" gutterBottom>Sứ mệnh</Typography>
+                <Typography paragraph>
+                  Chúng tôi cam kết mang đến chất lượng đào tạo tiếng Anh tốt nhất, giúp học viên tự tin giao tiếp và đạt được mục tiêu học tập của mình.
+                </Typography>
+                <Typography variant="h5" gutterBottom>Tầm nhìn</Typography>
+                <Typography paragraph>
+                  Trở thành trung tâm đào tạo tiếng Anh hàng đầu, được tin tưởng bởi học viên và đối tác.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
+                <Typography variant="h5" gutterBottom>Giá trị cốt lõi</Typography>
+                <Typography component="ul" sx={{ pl: 2 }}>
+                  <li>Chất lượng đào tạo xuất sắc</li>
+                  <li>Đội ngũ giảng viên chuyên nghiệp</li>
+                  <li>Phương pháp giảng dạy hiện đại</li>
+                  <li>Môi trường học tập thân thiện</li>
+                  <li>Hỗ trợ học viên tận tâm</li>
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper elevation={3} sx={{ p: 4 }}>
+                <Typography variant="h5" gutterBottom>Lịch sử phát triển</Typography>
+                <Typography paragraph>
+                  English Center được thành lập năm 2010 với sứ mệnh mang đến chất lượng đào tạo tiếng Anh tốt nhất cho học viên Việt Nam. Trải qua hơn 10 năm phát triển, chúng tôi đã đào tạo hơn 10,000 học viên và trở thành đối tác tin cậy của nhiều doanh nghiệp.
+                </Typography>
+                <Typography paragraph>
+                  Với đội ngũ giảng viên giàu kinh nghiệm và phương pháp giảng dạy hiện đại, chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất cho mọi học viên.
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
+        <Footer />
       </Box>
-      <Footer />
     </Box>
   );
 };

@@ -32,10 +32,8 @@ const HomeHeader = () => {
 
   const sectionIds = [
     { label: 'Trang chủ', id: 'hero-section' },
-    { label: 'Khóa học', id: 'courses-section' },
     { label: 'Giáo viên', id: 'teachers-section' },
     { label: 'Về chúng tôi', id: 'about-section' },
-    { label: 'Liên hệ', id: 'contact-section' },
   ];
 
   const scrollToSection = (id) => {
@@ -116,10 +114,21 @@ const HomeHeader = () => {
                 color: activeSection === item.id ? COLORS.primary : '#111',
                 fontWeight: activeSection === item.id ? 700 : 500,
                 fontSize: '1rem',
-                borderBottom: activeSection === item.id ? `2px solid ${COLORS.primary}` : '2px solid transparent',
+                border: 'none',
                 borderRadius: 0,
                 bgcolor: 'transparent',
-                transition: 'all 0.2s',
+                outline: 'none',
+                boxShadow: 'none',
+                '&:focus': {
+                  outline: 'none',
+                  boxShadow: 'none',
+                  bgcolor: 'transparent',
+                },
+                '&:active': {
+                  outline: 'none',
+                  boxShadow: 'none',
+                  bgcolor: 'transparent',
+                },
                 '&:hover': {
                   color: COLORS.primary,
                   bgcolor: 'transparent',
