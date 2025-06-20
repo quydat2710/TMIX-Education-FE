@@ -213,7 +213,17 @@ const HomeHeader = () => {
         ) : (
           // Desktop Menu
           <>
-            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              bottom: 0,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
+              zIndex: 1,
+            }}>
               {sectionIds.map((item) => (
                 <Button
                   key={item.id}

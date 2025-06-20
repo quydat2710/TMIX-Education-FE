@@ -77,3 +77,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Loại bỏ hiệu ứng focus trên toàn bộ website */
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
