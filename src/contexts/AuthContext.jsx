@@ -93,9 +93,16 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('userData');
       }
     }
-
     dispatch({ type: 'SET_LOADING', payload: false });
   }, []);
+
+  // Luôn đồng bộ user/token vào localStorage khi thay đổi
+  useEffect(() => {
+    if (state.user && state.token) {
+      localStorage.setItem('access_token', state.token);
+      localStorage.setItem('userData', JSON.stringify(state.user));
+    }
+  }, [state.user, state.token]);
 
   const login = async (credentials) => {
     dispatch({ type: 'LOGIN_START' });
