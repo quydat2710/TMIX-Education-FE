@@ -1,12 +1,12 @@
 export const API_CONFIG = {
-  BASE_URL: 'https://eng-center-management.onrender.com',
+  BASE_URL: 'https://eng-center-management.onrender.com/api/v1',
   ENDPOINTS: {
     // Auth endpoints
     AUTH: {
       LOGIN: '/auth/login',
       REGISTER: '/auth/register',
       LOGOUT: '/auth/logout',
-      REFRESH_TOKEN: '/auth/refresh-token',
+      CHANGE_PASSWORD: '/auth/change-password',
     },
     // User endpoints
     USERS: {
@@ -15,6 +15,7 @@ export const API_CONFIG = {
       CREATE: '/users',
       UPDATE: (id) => `/users/${id}`,
       DELETE: (id) => `/users/${id}`,
+      UPLOAD_AVATAR: '/users/me/avatar',
     },
     // Teacher endpoints
     TEACHERS: {
@@ -31,6 +32,9 @@ export const API_CONFIG = {
       CREATE: '/students',
       UPDATE: (id) => `/students/${id}`,
       DELETE: (id) => `/students/${id}`,
+      MONTHLY_CHANGES: '/students/monthly-changes',
+      SCHEDULE: (id) => `/students/${id}/schedule`,
+      ATTENDANCE: (id) => `/students/${id}/attendance`,
     },
     // Class endpoints
     CLASSES: {
@@ -39,6 +43,33 @@ export const API_CONFIG = {
       CREATE: '/classes',
       UPDATE: (id) => `/classes/${id}`,
       DELETE: (id) => `/classes/${id}`,
+      ENROLL_STUDENT: (id) => `/classes/${id}/students`,
+      GET_STUDENTS: (id) => `/classes/${id}/students`,
+      REMOVE_STUDENT: (id) => `/classes/${id}/students`,
+      ASSIGN_TEACHER: (id) => `/classes/${id}/teacher`,
+      UNASSIGN_TEACHER: (id) => `/classes/${id}/teacher`,
+    },
+    PARENTS: {
+      CREATE: '/parents',
+      GET_ALL: '/parents',
+      GET_BY_ID: (id) => `/parents/${id}`,
+      UPDATE: (id) => `/parents/${id}`,
+      DELETE: (id) => `/parents/${id}`,
+      ADD_CHILD: '/parents',
+      REMOVE_CHILD: '/parents',
+      PAY_TUITION: '/parents/pay-tuition',
+    },
+    ATTENDANCES: {
+      GET_TODAY: (id) => `/attendances/${id}/today`,
+      GET_LIST: '/attendances/all',
+      UPDATE: (id) => `/attendances/${id}`,
+      GET_BY_ID: (id) => `/attendances/${id}`,
+    },
+    PAYMENTS: {
+      GET_ALL: '/payments',
+      GET_TEACHER_PAYMENTS: '/teacher-payments',
+      PAY_TEACHER: (id) => `/teacher-payments/${id}/pay`,
+      GET_TEACHER_PAYMENT_BY_ID: (id) => `/teacher-payments/${id}`,
     },
   },
-}; 
+};

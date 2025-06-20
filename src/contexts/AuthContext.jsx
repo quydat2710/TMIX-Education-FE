@@ -101,77 +101,6 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      console.log('Login attempt with credentials:', credentials);
-
-      // Demo accounts for testing frontend
-      const demoAccounts = [
-        {
-          email: 'admin@demo.com',
-          password: 'admin123',
-          role: 'admin',
-          name: 'Admin User',
-          _id: 'demo_admin_1'
-        },
-        {
-          email: 'teacher@demo.com',
-          password: 'teacher123',
-          role: 'teacher',
-          name: 'Teacher User',
-          _id: 'demo_teacher_1'
-        },
-        {
-          email: 'student@demo.com',
-          password: 'student123',
-          role: 'student',
-          name: 'Student User',
-          _id: 'demo_student_1'
-        },
-        {
-          email: 'parent@demo.com',
-          password: 'parent123',
-          role: 'parent',
-          name: 'Parent User',
-          _id: 'demo_parent_1',
-          permissions: [
-            'view_child_info',
-            'view_child_attendance',
-            'view_fees',
-            'make_payment',
-            'view_schedule'
-          ]
-        }
-      ];
-
-      // Check for demo account first
-      const demoUser = demoAccounts.find(
-        account => account.email === credentials.email && account.password === credentials.password
-      );
-
-      if (demoUser) {
-        // Use demo account
-        const userData = {
-              user: {
-            _id: demoUser._id,
-            name: demoUser.name,
-            email: demoUser.email,
-            role: demoUser.role,
-            permissions: demoUser.permissions
-          },
-          accessToken: 'demo-token-' + Date.now()
-        };
-
-        localStorage.setItem('access_token', userData.accessToken);
-        localStorage.setItem('userData', JSON.stringify(userData.user));
-
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: userData
-        });
-
-        return userData;
-      }
-
-      // If not demo account, try API
       const apiResponse = await Promise.race([
         loginAPI({
           email: credentials.email,
@@ -182,35 +111,37 @@ export const AuthProvider = ({ children }) => {
         )
       ]);
 
-      console.log('API Response:', apiResponse);
-
-      // Handle different response structures
       let userData = null;
       let accessToken = null;
 
-      if (apiResponse?.data?.data) {
-        // Nested data structure
-        userData = apiResponse.data.data.user;
-        accessToken = apiResponse.data.data.access_token || apiResponse.data.data.accessToken;
-      } else if (apiResponse?.data) {
-        // Direct data structure
-        userData = apiResponse.data.user;
-        accessToken = apiResponse.data.access_token || apiResponse.data.accessToken;
-      } else if (apiResponse?.user) {
-        // Direct response
+      // Ưu tiên lấy theo cấu trúc thực tế mới
+      if (apiResponse?.user && apiResponse?.tokens?.access?.token) {
         userData = apiResponse.user;
-        accessToken = apiResponse.access_token || apiResponse.accessToken;
+        accessToken = apiResponse.tokens.access.token;
+      } else if (apiResponse?.data?.user && apiResponse?.data?.tokens?.access?.token) {
+        userData = apiResponse.data.user;
+        accessToken = apiResponse.data.tokens.access.token;
+      } else {
+        // fallback cho các cấu trúc cũ
+        if (apiResponse?.data?.data) {
+          userData = apiResponse.data.data.user;
+          accessToken = apiResponse.data.data.access_token || apiResponse.data.data.accessToken;
+        } else if (apiResponse?.data) {
+          userData = apiResponse.data.user;
+          accessToken = apiResponse.data.access_token || apiResponse.data.accessToken;
+        } else if (apiResponse?.user) {
+          userData = apiResponse.user;
+          accessToken = apiResponse.access_token || apiResponse.accessToken;
+        }
       }
 
       if (!userData || !accessToken) {
         throw new Error('Invalid response structure: missing user data or token');
-          }
+      }
 
-      // Store in localStorage
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('userData', JSON.stringify(userData));
 
-      // Dispatch success
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: {
