@@ -11,7 +11,6 @@ export const commonStyles = {
   },
   contentContainer: {
     backgroundColor: 'white',
-    borderRadius: 2,
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     p: 3,
   },
