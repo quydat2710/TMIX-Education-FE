@@ -101,8 +101,20 @@ const Sidebar = ({ open }) => {
                     my: 0.5,
                     transition: 'background 0.2s',
                 '&.Mui-selected': {
-                      bgcolor: COLORS.primary.light,
+                      bgcolor: '#f5f5f5',
                       color: COLORS.primary.main,
+                      '&:hover': {
+                        bgcolor: '#eeeeee',
+                      }
+                    },
+                '&:hover': {
+                      bgcolor: '#f9f9f9',
+                    },
+                '&:focus': {
+                      bgcolor: 'transparent',
+                    },
+                '&.Mui-focusVisible': {
+                      bgcolor: 'transparent',
                     },
               }}
             >

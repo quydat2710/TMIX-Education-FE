@@ -4,6 +4,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
+import SchoolIcon from '@mui/icons-material/School';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { COLORS } from '../../utils/colors';
@@ -14,22 +15,7 @@ const Header = ({ onMenuClick }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleLogoClick = () => {
-    switch (user?.role) {
-      case 'admin':
-        navigate('/admin/dashboard');
-        break;
-      case 'teacher':
-        navigate('/teacher/dashboard');
-        break;
-      case 'student':
-        navigate('/student/dashboard');
-        break;
-      case 'parent':
-        navigate('/parent/dashboard');
-        break;
-      default:
-        navigate('/');
-    }
+    navigate('/');
   };
 
   const handleAvatarClick = (event) => {
@@ -49,14 +35,17 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <AppBar position="fixed" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#fff', color: '#222', borderBottom: '1px solid #eee', boxShadow: 'none' }}>
+    <AppBar position="fixed" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#fff', color: '#222', borderRadius: 0, boxShadow: 'none' }}>
       <Toolbar sx={{ justifyContent: 'space-between', minHeight: 64, pl: 2, pr: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton color="default" edge="start" onClick={onMenuClick} sx={{ ml: 0, p: 1.2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton color="default" edge="start" onClick={onMenuClick} sx={{ p: 1.2 }}>
             <MenuIcon fontSize="medium" />
           </IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ml: 0.5 }} onClick={handleLogoClick}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#222', letterSpacing: 1, lineHeight: 1 }}>English Center</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
+            <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary.text, mr: 1 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#111', fontSize: '1.25rem' }}>
+              English Center
+            </Typography>
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

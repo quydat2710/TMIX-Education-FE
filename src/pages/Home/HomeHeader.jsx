@@ -10,15 +10,20 @@ import {
   MenuItem,
   useMediaQuery,
   useTheme,
+  Avatar,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   School as SchoolIcon,
   Person as PersonIcon,
+  Dashboard as DashboardIcon,
+  AccountCircle as AccountCircleIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { COLORS } from '../../utils/colors';
 import { useNavigate } from 'react-router-dom';
 import { commonStyles } from '../../utils/styles';
+import { useAuth } from '../../contexts/AuthContext';
 
 const sectionIds = [
   { label: 'Trang chủ', id: 'hero-section' },
@@ -40,10 +45,12 @@ const HomeHeader = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user, logout } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero-section');
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,6 +84,83 @@ const HomeHeader = () => {
     handleMobileMenuClose();
   };
 
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDashboard = () => {
+    const role = user?.role;
+    if (role) {
+      navigate(`/${role}/dashboard`);
+    }
+    handleMenuClose();
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/'); // Stay on home page after logout
+    handleMenuClose();
+  };
+
+  const renderAuthControls = () => {
+    if (user) {
+      return (
+        <>
+          <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
+            <Avatar sx={{ width: 36, height: 36, bgcolor: COLORS.primary.main, color: '#fff', cursor: 'pointer', fontSize: 18 }}>
+              {user?.name?.charAt(0) || user?.username?.charAt(0) || '?'}
+            </Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            sx={{ mt: 1 }}
+          >
+            <MenuItem onClick={handleDashboard}>
+              <DashboardIcon fontSize="small" sx={{ mr: 1 }} />
+              Dashboard
+            </MenuItem>
+            <MenuItem onClick={handleProfile}>
+              <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
+              Trang cá nhân
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+              Đăng xuất
+            </MenuItem>
+          </Menu>
+        </>
+      );
+    }
+    return (
+      <Button
+        variant="contained"
+        onClick={() => navigate('/login')}
+        startIcon={<PersonIcon />}
+        sx={{
+          ...commonStyles.primaryButton,
+          px: 2.5,
+          py: 1,
+          borderRadius: 2,
+        }}
+      >
+        Đăng nhập
+      </Button>
+    );
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -92,7 +176,7 @@ const HomeHeader = () => {
       <Toolbar sx={{ minHeight: 72, px: { xs: 2, md: 4 }, display: 'flex', justifyContent: 'space-between' }}>
         {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => scrollToSection('hero-section')}>
-          <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary.main, mr: 1 }} />
+          <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary.text, mr: 1 }} />
           <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#111', fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
             English Center
           </Typography>
@@ -159,19 +243,7 @@ const HomeHeader = () => {
               ))}
             </Box>
 
-            <Button
-              variant="contained"
-              onClick={() => navigate('/login')}
-              startIcon={<PersonIcon />}
-              sx={{
-                ...commonStyles.primaryButton,
-                px: 2.5,
-                py: 1,
-                borderRadius: 2,
-              }}
-            >
-              Đăng nhập
-            </Button>
+            {renderAuthControls()}
           </>
         )}
       </Toolbar>

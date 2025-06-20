@@ -204,7 +204,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!userData || !accessToken) {
         throw new Error('Invalid response structure: missing user data or token');
-      }
+          }
 
       // Store in localStorage
       localStorage.setItem('access_token', accessToken);
