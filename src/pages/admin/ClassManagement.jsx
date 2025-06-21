@@ -40,7 +40,6 @@ import { createClassAPI, getAllClassesAPI } from '../../services/api';
 
 const ClassManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
@@ -152,138 +151,113 @@ const ClassManagement = () => {
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
-              Quản lý lớp học
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
+          Quản lý lớp học
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
               sx={commonStyles.primaryButton}
-            >
-              Thêm lớp học
-            </Button>
-          </Box>
+        >
+          Thêm lớp học
+        </Button>
+      </Box>
 
           <Paper sx={commonStyles.searchContainer}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm lớp học..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+        <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm lớp học..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
                   sx={commonStyles.searchField}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Trình độ</InputLabel>
-                  <Select
-                    label="Trình độ"
-                    value={levelFilter}
-                    onChange={(e) => setLevelFilter(e.target.value)}
-                    sx={commonStyles.filterSelect}
-                  >
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="a1">A1</MenuItem>
-                    <MenuItem value="a2">A2</MenuItem>
-                    <MenuItem value="b1">B1</MenuItem>
-                    <MenuItem value="b2">B2</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+              <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
                   <Select
                     label="Trạng thái"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     sx={commonStyles.filterSelect}
                   >
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="active">Đang học</MenuItem>
-                    <MenuItem value="inactive">Đã kết thúc</MenuItem>
-                    <MenuItem value="pending">Chưa khai giảng</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="active">Đang học</MenuItem>
+                <MenuItem value="inactive">Đã kết thúc</MenuItem>
+                <MenuItem value="pending">Chưa khai giảng</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
 
           <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell width="20%">Tên lớp</TableCell>
-                  <TableCell width="15%">Giáo viên</TableCell>
-                  <TableCell width="10%">Năm học</TableCell>
-                  <TableCell width="10%">Số lượng học sinh</TableCell>
-                  <TableCell width="15%">Thời gian học</TableCell>
-                  <TableCell width="15%">Trạng thái</TableCell>
-                  <TableCell width="15%" align="center">Thao tác</TableCell>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell width="10%">Tên lớp</TableCell>
+              <TableCell width="15%">Giáo viên</TableCell>
+              <TableCell width="10%">Năm học</TableCell>
+              <TableCell width="10%">Số lượng học sinh</TableCell>
+              <TableCell width="20%">Thời gian học</TableCell>
+              <TableCell width="10%">Phòng học</TableCell>
+              <TableCell width="10%">Trạng thái</TableCell>
+              <TableCell width="15%" align="center">Thao tác</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loadingTable ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">Đang tải...</TableCell>
+              </TableRow>
+            ) : classes.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">Không có dữ liệu</TableCell>
+              </TableRow>
+            ) : (
+              classes.map((cls) => (
+                <TableRow key={cls.id}>
+                  <TableCell>{cls.name}</TableCell>
+                  <TableCell>
+                    {cls.teacherId?.name || cls.teacher?.name || cls.teacherName || 'Chưa gán giáo viên'}
+                  </TableCell>
+                  <TableCell>{cls.year}</TableCell>
+                  <TableCell>{cls.studentCount || 0}/{cls.maxStudents}</TableCell>
+                  <TableCell>{formatSchedule(cls.schedule)}</TableCell>
+                  <TableCell>{cls.room || '-'}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={getStatusLabel(cls.status)}
+                      color={getStatusColor(cls.status)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton size="small" title="Xem chi tiết">
+                      <ViewIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(cls)}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" title="Xóa" color="error">
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {loadingTable ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">Đang tải...</TableCell>
-                  </TableRow>
-                ) : classes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">Không có dữ liệu</TableCell>
-                  </TableRow>
-                ) : (
-                  classes.map((cls) => (
-                    <TableRow key={cls.id}>
-                      <TableCell>{cls.name}</TableCell>
-                      <TableCell>
-                        {cls.teacherId?.name || cls.teacher?.name || cls.teacherName || 'Chưa gán giáo viên'}
-                      </TableCell>
-                      <TableCell>{cls.year}</TableCell>
-                      <TableCell>{cls.studentCount || 0}/{cls.maxStudents}</TableCell>
-                      <TableCell>{formatSchedule(cls.schedule)}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={getStatusLabel(cls.status)}
-                          color={getStatusColor(cls.status)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton size="small" title="Xem chi tiết">
-                          <ViewIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(cls)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" title="Xóa" color="error">
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Pagination Info */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Hiển thị {classes.length} trong tổng số {totalRecords} lớp học
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Trang {page} / {totalPages}
-            </Typography>
-          </Box>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
           {/* Pagination */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -305,8 +279,8 @@ const ClassManagement = () => {
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-              {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
-            </DialogTitle>
+          {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
+        </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
               {error && (
                 <Typography color="error" sx={{ mb: 2 }}>
@@ -314,9 +288,9 @@ const ClassManagement = () => {
                 </Typography>
               )}
               <AddClassForm onSubmit={handleAddClass} onCancel={handleCloseDialog} />
-            </DialogContent>
-          </Dialog>
-        </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
       </Box>
     </DashboardLayout>
   );

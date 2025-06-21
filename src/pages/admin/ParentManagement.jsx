@@ -42,7 +42,6 @@ import { createParentAPI, getAllParentsAPI, getStudentByIdAPI } from '../../serv
 
 const ParentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [relationshipFilter, setRelationshipFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
@@ -186,9 +185,14 @@ const ParentManagement = () => {
         for (const studentId of parent.studentIds) {
           if (!studentDetailsMap[studentId]) {
             try {
+              console.log(`Fetching student with ID: ${studentId}`);
               const studentRes = await getStudentByIdAPI(studentId);
-              if (studentRes.data && studentRes.data.userId) {
-                studentDetailsMap[studentId] = studentRes.data.userId.name;
+              console.log(`Student API response for ${studentId}:`, studentRes);
+              if (studentRes && studentRes.userId) {
+                studentDetailsMap[studentId] = studentRes.userId.name || 'Không có tên';
+                console.log(`Student name for ${studentId}:`, studentRes.userId.name);
+              } else {
+                studentDetailsMap[studentId] = 'Không có tên';
               }
             } catch (err) {
               console.error(`Error fetching student ${studentId}:`, err);
@@ -199,6 +203,7 @@ const ParentManagement = () => {
       }
     }
 
+    console.log('Final student details map:', studentDetailsMap);
     setStudentDetails(studentDetailsMap);
   };
 
@@ -209,7 +214,7 @@ const ParentManagement = () => {
     }
 
     const names = studentIds.map(id => studentDetails[id] || 'Đang tải...');
-    return names.join(', ');
+    return names.join('\n');
   };
 
   // Fetch parents on component mount and when page changes
@@ -272,23 +277,7 @@ const ParentManagement = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Quan hệ</InputLabel>
-                  <Select
-                    label="Quan hệ"
-                    value={relationshipFilter}
-                    onChange={(e) => setRelationshipFilter(e.target.value)}
-                    sx={commonStyles.filterSelect}
-                  >
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="father">Bố</MenuItem>
-                    <MenuItem value="mother">Mẹ</MenuItem>
-                    <MenuItem value="guardian">Người giám hộ</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Trạng thái</InputLabel>
                   <Select
@@ -310,10 +299,10 @@ const ParentManagement = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell width="20%">Họ và tên</TableCell>
+                  <TableCell width="15%">Họ và tên</TableCell>
                   <TableCell width="20%">Email</TableCell>
                   <TableCell width="15%">Số điện thoại</TableCell>
-                  <TableCell width="10%">Con</TableCell>
+                  <TableCell width="15%">Con</TableCell>
                   <TableCell width="10%">Giới tính</TableCell>
                   <TableCell width="15%">Xem thông tin giáo viên</TableCell>
                   <TableCell width="10%" align="center">Thao tác</TableCell>
@@ -334,7 +323,7 @@ const ParentManagement = () => {
                       <TableCell>{parent.userId?.name || '-'}</TableCell>
                       <TableCell>{parent.userId?.email || '-'}</TableCell>
                       <TableCell>{parent.userId?.phone || '-'}</TableCell>
-                      <TableCell>{getStudentNames(parent.studentIds)}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'pre-line' }}>{getStudentNames(parent.studentIds)}</TableCell>
                       <TableCell>{getGenderLabel(parent.userId?.gender)}</TableCell>
                       <TableCell>
                         <Chip
@@ -360,16 +349,6 @@ const ParentManagement = () => {
               </TableBody>
             </Table>
           </TableContainer>
-
-          {/* Pagination Info */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Hiển thị {parents.length} trong tổng số {totalRecords} phụ huynh
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Trang {page} / {totalPages}
-            </Typography>
-          </Box>
 
           {/* Pagination */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

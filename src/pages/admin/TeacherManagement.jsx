@@ -229,14 +229,14 @@ const TeacherManagement = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Họ và tên</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Số điện thoại</TableCell>
-                    <TableCell>Lương/buổi</TableCell>
-                    <TableCell>Bằng cấp</TableCell>
-                    <TableCell>Chuyên môn</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell align="center">Thao tác</TableCell>
+                    <TableCell width="15%">Họ và tên</TableCell>
+                    <TableCell width="15%">Email</TableCell>
+                    <TableCell width="12%">Số điện thoại</TableCell>
+                    <TableCell width="10%">Lương/buổi</TableCell>
+                    <TableCell width="15%">Bằng cấp</TableCell>
+                    <TableCell width="13%">Chuyên môn</TableCell>
+                    <TableCell width="8%">Trạng thái</TableCell>
+                    <TableCell width="22%" align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -289,16 +289,6 @@ const TeacherManagement = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-
-            {/* Pagination Info */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Hiển thị {teachers.length} trong tổng số {totalRecords} giáo viên
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Trang {page} / {totalPages}
-              </Typography>
-            </Box>
 
             {/* Pagination */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
