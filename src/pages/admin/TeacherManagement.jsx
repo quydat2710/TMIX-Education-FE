@@ -35,8 +35,9 @@ import {
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
-import { createTeacherAPI, getAllTeachersAPI } from '../../services/api';
+import { createTeacherAPI, getAllTeachersAPI, deleteTeacherAPI } from '../../services/api';
 import { validateTeacher } from '../../validations/teacherValidation';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const TeacherManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,6 +53,8 @@ const TeacherManagement = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedTeacherForView, setSelectedTeacherForView] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -117,6 +120,32 @@ const TeacherManagement = () => {
   const handleCloseViewDialog = () => {
     setSelectedTeacherForView(null);
     setOpenViewDialog(false);
+  };
+
+  const handleOpenDeleteDialog = (teacher) => {
+    setTeacherToDelete(teacher);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setTeacherToDelete(null);
+    setOpenDeleteDialog(false);
+  };
+
+  const handleDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await deleteTeacherAPI(teacherToDelete.id);
+      handleCloseDeleteDialog();
+      fetchTeachers(page); // Refresh teacher list
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa giáo viên');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -288,10 +317,10 @@ const TeacherManagement = () => {
                           <IconButton size="small" title="Xem chi tiết" onClick={() => handleOpenViewDialog(teacher)}>
                             <ViewIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" title="Chỉnh sửa">
+                          <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(teacher)}>
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" title="Xóa" color="error">
+                          <IconButton size="small" title="Xóa" color="error" onClick={() => handleOpenDeleteDialog(teacher)}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </TableCell>
@@ -505,6 +534,15 @@ const TeacherManagement = () => {
         </DialogActions>
       </Dialog>
 
+      <ConfirmDialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleDeleteTeacher}
+        title="Xác nhận xóa giáo viên"
+        content={`Bạn có chắc chắn muốn xóa giáo viên "${teacherToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+        loading={loading}
+      />
+
       {/* View Teacher Details Dialog */}
       <Dialog
         open={openViewDialog}
@@ -523,14 +561,14 @@ const TeacherManagement = () => {
           background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
           color: 'white',
           textAlign: 'center',
-          py: 2
+          py: 1
         }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Chi tiết giáo viên
           </Typography>
           {selectedTeacherForView && (
-            <Typography variant="subtitle1" sx={{ mt: 0.5, opacity: 0.9 }}>
-              {selectedTeacherForView.userId?.name}
+            <Typography sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1.3rem', color: 'black' }}>
+              Thông tin giáo viên
             </Typography>
           )}
         </DialogTitle>

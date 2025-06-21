@@ -38,7 +38,8 @@ import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { validateParent } from '../../validations/parentValidation';
-import { createParentAPI, getAllParentsAPI, getStudentByIdAPI } from '../../services/api';
+import { createParentAPI, getAllParentsAPI, deleteParentAPI } from '../../services/api';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const ParentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,9 +54,10 @@ const ParentManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [studentDetails, setStudentDetails] = useState({});
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedParentForView, setSelectedParentForView] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [parentToDelete, setParentToDelete] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -109,6 +111,32 @@ const ParentManagement = () => {
   const handleCloseViewDialog = () => {
     setSelectedParentForView(null);
     setOpenViewDialog(false);
+  };
+
+  const handleOpenDeleteDialog = (parent) => {
+    setParentToDelete(parent);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setParentToDelete(null);
+    setOpenDeleteDialog(false);
+  };
+
+  const handleDeleteParent = async () => {
+    if (!parentToDelete) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await deleteParentAPI(parentToDelete.id);
+      handleCloseDeleteDialog();
+      fetchParents(page); // Refresh parent list
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa phụ huynh');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -177,9 +205,6 @@ const ParentManagement = () => {
       setParents(res.data || []);
       setTotalPages(res.totalPages || 1);
       setTotalRecords(res.totalRecords || 0);
-
-      // Fetch student details for all parents
-      await fetchStudentDetails(res.data || []);
     } catch (err) {
       console.error('Error fetching parents:', err);
       setParents([]);
@@ -188,44 +213,13 @@ const ParentManagement = () => {
     }
   };
 
-  // Fetch student details for all parents
-  const fetchStudentDetails = async (parentsList) => {
-    const studentDetailsMap = {};
-
-    for (const parent of parentsList) {
-      if (parent.studentIds && parent.studentIds.length > 0) {
-        for (const studentId of parent.studentIds) {
-          if (!studentDetailsMap[studentId]) {
-            try {
-              console.log(`Fetching student with ID: ${studentId}`);
-              const studentRes = await getStudentByIdAPI(studentId);
-              console.log(`Student API response for ${studentId}:`, studentRes);
-              if (studentRes && studentRes.userId) {
-                studentDetailsMap[studentId] = studentRes.userId.name || 'Không có tên';
-                console.log(`Student name for ${studentId}:`, studentRes.userId.name);
-              } else {
-                studentDetailsMap[studentId] = 'Không có tên';
-              }
-            } catch (err) {
-              console.error(`Error fetching student ${studentId}:`, err);
-              studentDetailsMap[studentId] = 'Không tìm thấy';
-            }
-          }
-        }
-      }
-    }
-
-    console.log('Final student details map:', studentDetailsMap);
-    setStudentDetails(studentDetailsMap);
-  };
-
   // Helper function to get student names for a parent
   const getStudentNames = (studentIds) => {
     if (!studentIds || studentIds.length === 0) {
       return 'Chưa có con';
     }
 
-    const names = studentIds.map(id => studentDetails[id] || 'Đang tải...');
+    const names = studentIds.map(student => student.userId?.name || 'Không có tên');
     return names.join('\n');
   };
 
@@ -351,7 +345,7 @@ const ParentManagement = () => {
                         <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(parent)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" title="Xóa" color="error">
+                        <IconButton size="small" title="Xóa" color="error" onClick={() => handleOpenDeleteDialog(parent)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -384,7 +378,7 @@ const ParentManagement = () => {
             <DialogTitle sx={commonStyles.dialogTitle}>
           {selectedParent ? 'Chỉnh sửa thông tin phụ huynh' : 'Thêm phụ huynh mới'}
         </DialogTitle>
-            <DialogContent sx={commonStyles.dialogContent}>
+            <DialogContent sx={{ p: 2 }}>
               {error && (
                 <Typography color="error" sx={{ mb: 2 }}>
                   {error}
@@ -518,6 +512,15 @@ const ParentManagement = () => {
         </DialogActions>
       </Dialog>
 
+      <ConfirmDialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleDeleteParent}
+        title="Xác nhận xóa phụ huynh"
+        content={`Bạn có chắc chắn muốn xóa phụ huynh "${parentToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+        loading={loading}
+      />
+
       {/* View Parent Details Dialog */}
       <Dialog
         open={openViewDialog}
@@ -536,18 +539,18 @@ const ParentManagement = () => {
           background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
           color: 'white',
           textAlign: 'center',
-          py: 2
+          py: 1
         }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Chi tiết phụ huynh
           </Typography>
           {selectedParentForView && (
-            <Typography variant="subtitle1" sx={{ mt: 0.5, opacity: 0.9 }}>
-              {selectedParentForView.userId?.name}
+            <Typography sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1.3rem', color: 'black' }}>
+              Thông tin phụ huynh
             </Typography>
           )}
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ padding: '8px 16px 16px 16px' }}>
           {selectedParentForView && (
             <Box>
               {/* Main Information Grid */}
@@ -687,8 +690,8 @@ const ParentManagement = () => {
                       </Typography>
 
                       <Grid container spacing={2}>
-                        {selectedParentForView.studentIds.map((studentId, index) => (
-                          <Grid item xs={12} md={4} key={index}>
+                        {selectedParentForView.studentIds.map((student, index) => (
+                          <Grid item xs={12} md={4} key={student.id}>
                             <Box sx={{
                               p: 1.5,
                               borderRadius: 1.5,
@@ -699,7 +702,7 @@ const ParentManagement = () => {
                                 Con thứ {index + 1}
                               </Typography>
                               <Typography variant="body2" sx={{ fontWeight: 500, color: '#2e7d32' }}>
-                                {studentDetails[studentId] || 'Đang tải...'}
+                                {student.userId?.name || 'Không có tên'}
                               </Typography>
                             </Box>
                           </Grid>

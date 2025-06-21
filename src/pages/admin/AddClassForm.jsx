@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Box, TextField, Button, MenuItem, Grid, Typography, Select, InputLabel, FormControl, Checkbox, ListItemText, OutlinedInput
+  Box, TextField, Button, MenuItem, Grid, Typography, Select, InputLabel, FormControl, Checkbox, ListItemText, OutlinedInput, Chip
 } from '@mui/material';
+import { getAllTeachersAPI } from '../../services/api';
 
 const daysOfWeek = [
   { value: 0, label: 'Chủ nhật' },
@@ -29,7 +30,7 @@ const timeSlotOptions = [
   { value: '20:00-22:00', label: '20:00 - 22:00', startTime: '20:00', endTime: '22:00' },
 ];
 
-const AddClassForm = ({ onSubmit, onCancel }) => {
+const AddClassForm = ({ classData, onSubmit, loading }) => {
   const [form, setForm] = useState({
     grade: '',
     section: '',
@@ -146,8 +147,7 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
-      <Typography variant="h5" gutterBottom>Thêm lớp học mới</Typography>
+    <Box component="form" id="class-form" onSubmit={handleSubmit}>
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TextField label="Khối " name="grade" value={form.grade} onChange={handleChange} fullWidth required />
@@ -249,16 +249,6 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
         </Grid>
         <Grid item xs={12}>
           <TextField label="Mô tả" name="description" value={form.description} onChange={handleChange} fullWidth multiline rows={2} />
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-            <Button type="button" variant="outlined" color="secondary" onClick={onCancel}>
-              Hủy
-            </Button>
-            <Button type="submit" variant="contained" color="primary">
-              Thêm lớp học
-            </Button>
-          </Box>
         </Grid>
       </Grid>
     </Box>

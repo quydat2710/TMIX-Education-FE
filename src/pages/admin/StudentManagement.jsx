@@ -34,8 +34,9 @@ import {
 import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { createStudentAPI, getAllStudentsAPI, getParentByIdAPI, getClassByIdAPI } from '../../services/api';
+import { createStudentAPI, getAllStudentsAPI, getParentByIdAPI, deleteStudentAPI } from '../../services/api';
 import { validateStudent } from '../../validations/studentValidation';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const StudentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,9 +52,10 @@ const StudentManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [parentDetails, setParentDetails] = useState({});
-  const [classDetails, setClassDetails] = useState({});
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedStudentForView, setSelectedStudentForView] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -115,6 +117,32 @@ const StudentManagement = () => {
     }
   };
 
+  const handleOpenDeleteDialog = (student) => {
+    setStudentToDelete(student);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setStudentToDelete(null);
+    setOpenDeleteDialog(false);
+  };
+
+  const handleDeleteStudent = async () => {
+    if (!studentToDelete) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await deleteStudentAPI(studentToDelete.id);
+      handleCloseDeleteDialog();
+      fetchStudents(page); // Refresh student list
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa học sinh');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchStudents = async () => {
     setLoading(true);
     try {
@@ -131,10 +159,8 @@ const StudentManagement = () => {
         setStudents(response.data);
         setTotalPages(Math.ceil(response.total / 10));
 
-        // Extract parent and class information directly from response
+        // Extract parent information directly from response
         const parentMap = {};
-        const classMap = {};
-        const classIds = new Set();
 
         response.data.forEach(student => {
           // Extract parent name directly from student object
@@ -145,40 +171,9 @@ const StudentManagement = () => {
             parentMap[student.id] = 'Không có phụ huynh';
             console.log(`Student ${student.id}: No parent found`);
           }
-
-          // Collect all unique class IDs for API calls
-          if (student.classes && student.classes.length > 0) {
-            student.classes.forEach(cls => {
-              classIds.add(cls.classId);
-            });
-            console.log(`Student ${student.id}: Classes = ${student.classes.map(c => c.classId).join(', ')}`);
-          } else {
-            console.log(`Student ${student.id}: No classes`);
-          }
         });
 
         setParentDetails(parentMap);
-
-        // Fetch class details from API
-        const classDetailsMap = {};
-        for (const classId of classIds) {
-          try {
-            console.log(`Fetching class with ID: ${classId}`);
-            const classRes = await getClassByIdAPI(classId);
-            console.log(`Class API response for ${classId}:`, classRes);
-            if (classRes && classRes.data && classRes.data.name) {
-              classDetailsMap[classId] = classRes.data.name;
-              console.log(`Class name for ${classId}:`, classRes.data.name);
-            } else {
-              classDetailsMap[classId] = 'Không có tên';
-              console.log(`No class name found for ${classId}`);
-            }
-          } catch (err) {
-            console.error(`Error fetching class ${classId}:`, err);
-            classDetailsMap[classId] = 'Không tìm thấy';
-          }
-        }
-        setClassDetails(classDetailsMap);
       }
     } catch (error) {
       console.error('Error fetching students:', error);
@@ -218,8 +213,8 @@ const StudentManagement = () => {
     if (!classes || classes.length === 0) return 'Chưa đăng ký lớp';
 
     return classes.map(cls => {
-      // Lấy tên lớp từ classDetails map
-      const className = classDetails[cls.classId] || `Lớp ${cls.classId}`;
+      // Lấy tên lớp trực tiếp từ classId object
+      const className = cls.classId?.name || `Lớp ${cls.classId?.grade || ''}.${cls.classId?.section || ''}`;
       const status = cls.status === 'active' ? 'Đang học' : 'Đã nghỉ';
       const discount = cls.discountPercent ? ` (Giảm ${cls.discountPercent}%)` : '';
       return `${className}${discount} - ${status}`;
@@ -341,7 +336,7 @@ const StudentManagement = () => {
                         <IconButton size="small">
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small">
+                        <IconButton size="small" onClick={() => handleOpenDeleteDialog(student)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -369,7 +364,7 @@ const StudentManagement = () => {
             <DialogTitle sx={commonStyles.dialogTitle}>
           {selectedStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
         </DialogTitle>
-            <DialogContent sx={commonStyles.dialogContent}>
+            <DialogContent sx={{ p: 2, pt: 1 }}>
               {error && (
                 <Typography color="error" sx={{ mb: 2 }}>
                   {error}
@@ -436,6 +431,15 @@ const StudentManagement = () => {
         </DialogActions>
       </Dialog>
 
+      <ConfirmDialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleDeleteStudent}
+        title="Xác nhận xóa học sinh"
+        content={`Bạn có chắc chắn muốn xóa học sinh "${studentToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+        loading={loading}
+      />
+
       {/* View Student Details Dialog */}
       <Dialog
         open={openViewDialog}
@@ -454,18 +458,18 @@ const StudentManagement = () => {
           background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
           color: 'white',
           textAlign: 'center',
-          py: 2
+          py: 1
         }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Chi tiết học sinh
           </Typography>
           {selectedStudentForView && (
-            <Typography variant="subtitle1" sx={{ mt: 0.5, opacity: 0.9 }}>
-              {selectedStudentForView.userId?.name}
+            <Typography sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1.3rem', color: 'black' }}>
+              Thông tin học sinh
             </Typography>
           )}
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ padding: '8px 16px 16px 16px' }}>
           {selectedStudentForView && (
             <Box>
               {/* Main Information Grid */}
@@ -606,7 +610,7 @@ const StudentManagement = () => {
                               border: `1px solid ${cls.status === 'active' ? '#4caf50' : '#ff9800'}`
                             }}>
                               <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                {classDetails[cls.classId] || `Lớp ${cls.classId}`}
+                                {cls.classId?.name || `Lớp ${cls.classId?.grade || ''}.${cls.classId?.section || ''}`}
                               </Typography>
                               <Typography variant="body2" sx={{ fontWeight: 500, color: cls.status === 'active' ? '#2e7d32' : '#e65100' }}>
                                 {cls.status === 'active' ? 'Đang học' : 'Đã nghỉ'}
