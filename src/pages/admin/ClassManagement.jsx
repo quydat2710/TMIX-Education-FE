@@ -127,9 +127,8 @@ const ClassManagement = () => {
   const getStatusLabel = (status) => {
     const statusMap = {
       'active': 'Đang hoạt động',
-      'inactive': 'Ngừng hoạt động',
       'upcoming': 'Sắp khai giảng',
-      'finished': 'Đã kết thúc'
+      'closed': 'Đã đóng'
     };
     return statusMap[status] || status;
   };
@@ -138,9 +137,8 @@ const ClassManagement = () => {
   const getStatusColor = (status) => {
     const colorMap = {
       'active': 'success',
-      'inactive': 'default',
       'upcoming': 'warning',
-      'finished': 'default'
+      'closed': 'error'
     };
     return colorMap[status] || 'default';
   };
@@ -191,9 +189,9 @@ const ClassManagement = () => {
                     sx={commonStyles.filterSelect}
                   >
                 <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="active">Đang học</MenuItem>
-                <MenuItem value="inactive">Đã kết thúc</MenuItem>
-                <MenuItem value="pending">Chưa khai giảng</MenuItem>
+                <MenuItem value="active">Đang hoạt động</MenuItem>
+                <MenuItem value="upcoming">Sắp khai giảng</MenuItem>
+                <MenuItem value="closed">Đã đóng</MenuItem>
               </Select>
             </FormControl>
           </Grid>
