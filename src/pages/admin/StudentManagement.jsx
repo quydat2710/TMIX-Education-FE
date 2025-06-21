@@ -39,6 +39,8 @@ import { validateStudent } from '../../validations/studentValidation';
 
 const StudentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [classFilter, setClassFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [form, setForm] = useState({
@@ -57,6 +59,8 @@ const StudentManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingTable, setLoadingTable] = useState(false);
+  const [parentDetails, setParentDetails] = useState({});
+  const [classDetails, setClassDetails] = useState({});
 
   const handleOpenDialog = (student = null) => {
     setSelectedStudent(student);
@@ -101,7 +105,7 @@ const StudentManagement = () => {
     try {
       await createStudentAPI(form);
       handleCloseDialog();
-      // TODO: refresh student list if needed
+      fetchStudents(page);
     } catch (err) {
       setError(err?.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
@@ -118,10 +122,47 @@ const StudentManagement = () => {
       console.log('API getAllStudentsAPI response:', res);
       setStudents(res.data || []);
       setTotalPages(res.totalPages || 1);
+
+      // Fetch parent and class details if needed
+      await fetchParentAndClassDetails(res.data || []);
     } catch (err) {
       setStudents([]);
     } finally {
       setLoadingTable(false);
+    }
+  };
+
+  // Fetch parent and class details
+  const fetchParentAndClassDetails = async (studentsList) => {
+    try {
+      // Collect unique parent IDs and class IDs
+      const parentIds = [...new Set(studentsList.map(s => s.parentId).filter(Boolean))];
+      const classIds = [...new Set(
+        studentsList.flatMap(s => s.classes?.map(c => c.classId) || []).filter(Boolean)
+      )];
+
+      // TODO: Fetch parent details from API
+      // const parentRes = await getParentsByIdsAPI(parentIds);
+      // setParentDetails(parentRes.data || {});
+
+      // TODO: Fetch class details from API
+      // const classRes = await getClassesByIdsAPI(classIds);
+      // setClassDetails(classRes.data || {});
+
+      // For now, create mock data
+      const mockParentDetails = {};
+      parentIds.forEach(id => {
+        mockParentDetails[id] = { name: `Phụ huynh ${id}` };
+      });
+      setParentDetails(mockParentDetails);
+
+      const mockClassDetails = {};
+      classIds.forEach(id => {
+        mockClassDetails[id] = { name: `Lớp ${id}` };
+      });
+      setClassDetails(mockClassDetails);
+    } catch (err) {
+      console.error('Error fetching parent and class details:', err);
     }
   };
 
@@ -133,114 +174,160 @@ const StudentManagement = () => {
     setPage(value);
   };
 
+  // Helper function to safely render text content
+  const renderText = (text) => {
+    if (text === null || text === undefined) return '-';
+    if (typeof text === 'object') return '-';
+    return String(text);
+  };
+
+  // Helper function to format parent display
+  const renderParent = (parentId) => {
+    if (!parentId) return '-';
+    // Nếu có thông tin chi tiết phụ huynh, hiển thị tên
+    if (parentDetails[parentId]) {
+      return parentDetails[parentId].name || `Phụ huynh #${parentId}`;
+    }
+    // Nếu không, hiển thị ID với format rõ ràng hơn
+    return `Phụ huynh #${parentId}`;
+  };
+
+  // Helper function to format class display
+  const renderClasses = (classes) => {
+    if (!classes || classes.length === 0) return '-';
+    return classes.map(cls => {
+      // Nếu có thông tin chi tiết lớp, hiển thị tên
+      if (classDetails[cls.classId]) {
+        return classDetails[cls.classId].name || `Lớp #${cls.classId}`;
+      }
+      // Nếu không, hiển thị ID với format rõ ràng hơn
+      return cls.className || `Lớp #${cls.classId}`;
+    }).join(', ');
+  };
+
   return (
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
-          Quản lý học sinh
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
+              Quản lý học sinh
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
               sx={commonStyles.primaryButton}
-        >
-          Thêm học sinh
-        </Button>
-      </Box>
+            >
+              Thêm học sinh
+            </Button>
+          </Box>
 
           <Paper sx={commonStyles.searchContainer}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              placeholder="Tìm kiếm học sinh..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  placeholder="Tìm kiếm học sinh..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   sx={commonStyles.searchField}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Lớp học</InputLabel>
-                  <Select label="Lớp học" sx={commonStyles.filterSelect}>
-                <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="a1">A1</MenuItem>
-                <MenuItem value="a2">A2</MenuItem>
-                <MenuItem value="b1">B1</MenuItem>
-                <MenuItem value="b2">B2</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Trạng thái</InputLabel>
-                  <Select label="Trạng thái" sx={commonStyles.filterSelect}>
-                <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="active">Đang học</MenuItem>
-                <MenuItem value="inactive">Nghỉ học</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Paper>
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>Lớp học</InputLabel>
+                  <Select
+                    label="Lớp học"
+                    value={classFilter}
+                    onChange={(e) => setClassFilter(e.target.value)}
+                    sx={commonStyles.filterSelect}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="a1">A1</MenuItem>
+                    <MenuItem value="a2">A2</MenuItem>
+                    <MenuItem value="b1">B1</MenuItem>
+                    <MenuItem value="b2">B2</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select
+                    label="Trạng thái"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    sx={commonStyles.filterSelect}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="active">Đang học</MenuItem>
+                    <MenuItem value="inactive">Nghỉ học</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Paper>
 
           <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell width="18%">Họ và tên</TableCell>
-              <TableCell width="18%">Email</TableCell>
-              <TableCell width="13%">Số điện thoại</TableCell>
-              <TableCell width="15%">Phụ huynh</TableCell>
-              <TableCell width="18%">Lớp học</TableCell>
-              <TableCell width="8%">Giới tính</TableCell>
-              <TableCell width="10%" align="center">Thao tác</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loadingTable ? (
-              <TableRow><TableCell colSpan={7} align="center">Đang tải...</TableCell></TableRow>
-            ) : students.length === 0 ? (
-              <TableRow><TableCell colSpan={7} align="center">Không có dữ liệu</TableCell></TableRow>
-            ) : (
-              students.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell>{student.userId?.name}</TableCell>
-                  <TableCell>{student.userId?.email}</TableCell>
-                  <TableCell>{student.userId?.phone}</TableCell>
-                  <TableCell>{student.parentId || '-'}</TableCell>
-                  <TableCell>
-                    {(student.classes && student.classes.length > 0)
-                      ? student.classes.map(cls => cls.classId).join(', ')
-                      : '-'}
-                  </TableCell>
-                  <TableCell>{student.userId?.gender === 'male' ? 'Nam' : 'Nữ'}</TableCell>
-                  <TableCell align="center">
-                    {/* Thao tác: Sửa, Xóa, Xem... */}
-                    <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
-                  </TableCell>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell width="18%">Họ và tên</TableCell>
+                  <TableCell width="18%">Email</TableCell>
+                  <TableCell width="13%">Số điện thoại</TableCell>
+                  <TableCell width="15%">Phụ huynh</TableCell>
+                  <TableCell width="18%">Lớp học</TableCell>
+                  <TableCell width="8%">Giới tính</TableCell>
+                  <TableCell width="10%" align="center">Thao tác</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableHead>
+              <TableBody>
+                {loadingTable ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">Đang tải...</TableCell>
+                  </TableRow>
+                ) : students.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">Không có dữ liệu</TableCell>
+                  </TableRow>
+                ) : (
+                  students.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell>{renderText(student.userId?.name)}</TableCell>
+                      <TableCell>{renderText(student.userId?.email)}</TableCell>
+                      <TableCell>{renderText(student.userId?.phone)}</TableCell>
+                      <TableCell>{renderParent(student.parentId)}</TableCell>
+                      <TableCell>{renderClasses(student.classes)}</TableCell>
+                      <TableCell>
+                        {student.userId?.gender === 'male' ? 'Nam' : 'Nữ'}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton size="small">
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-      {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-        <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
-      </Box>
+          {/* Pagination */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
+          </Box>
 
           <Dialog
             open={openDialog}
@@ -252,8 +339,8 @@ const StudentManagement = () => {
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-          {selectedStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
-        </DialogTitle>
+              {selectedStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
+            </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
               <Grid container spacing={2} sx={commonStyles.formGrid}>
                 <Grid item xs={12} sm={6}>
@@ -311,11 +398,11 @@ const StudentManagement = () => {
                 onClick={handleSubmit}
                 disabled={loading}
               >
-            {selectedStudent ? 'Cập nhật' : loading ? 'Đang thêm...' : 'Thêm mới'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                {selectedStudent ? 'Cập nhật' : loading ? 'Đang thêm...' : 'Thêm mới'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
       </Box>
     </DashboardLayout>
   );

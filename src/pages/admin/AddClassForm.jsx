@@ -4,19 +4,29 @@ import {
 } from '@mui/material';
 
 const daysOfWeek = [
-  { value: 2, label: 'Thứ 2' },
-  { value: 3, label: 'Thứ 3' },
-  { value: 4, label: 'Thứ 4' },
-  { value: 5, label: 'Thứ 5' },
-  { value: 6, label: 'Thứ 6' },
-  { value: 7, label: 'Thứ 7' },
-  { value: 8, label: 'Chủ nhật' },
+  { value: 0, label: 'Chủ nhật' },
+  { value: 1, label: 'Thứ 2' },
+  { value: 2, label: 'Thứ 3' },
+  { value: 3, label: 'Thứ 4' },
+  { value: 4, label: 'Thứ 5' },
+  { value: 5, label: 'Thứ 6' },
+  { value: 6, label: 'Thứ 7' },
 ];
 
 const statusOptions = [
+  { value: 'active', label: 'Đang hoạt động' },
+  { value: 'inactive', label: 'Ngừng hoạt động' },
   { value: 'upcoming', label: 'Sắp khai giảng' },
-  { value: 'ongoing', label: 'Đang học' },
   { value: 'finished', label: 'Đã kết thúc' },
+];
+
+const timeSlotOptions = [
+  { value: '07:00-09:00', label: '7:00 - 9:00', startTime: '07:00', endTime: '09:00' },
+  { value: '09:00-11:00', label: '9:00 - 11:00', startTime: '09:00', endTime: '11:00' },
+  { value: '14:00-16:00', label: '14:00 - 16:00', startTime: '14:00', endTime: '16:00' },
+  { value: '16:00-18:00', label: '16:00 - 18:00', startTime: '16:00', endTime: '18:00' },
+  { value: '18:00-20:00', label: '18:00 - 20:00', startTime: '18:00', endTime: '20:00' },
+  { value: '20:00-22:00', label: '20:00 - 22:00', startTime: '20:00', endTime: '22:00' },
 ];
 
 const AddClassForm = ({ onSubmit, onCancel }) => {
@@ -25,7 +35,7 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
     section: '',
     name: '',
     year: new Date().getFullYear(),
-    status: 'upcoming',
+    status: 'active',
     feePerLesson: '',
     maxStudents: '',
     description: '',
@@ -40,6 +50,8 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
       }
     }
   });
+
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,9 +97,52 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
     }));
   };
 
+  const handleTimeSlotSelect = (timeSlotValue) => {
+    setSelectedTimeSlot(timeSlotValue);
+    const selectedSlot = timeSlotOptions.find(slot => slot.value === timeSlotValue);
+    if (selectedSlot) {
+      setForm(prev => ({
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          timeSlots: {
+            startTime: selectedSlot.startTime,
+            endTime: selectedSlot.endTime
+          }
+        }
+      }));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit(form);
+
+    // Format dates to yyyy/mm/dd format
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}/${month}/${day}`;
+    };
+
+    // Prepare data according to API format
+    const submitData = {
+      ...form,
+      schedule: {
+        ...form.schedule,
+        startDate: formatDate(form.schedule.startDate),
+        endDate: formatDate(form.schedule.endDate),
+        dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+        timeSlots: {
+          startTime: form.schedule.timeSlots.startTime,
+          endTime: form.schedule.timeSlots.endTime
+        }
+      }
+    };
+
+    if (onSubmit) onSubmit(submitData);
   };
 
   return (
@@ -174,29 +229,23 @@ const AddClassForm = ({ onSubmit, onCancel }) => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={6}>
-          <TextField
-            label="Giờ bắt đầu"
-            name="startTime"
-            type="time"
-            value={form.schedule.timeSlots.startTime}
-            onChange={handleTimeSlotChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            required
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            label="Giờ kết thúc"
-            name="endTime"
-            type="time"
-            value={form.schedule.timeSlots.endTime}
-            onChange={handleTimeSlotChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            required
-          />
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <InputLabel>Khung giờ học</InputLabel>
+            <Select
+              name="timeSlot"
+              value={selectedTimeSlot}
+              onChange={(e) => handleTimeSlotSelect(e.target.value)}
+              label="Khung giờ học"
+              required
+            >
+              {timeSlotOptions.map(slot => (
+                <MenuItem key={slot.value} value={slot.value}>
+                  {slot.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Grid>
         <Grid item xs={12}>
           <TextField label="Mô tả" name="description" value={form.description} onChange={handleChange} fullWidth multiline rows={2} />
