@@ -50,6 +50,8 @@ const TeacherManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedTeacherForView, setSelectedTeacherForView] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -105,6 +107,16 @@ const TeacherManagement = () => {
     });
     setError('');
     setFormErrors({});
+  };
+
+  const handleOpenViewDialog = (teacherData) => {
+    setSelectedTeacherForView(teacherData);
+    setOpenViewDialog(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setSelectedTeacherForView(null);
+    setOpenViewDialog(false);
   };
 
   const handleChange = (e) => {
@@ -195,40 +207,40 @@ const TeacherManagement = () => {
       <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h5" component="h1">
-                Quản lý giáo viên
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenDialog()}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5" component="h1">
+          Quản lý giáo viên
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
                 sx={{ bgcolor: COLORS.primary }}
-              >
-                Thêm giáo viên
-              </Button>
-            </Box>
+        >
+          Thêm giáo viên
+        </Button>
+      </Box>
 
-            <Paper sx={{ p: 2, mb: 3 }}>
-              <TextField
-                fullWidth
-                placeholder="Tìm kiếm giáo viên..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Paper>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Tìm kiếm giáo viên..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Paper>
 
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
                     <TableCell width="15%">Họ và tên</TableCell>
                     <TableCell width="15%">Email</TableCell>
                     <TableCell width="12%">Số điện thoại</TableCell>
@@ -237,9 +249,9 @@ const TeacherManagement = () => {
                     <TableCell width="13%">Chuyên môn</TableCell>
                     <TableCell width="8%">Trạng thái</TableCell>
                     <TableCell width="22%" align="center">Thao tác</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            </TableRow>
+          </TableHead>
+          <TableBody>
                   {loadingTable ? (
                     <TableRow>
                       <TableCell colSpan={8} align="center">Đang tải...</TableCell>
@@ -273,7 +285,7 @@ const TeacherManagement = () => {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          <IconButton size="small" title="Xem chi tiết">
+                          <IconButton size="small" title="Xem chi tiết" onClick={() => handleOpenViewDialog(teacher)}>
                             <ViewIcon fontSize="small" />
                           </IconButton>
                           <IconButton size="small" title="Chỉnh sửa">
@@ -286,9 +298,9 @@ const TeacherManagement = () => {
                       </TableRow>
                     ))
                   )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
             {/* Pagination */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -300,39 +312,39 @@ const TeacherManagement = () => {
               />
             </Box>
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-              <DialogTitle>
-                {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
-              </DialogTitle>
-              <DialogContent>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
+        </DialogTitle>
+        <DialogContent>
                 {error && (
                   <Typography color="error" sx={{ mb: 2 }}>
                     {error}
                   </Typography>
                 )}
-                <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
                   <Grid item xs={12}>
                     <Typography variant="h6" gutterBottom>
                       Thông tin cá nhân
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Họ và tên"
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Họ và tên"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
                       error={!!formErrors.name}
                       helperText={formErrors.name}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      type="email"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
@@ -351,13 +363,13 @@ const TeacherManagement = () => {
                       onChange={handleChange}
                       error={!!formErrors.password}
                       helperText={formErrors.password}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Số điện thoại"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Số điện thoại"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
@@ -376,11 +388,11 @@ const TeacherManagement = () => {
                       placeholder="15/03/1990"
                       error={!!formErrors.dayOfBirth}
                       helperText={formErrors.dayOfBirth}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
                       <InputLabel>Giới tính</InputLabel>
                       <Select
                         label="Giới tính"
@@ -391,13 +403,13 @@ const TeacherManagement = () => {
                       >
                         <MenuItem value="male">Nam</MenuItem>
                         <MenuItem value="female">Nữ</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Địa chỉ"
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Địa chỉ"
                       name="address"
                       value={form.address}
                       onChange={handleChange}
@@ -470,18 +482,18 @@ const TeacherManagement = () => {
                     <TextField
                       fullWidth
                       label="Mô tả"
-                      multiline
+                multiline
                       rows={3}
                       name="description"
                       value={form.description}
                       onChange={handleChange}
                       placeholder="Mô tả về kinh nghiệm giảng dạy..."
-                    />
-                  </Grid>
-                </Grid>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseDialog}>Hủy</Button>
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Hủy</Button>
                 <Button
                   variant="contained"
                   onClick={handleSubmit}
@@ -489,10 +501,225 @@ const TeacherManagement = () => {
                   sx={{ bgcolor: COLORS.primary }}
                 >
                   {selectedTeacher ? 'Cập nhật' : loading ? 'Đang thêm...' : 'Thêm mới'}
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Box>
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View Teacher Details Dialog */}
+      <Dialog
+        open={openViewDialog}
+        onClose={handleCloseViewDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minHeight: '50vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          ...commonStyles.dialogTitle,
+          background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+          color: 'white',
+          textAlign: 'center',
+          py: 2
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Chi tiết giáo viên
+          </Typography>
+          {selectedTeacherForView && (
+            <Typography variant="subtitle1" sx={{ mt: 0.5, opacity: 0.9 }}>
+              {selectedTeacherForView.userId?.name}
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {selectedTeacherForView && (
+            <Box>
+
+              {/* Main Information Grid */}
+              <Grid container spacing={3}>
+                {/* Left Column - Personal Info */}
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      Thông tin cá nhân
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Họ và tên
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.primary }}>
+                          {selectedTeacherForView.userId?.name}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Email
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedTeacherForView.userId?.email}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Số điện thoại
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedTeacherForView.userId?.phone}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Ngày sinh
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedTeacherForView.userId?.dayOfBirth}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Giới tính
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedTeacherForView.userId?.gender === 'male' ? 'Nam' : 'Nữ'}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Địa chỉ
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedTeacherForView.userId?.address}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Right Column - Professional Info */}
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      Thông tin chuyên môn
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                        border: '1px solid #2196f3'
+                      }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Lương mỗi buổi
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {selectedTeacherForView.salaryPerLesson ? `${selectedTeacherForView.salaryPerLesson.toLocaleString()} VNĐ` : 'Chưa có'}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                        border: '1px solid #9c27b0'
+                      }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Bằng cấp
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#7b1fa2' }}>
+                          {selectedTeacherForView.qualifications && selectedTeacherForView.qualifications.length > 0
+                            ? selectedTeacherForView.qualifications.join(', ')
+                            : 'Chưa có'}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                        border: '1px solid #4caf50'
+                      }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Chuyên môn
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#2e7d32' }}>
+                          {selectedTeacherForView.specialization && selectedTeacherForView.specialization.length > 0
+                            ? selectedTeacherForView.specialization.join(', ')
+                            : 'Chưa có'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Status Banner */}
+                <Grid item xs={12}>
+                    <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: `linear-gradient(90deg, ${selectedTeacherForView.isActive ? '#e8f5e8' : '#ffebee'}, transparent)`,
+                        border: `1px solid ${selectedTeacherForView.isActive ? '#4caf50' : '#f44336'}`
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            Trạng thái giáo viên
+                        </Typography>
+                        <Chip
+                            label={selectedTeacherForView.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                            color={selectedTeacherForView.isActive ? 'success' : 'error'}
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                        />
+                        </Box>
+                    </Box>
+                </Grid>
+
+                {/* Description */}
+                {selectedTeacherForView.description && (
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: 2.5, borderRadius: 1.5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                      <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                        Mô tả
+                      </Typography>
+                      <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.primary' }}>
+                        {selectedTeacherForView.description}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 0 }}>
+          <Button
+            onClick={handleCloseViewDialog}
+            variant="contained"
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 1.5,
+              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+              }
+            }}
+          >
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
         </Box>
       </Box>
     </DashboardLayout>

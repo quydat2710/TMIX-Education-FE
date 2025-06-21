@@ -54,6 +54,8 @@ const ParentManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [studentDetails, setStudentDetails] = useState({});
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedParentForView, setSelectedParentForView] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -97,6 +99,16 @@ const ParentManagement = () => {
     });
     setError('');
     setFormErrors({});
+  };
+
+  const handleOpenViewDialog = (parentData) => {
+    setSelectedParentForView(parentData);
+    setOpenViewDialog(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setSelectedParentForView(null);
+    setOpenViewDialog(false);
   };
 
   const handleChange = (e) => {
@@ -247,58 +259,58 @@ const ParentManagement = () => {
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
-              Quản lý phụ huynh
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
+          Quản lý phụ huynh
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
               sx={commonStyles.primaryButton}
-            >
-              Thêm phụ huynh
-            </Button>
-          </Box>
+        >
+          Thêm phụ huynh
+        </Button>
+      </Box>
 
           <Paper sx={commonStyles.searchContainer}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm phụ huynh..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm phụ huynh..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
                   sx={commonStyles.searchField}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
                   <Select
                     label="Trạng thái"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     sx={commonStyles.filterSelect}
                   >
-                    <MenuItem value="">Tất cả</MenuItem>
-                    <MenuItem value="active">Đang hoạt động</MenuItem>
-                    <MenuItem value="inactive">Không hoạt động</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
+                <MenuItem value="">Tất cả</MenuItem>
+                <MenuItem value="active">Đang hoạt động</MenuItem>
+                <MenuItem value="inactive">Không hoạt động</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
 
           <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-            <Table>
-              <TableHead>
-                <TableRow>
+        <Table>
+          <TableHead>
+            <TableRow>
                   <TableCell width="15%">Họ và tên</TableCell>
                   <TableCell width="20%">Email</TableCell>
                   <TableCell width="15%">Số điện thoại</TableCell>
@@ -306,9 +318,9 @@ const ParentManagement = () => {
                   <TableCell width="10%">Giới tính</TableCell>
                   <TableCell width="15%">Xem thông tin giáo viên</TableCell>
                   <TableCell width="10%" align="center">Thao tác</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+            </TableRow>
+          </TableHead>
+          <TableBody>
                 {loadingTable ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center">Đang tải...</TableCell>
@@ -333,7 +345,7 @@ const ParentManagement = () => {
                         />
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton size="small" title="Xem chi tiết">
+                        <IconButton size="small" title="Xem chi tiết" onClick={() => handleOpenViewDialog(parent)}>
                           <ViewIcon fontSize="small" />
                         </IconButton>
                         <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(parent)}>
@@ -346,9 +358,9 @@ const ParentManagement = () => {
                     </TableRow>
                   ))
                 )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
           {/* Pagination */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -370,8 +382,8 @@ const ParentManagement = () => {
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
-              {selectedParent ? 'Chỉnh sửa thông tin phụ huynh' : 'Thêm phụ huynh mới'}
-            </DialogTitle>
+          {selectedParent ? 'Chỉnh sửa thông tin phụ huynh' : 'Thêm phụ huynh mới'}
+        </DialogTitle>
             <DialogContent sx={commonStyles.dialogContent}>
               {error && (
                 <Typography color="error" sx={{ mb: 2 }}>
@@ -379,10 +391,10 @@ const ParentManagement = () => {
                 </Typography>
               )}
               <Grid container spacing={2} sx={commonStyles.formGrid}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Họ và tên"
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Họ và tên"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
@@ -402,11 +414,11 @@ const ParentManagement = () => {
                     onChange={handleChange}
                     error={!!formErrors.email}
                     helperText={formErrors.email}
-                    required
+                required
                     sx={commonStyles.formField}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Mật khẩu"
@@ -419,10 +431,10 @@ const ParentManagement = () => {
                     required
                     sx={commonStyles.formField}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
                     label="Ngày sinh"
                     name="dayOfBirth"
                     value={form.dayOfBirth}
@@ -430,27 +442,27 @@ const ParentManagement = () => {
                     placeholder="15/06/1975"
                     error={!!formErrors.dayOfBirth}
                     helperText={formErrors.dayOfBirth}
-                    required
+                required
                     sx={commonStyles.formField}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
                     label="Số điện thoại"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     error={!!formErrors.phone}
                     helperText={formErrors.phone}
-                    required
+                required
                     sx={commonStyles.formField}
-                  />
-                </Grid>
+              />
+            </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Địa chỉ"
+              <TextField
+                fullWidth
+                label="Địa chỉ"
                     name="address"
                     value={form.address}
                     onChange={handleChange}
@@ -458,12 +470,12 @@ const ParentManagement = () => {
                     helperText={formErrors.address}
                     required
                     sx={commonStyles.formField}
-                  />
-                </Grid>
+              />
+            </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth sx={commonStyles.formField}>
                     <InputLabel>Giới tính</InputLabel>
-                    <Select
+                <Select
                       label="Giới tính"
                       name="gender"
                       value={form.gender}
@@ -473,9 +485,9 @@ const ParentManagement = () => {
                     >
                       <MenuItem value="male">Nam</MenuItem>
                       <MenuItem value="female">Nữ</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                </Select>
+              </FormControl>
+            </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControlLabel
                     control={
@@ -488,9 +500,9 @@ const ParentManagement = () => {
                     label="Quyền xem thông tin giáo viên"
                     sx={commonStyles.formField}
                   />
-                </Grid>
-              </Grid>
-            </DialogContent>
+            </Grid>
+          </Grid>
+        </DialogContent>
             <DialogActions sx={commonStyles.formActions}>
               <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton} disabled={loading}>
                 Hủy
@@ -502,10 +514,223 @@ const ParentManagement = () => {
                 sx={commonStyles.primaryButton}
               >
                 {loading ? 'Đang xử lý...' : (selectedParent ? 'Cập nhật' : 'Thêm mới')}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View Parent Details Dialog */}
+      <Dialog
+        open={openViewDialog}
+        onClose={handleCloseViewDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minHeight: '50vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          ...commonStyles.dialogTitle,
+          background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+          color: 'white',
+          textAlign: 'center',
+          py: 2
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Chi tiết phụ huynh
+          </Typography>
+          {selectedParentForView && (
+            <Typography variant="subtitle1" sx={{ mt: 0.5, opacity: 0.9 }}>
+              {selectedParentForView.userId?.name}
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {selectedParentForView && (
+            <Box>
+              {/* Main Information Grid */}
+              <Grid container spacing={3}>
+                {/* Left Column - Personal Info */}
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      Thông tin cá nhân
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Họ và tên
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.primary }}>
+                          {selectedParentForView.userId?.name}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Email
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedParentForView.userId?.email}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Số điện thoại
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedParentForView.userId?.phone}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Ngày sinh
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedParentForView.userId?.dayOfBirth}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Giới tính
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {getGenderLabel(selectedParentForView.userId?.gender)}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Địa chỉ
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {selectedParentForView.userId?.address}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Right Column - Children Info */}
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      Thông tin con cái
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                        border: '1px solid #2196f3'
+                      }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Số lượng con
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {selectedParentForView.studentIds ? selectedParentForView.studentIds.length : 0}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                        border: '1px solid #9c27b0'
+                      }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                          Trạng thái
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#7b1fa2' }}>
+                          {selectedParentForView.studentIds && selectedParentForView.studentIds.length > 0 ? 'Có con đang học' : 'Chưa có con'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12}>
+                  {/* Permission Banner */}
+                  <Box sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    background: `linear-gradient(90deg, ${selectedParentForView.canSeeTeacherInfo ? '#e8f5e8' : '#fff3e0'}, transparent)`,
+                    border: `1px solid ${selectedParentForView.canSeeTeacherInfo ? '#4caf50' : '#ff9800'}`
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Quyền xem thông tin giáo viên
+                      </Typography>
+                      <Chip
+                        label={getTeacherInfoLabel(selectedParentForView.canSeeTeacherInfo)}
+                        color={getTeacherInfoColor(selectedParentForView.canSeeTeacherInfo)}
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {/* Full Width - Children List */}
+                {selectedParentForView.studentIds && selectedParentForView.studentIds.length > 0 && (
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: 2.5, borderRadius: 1.5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                      <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                        Danh sách con
+                      </Typography>
+
+                      <Grid container spacing={2}>
+                        {selectedParentForView.studentIds.map((studentId, index) => (
+                          <Grid item xs={12} md={4} key={index}>
+                            <Box sx={{
+                              p: 1.5,
+                              borderRadius: 1.5,
+                              bgcolor: '#e8f5e8',
+                              border: '1px solid #4caf50'
+                            }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                Con thứ {index + 1}
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500, color: '#2e7d32' }}>
+                                {studentDetails[studentId] || 'Đang tải...'}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 0 }}>
+          <Button
+            onClick={handleCloseViewDialog}
+            variant="contained"
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 1.5,
+              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+              }
+            }}
+          >
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
       </Box>
     </DashboardLayout>
   );
