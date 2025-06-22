@@ -232,16 +232,6 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
               day: (props) => (
                 <ServerDay {...props} lessons={lessons} userType={userType} />
               ),
-              calendarHeader: (props) => {
-                const month = selectedDate.month() + 1;
-                const year = selectedDate.year();
-                const monthName = dayjs(selectedDate).format('MMMM');
-                return (
-                  <div className={props.className} style={props.style}>
-                    <span>{`Tháng ${month} Năm ${year}`}</span>
-                  </div>
-                );
-              },
             }}
             showDaysOutsideCurrentMonth
             views={['day']}
