@@ -23,21 +23,25 @@ import StudentManagement from './pages/admin/StudentManagement';
 import TeacherManagement from './pages/admin/TeacherManagement';
 import ParentManagement from './pages/admin/ParentManagement';
 import Statistics from './pages/admin/Statistics';
+import AdminProfile from './pages/Profile/AdminProfile';
 
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherMyClasses from './pages/teacher/MyClasses';
 import TeacherSchedule from './pages/teacher/Schedule';
+import TeacherProfile from './pages/Profile/TeacherProfile';
 
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard';
 import StudentMyClasses from './pages/student/MyClasses';
 import StudentSchedule from './pages/student/Schedule';
+import StudentProfile from './pages/Profile/StudentProfile';
 
 // Parent Pages
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentChildren from './pages/parent/Children';
 import ParentPayments from './pages/parent/Payments';
+import ParentProfile from './pages/Profile/ParentProfile';
 
 import { USER_ROLES } from './utils/constants';
 
@@ -74,6 +78,7 @@ function App() {
                     <Route path="teachers" element={<TeacherManagement />} />
                     <Route path="parents" element={<ParentManagement />} />
                     <Route path="statistics" element={<Statistics />} />
+                    <Route path="profile" element={<AdminProfile />} />
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
                 </ProtectedRoute>
@@ -89,6 +94,7 @@ function App() {
                     <Route path="dashboard" element={<TeacherDashboard />} />
                     <Route path="classes" element={<TeacherMyClasses />} />
                     <Route path="schedule" element={<TeacherSchedule />} />
+                    <Route path="profile" element={<TeacherProfile />} />
                     <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                     </Routes>
                 </ProtectedRoute>
@@ -104,6 +110,7 @@ function App() {
                     <Route path="dashboard" element={<StudentDashboard />} />
                     <Route path="classes" element={<StudentMyClasses />} />
                     <Route path="schedule" element={<StudentSchedule />} />
+                    <Route path="profile" element={<StudentProfile />} />
                     <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                     </Routes>
                 </ProtectedRoute>
@@ -119,6 +126,7 @@ function App() {
                     <Route path="dashboard" element={<ParentDashboard />} />
                     <Route path="children" element={<ParentChildren />} />
                     <Route path="payments" element={<ParentPayments />} />
+                    <Route path="profile" element={<ParentProfile />} />
                     <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
                     </Routes>
                 </ProtectedRoute>

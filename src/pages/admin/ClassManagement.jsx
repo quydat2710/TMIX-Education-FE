@@ -38,7 +38,7 @@ import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import AddClassForm from './AddClassForm';
-import { createClassAPI, getAllClassesAPI, updateClassAPI, getClassByIdAPI } from '../../services/api';
+import { createClassAPI, getAllClassesAPI, updateClassAPI, getClassByIdAPI, getStudentsInClassAPI } from '../../services/api';
 import ClassTeacherManagement from './ClassTeacherManagement';
 import ClassStudentManagement from './ClassStudentManagement';
 
@@ -73,6 +73,10 @@ const ClassManagement = () => {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedClassForView, setSelectedClassForView] = useState(null);
   const [currentTab, setCurrentTab] = useState(0);
+  const [classStudents, setClassStudents] = useState([]);
+  const [classStudentsLoading, setClassStudentsLoading] = useState(false);
+  const [classStudentsError, setClassStudentsError] = useState('');
+  const [classStudentCounts, setClassStudentCounts] = useState({});
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -94,11 +98,15 @@ const ClassManagement = () => {
   const handleOpenViewDialog = (classData) => {
     setSelectedClassForView(classData);
     setOpenViewDialog(true);
+    // Fetch students for this class
+    fetchClassStudents(classData.id);
   };
 
   const handleCloseViewDialog = () => {
     setSelectedClassForView(null);
     setOpenViewDialog(false);
+    setClassStudents([]);
+    setClassStudentsError('');
   };
 
   const handleAddClass = async (data) => {
@@ -126,6 +134,47 @@ const ClassManagement = () => {
     } catch (error) {
       console.error("Failed to refresh class data:", error);
     }
+  };
+
+  const fetchClassStudents = async (classId) => {
+    setClassStudentsLoading(true);
+    setClassStudentsError('');
+    try {
+      const params = { page: 1, limit: 100 }; // Get all students
+      const res = await getStudentsInClassAPI(classId, params);
+      console.log('Class students response:', res);
+
+      if (res.data && res.data.students) {
+        setClassStudents(res.data.students);
+      } else {
+        setClassStudents([]);
+      }
+    } catch (err) {
+      console.error('Error fetching class students:', err);
+      setClassStudentsError(err?.response?.data?.message || 'Có lỗi xảy ra khi tải danh sách học sinh');
+      setClassStudents([]);
+    } finally {
+      setClassStudentsLoading(false);
+    }
+  };
+
+  const fetchAllClassStudentCounts = async (classList) => {
+    const counts = {};
+    for (const cls of classList) {
+      try {
+        const params = { page: 1, limit: 1 }; // Just get count
+        const res = await getStudentsInClassAPI(cls.id, params);
+        if (res.data && res.data.pagination) {
+          counts[cls.id] = res.data.pagination.totalResults;
+        } else {
+          counts[cls.id] = 0;
+        }
+      } catch (err) {
+        console.error(`Error fetching student count for class ${cls.id}:`, err);
+        counts[cls.id] = 0;
+      }
+    }
+    setClassStudentCounts(counts);
   };
 
   const handleUpdateClass = async (data) => {
@@ -157,6 +206,11 @@ const ClassManagement = () => {
       setClasses(res.data || []);
       setTotalPages(res.totalPages || 1);
       setTotalRecords(res.totalRecords || 0);
+
+      // Fetch student counts for all classes
+      if (res.data && res.data.length > 0) {
+        fetchAllClassStudentCounts(res.data);
+      }
     } catch (err) {
       console.error('Error fetching classes:', err);
       setClasses([]);
@@ -292,7 +346,9 @@ const ClassManagement = () => {
                     {cls.teacherId?.name || cls.teacher?.name || cls.teacherName || 'Chưa gán giáo viên'}
                   </TableCell>
                   <TableCell>{cls.year}</TableCell>
-                  <TableCell>{cls.studentCount || 0}/{cls.maxStudents}</TableCell>
+                  <TableCell>
+                    {classStudentCounts[cls.id] !== undefined ? `${classStudentCounts[cls.id]}/${cls.maxStudents || 30}` : 'Đang tải...'}
+                  </TableCell>
                   <TableCell>{formatSchedule(cls.schedule)}</TableCell>
                   <TableCell>{cls.room || '-'}</TableCell>
                   <TableCell>
@@ -353,7 +409,7 @@ const ClassManagement = () => {
                     <Tab label="Học sinh" />
                   </Tabs>
                 </Box>
-                <DialogContent sx={{ p: 0 }}>
+                <DialogContent sx={{ p: 3, overflow: 'auto' }}>
                   {error && (
                     <Typography color="error" sx={{ mb: 2, p: 2, pb: 0 }}>
                       {error}
@@ -419,12 +475,12 @@ const ClassManagement = () => {
       <Dialog
         open={openViewDialog}
         onClose={handleCloseViewDialog}
-        maxWidth="sm"
-                fullWidth
+        maxWidth="md"
+        fullWidth
         PaperProps={{
           sx: {
             borderRadius: 2,
-            minHeight: '50vh'
+            maxHeight: '90vh'
           }
         }}
       >
@@ -442,7 +498,7 @@ const ClassManagement = () => {
                 Thông tin lớp học
             </Typography>
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ p: 3, overflow: 'auto' }}>
           {selectedClassForView && (
               <Grid container spacing={3}>
                 {/* Left Column - Basic Info */}
@@ -519,10 +575,10 @@ const ClassManagement = () => {
                           Số lượng học sinh
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                          {selectedClassForView.studentCount || 0}/{selectedClassForView.maxStudents}
+                          {classStudentsLoading ? 'Đang tải...' : classStudents.length}/{selectedClassForView.maxStudents || 30}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
-                          Tối đa {selectedClassForView.maxStudents} học sinh
+                          Tối đa {selectedClassForView.maxStudents || 30} học sinh
                         </Typography>
                       </Box>
 
@@ -649,6 +705,58 @@ const ClassManagement = () => {
                     </Paper>
             </Grid>
                 )}
+
+                {/* Students List */}
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2.5, borderRadius: 1.5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      Danh sách học sinh ({classStudents.length})
+                    </Typography>
+
+                    {classStudentsLoading ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="textSecondary">
+                          Đang tải danh sách học sinh...
+                        </Typography>
+                      </Box>
+                    ) : classStudentsError ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="error">
+                          {classStudentsError}
+                        </Typography>
+                      </Box>
+                    ) : classStudents.length === 0 ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="textSecondary">
+                          Chưa có học sinh nào trong lớp này
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                        <Grid container spacing={1}>
+                          {classStudents.map((student, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={student.id}>
+                              <Box sx={{
+                                p: 1.5,
+                                borderRadius: 1,
+                                border: '1px solid #e0e0e0',
+                                background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                                  borderColor: '#2196f3'
+                                }
+                              }}>
+                                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1976d2' }}>
+                                  {index + 1}. {student.name}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
           </Grid>
           )}
         </DialogContent>

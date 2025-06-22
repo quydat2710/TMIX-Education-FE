@@ -25,7 +25,23 @@ const Header = ({ onMenuClick }) => {
     setAnchorEl(null);
   };
   const handleProfile = () => {
-    navigate('/profile');
+    // Navigate to profile based on user role
+    switch (user?.role) {
+      case 'admin':
+        navigate('/admin/profile');
+        break;
+      case 'teacher':
+        navigate('/teacher/profile');
+        break;
+      case 'student':
+        navigate('/student/profile');
+        break;
+      case 'parent':
+        navigate('/parent/profile');
+        break;
+      default:
+        navigate('/profile'); // Fallback to general profile
+    }
     handleMenuClose();
   };
   const handleLogout = () => {
@@ -55,8 +71,19 @@ const Header = ({ onMenuClick }) => {
             </Badge>
           </IconButton>
           <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
-            <Avatar sx={{ width: 36, height: 36, bgcolor: COLORS.secondary.main, color: '#fff', cursor: 'pointer', fontSize: 18 }}>
-              {user?.name?.charAt(0) || user?.username?.charAt(0) || '?'}
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: COLORS.secondary.main,
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 18
+              }}
+              src={user?.avatar}
+              alt={user?.name || user?.username || 'User'}
+            >
+              {user?.avatar ? null : (user?.name?.charAt(0) || user?.username?.charAt(0) || '?')}
             </Avatar>
           </IconButton>
         <Menu

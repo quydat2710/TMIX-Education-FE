@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, TextField, Button, MenuItem, Grid, Typography, Select, InputLabel, FormControl, Checkbox, ListItemText, OutlinedInput, Chip
 } from '@mui/material';
@@ -16,9 +16,8 @@ const daysOfWeek = [
 
 const statusOptions = [
   { value: 'active', label: 'Đang hoạt động' },
-  { value: 'inactive', label: 'Ngừng hoạt động' },
+  { value: 'closed', label: 'Đã đóng' },
   { value: 'upcoming', label: 'Sắp khai giảng' },
-  { value: 'finished', label: 'Đã kết thúc' },
 ];
 
 const timeSlotOptions = [
@@ -53,6 +52,32 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
   });
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+
+  // Populate form when editing
+  useEffect(() => {
+    if (classData) {
+      setForm({
+        grade: classData.grade || '',
+        section: classData.section || '',
+        name: classData.name || '',
+        year: classData.year || new Date().getFullYear(),
+        status: classData.status || 'active',
+        feePerLesson: classData.feePerLesson || '',
+        maxStudents: classData.maxStudents || '',
+        description: classData.description || '',
+        room: classData.room || '',
+        schedule: {
+          startDate: classData.schedule?.startDate ? new Date(classData.schedule.startDate).toISOString().split('T')[0] : '',
+          endDate: classData.schedule?.endDate ? new Date(classData.schedule.endDate).toISOString().split('T')[0] : '',
+          dayOfWeeks: classData.schedule?.dayOfWeeks || [],
+          timeSlots: {
+            startTime: classData.schedule?.timeSlots?.startTime || '',
+            endTime: classData.schedule?.timeSlots?.endTime || ''
+          }
+        }
+      });
+    }
+  }, [classData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,9 +155,12 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
 
     // Prepare data according to API format
     const submitData = {
-      ...form,
+      status: form.status,
+      feePerLesson: parseInt(form.feePerLesson),
+      maxStudents: parseInt(form.maxStudents),
+      description: form.description,
+      room: form.room,
       schedule: {
-        ...form.schedule,
         startDate: formatDate(form.schedule.startDate),
         endDate: formatDate(form.schedule.endDate),
         dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),

@@ -37,6 +37,7 @@ export const getAllTeachersAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOI
 export const getTeacherByIdAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.TEACHERS.GET_BY_ID(id));
 export const updateTeacherAPI = (id, data) => axiosInstance.patch(API_CONFIG.ENDPOINTS.TEACHERS.UPDATE(id), data);
 export const deleteTeacherAPI = (id) => axiosInstance.delete(API_CONFIG.ENDPOINTS.TEACHERS.DELETE(id));
+export const getMyClassesAPI = () => axiosInstance.get(API_CONFIG.ENDPOINTS.TEACHERS.GET_MY_CLASSES);
 
 // Parent APIs
 export const createParentAPI = (data) => axiosInstance.post(API_CONFIG.ENDPOINTS.PARENTS.CREATE, data);
@@ -59,3 +60,6 @@ export const getPaymentsAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOINTS
 export const getTeacherPaymentsAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_TEACHER_PAYMENTS, { params });
 export const payTeacherAPI = (id, data) => axiosInstance.post(API_CONFIG.ENDPOINTS.PAYMENTS.PAY_TEACHER(id), data);
 export const getTeacherPaymentByIdAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_TEACHER_PAYMENT_BY_ID(id));
+
+// Schedule APIs
+export const getLoggedInStudentSchedule = () => axiosInstance.get(API_CONFIG.ENDPOINTS.SCHEDULES.GET_STUDENT_SCHEDULE);

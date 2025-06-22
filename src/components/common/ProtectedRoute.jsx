@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], allowedRoles = [] 
   // Check permission-based access
   if (requiredPermissions.length > 0) {
     const userPermissions = ROLE_PERMISSIONS[user?.role] || [];
-    const hasPermission = requiredPermissions.some(permission => 
+    const hasPermission = requiredPermissions.some(permission =>
       userPermissions.includes(permission)
     );
 

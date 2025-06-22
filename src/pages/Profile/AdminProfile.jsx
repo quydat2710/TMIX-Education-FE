@@ -1,10 +1,8 @@
 import React from 'react';
+import Profile from './index';
 
-const AdminProfile = () => (
-  <div>
-    <h2>Trang cá nhân Quản trị viên</h2>
-    {/* Thêm các trường thông tin và chức năng riêng cho admin */}
-  </div>
-);
+const AdminProfile = () => {
+  return <Profile role="admin" />;
+};
 
 export default AdminProfile;

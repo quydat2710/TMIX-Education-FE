@@ -101,7 +101,23 @@ const HomeHeader = () => {
   };
 
   const handleProfile = () => {
-    navigate('/profile');
+    // Navigate to profile based on user role
+    switch (user?.role) {
+      case 'admin':
+        navigate('/admin/profile');
+        break;
+      case 'teacher':
+        navigate('/teacher/profile');
+        break;
+      case 'student':
+        navigate('/student/profile');
+        break;
+      case 'parent':
+        navigate('/parent/profile');
+        break;
+      default:
+        navigate('/profile'); // Fallback to general profile
+    }
     handleMenuClose();
   };
 
@@ -116,8 +132,19 @@ const HomeHeader = () => {
       return (
         <>
           <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
-            <Avatar sx={{ width: 36, height: 36, bgcolor: COLORS.primary.main, color: '#fff', cursor: 'pointer', fontSize: 18 }}>
-              {user?.name?.charAt(0) || user?.username?.charAt(0) || '?'}
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: COLORS.secondary.main,
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 18
+              }}
+              src={user?.avatar}
+              alt={user?.name || user?.username || 'User'}
+            >
+              {user?.avatar ? null : (user?.name?.charAt(0) || user?.username?.charAt(0) || '?')}
             </Avatar>
           </IconButton>
           <Menu
@@ -128,6 +155,11 @@ const HomeHeader = () => {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             sx={{ mt: 1 }}
           >
+            <Box sx={{ px: 2, py: 1, minWidth: 180 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'center', mb: 1 }}>
+                {user?.name || user?.username || 'User'}
+              </Typography>
+            </Box>
             <MenuItem onClick={handleDashboard}>
               <DashboardIcon fontSize="small" sx={{ mr: 1 }} />
               Dashboard

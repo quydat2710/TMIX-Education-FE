@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -22,6 +22,14 @@ import {
   Card,
   CardContent,
   LinearProgress,
+  Avatar,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,116 +39,298 @@ import {
   AccountBalanceWallet as WalletIcon,
   MoneyOff as MoneyOffIcon,
   ReceiptLong as ReceiptLongIcon,
+  Person as PersonIcon,
+  School as SchoolIcon,
+  AttachMoney as AttachMoneyIcon,
+  Discount as DiscountIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
+import StatCard from '../../components/common/StatCard';
+
+// Mock data cho thanh toán
+const mockPaymentData = {
+  parentId: 'parent-001',
+  children: [
+    {
+      id: 'child-001',
+      name: 'Nguyễn Thị B',
+      invoices: [
+        {
+          id: 'inv-001',
+          invoiceCode: 'INV-2024-001',
+          childName: 'Nguyễn Thị B',
+          className: 'Lớp TOEIC 550+',
+          month: 'Tháng 1/2024',
+          originalAmount: 1500000,
+          discountPercent: 10,
+          discountAmount: 150000,
+          finalAmount: 1350000,
+          status: 'unpaid',
+          dueDate: '15/01/2024',
+          createdAt: '01/01/2024',
+          description: 'Học phí tháng 1/2024 - Lớp TOEIC 550+',
+          paymentHistory: []
+        },
+        {
+          id: 'inv-002',
+          invoiceCode: 'INV-2024-002',
+          childName: 'Nguyễn Thị B',
+          className: 'Lớp TOEIC 550+',
+          month: 'Tháng 2/2024',
+          originalAmount: 1500000,
+          discountPercent: 10,
+          discountAmount: 150000,
+          finalAmount: 1350000,
+          status: 'unpaid',
+          dueDate: '15/02/2024',
+          createdAt: '01/02/2024',
+          description: 'Học phí tháng 2/2024 - Lớp TOEIC 550+',
+          paymentHistory: []
+        },
+        {
+          id: 'inv-003',
+          invoiceCode: 'INV-2024-003',
+          childName: 'Nguyễn Thị B',
+          className: 'Tiếng Anh Giao Tiếp Cơ Bản',
+          month: 'Tháng 2/2024',
+          originalAmount: 1200000,
+          discountPercent: 0,
+          discountAmount: 0,
+          finalAmount: 1200000,
+          status: 'unpaid',
+          dueDate: '15/02/2024',
+          createdAt: '01/02/2024',
+          description: 'Học phí tháng 2/2024 - Lớp Giao Tiếp',
+          paymentHistory: []
+        },
+        {
+          id: 'inv-004',
+          invoiceCode: 'INV-2023-012',
+          childName: 'Nguyễn Thị B',
+          className: 'Lớp TOEIC 550+',
+          month: 'Tháng 12/2023',
+          originalAmount: 1500000,
+          discountPercent: 10,
+          discountAmount: 150000,
+          finalAmount: 1350000,
+          status: 'paid',
+          dueDate: '15/12/2023',
+          createdAt: '01/12/2023',
+          description: 'Học phí tháng 12/2023 - Lớp TOEIC 550+',
+          paymentHistory: [
+            {
+              id: 'pay-001',
+              amount: 1350000,
+              paymentDate: '10/12/2023',
+              paymentMethod: 'Chuyển khoản',
+              reference: 'TK123456789'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'child-002',
+      name: 'Nguyễn Văn E',
+      invoices: [
+        {
+          id: 'inv-005',
+          invoiceCode: 'INV-2024-004',
+          childName: 'Nguyễn Văn E',
+          className: 'Tiếng Anh Thiếu Nhi',
+          month: 'Tháng 3/2024',
+          originalAmount: 800000,
+          discountPercent: 15,
+          discountAmount: 120000,
+          finalAmount: 680000,
+          status: 'unpaid',
+          dueDate: '15/03/2024',
+          createdAt: '01/03/2024',
+          description: 'Học phí tháng 3/2024 - Lớp Thiếu Nhi',
+          paymentHistory: []
+        },
+        {
+          id: 'inv-006',
+          invoiceCode: 'INV-2024-005',
+          childName: 'Nguyễn Văn E',
+          className: 'Tiếng Anh Thiếu Nhi',
+          month: 'Tháng 2/2024',
+          originalAmount: 800000,
+          discountPercent: 15,
+          discountAmount: 120000,
+          finalAmount: 680000,
+          status: 'paid',
+          dueDate: '15/02/2024',
+          createdAt: '01/02/2024',
+          description: 'Học phí tháng 2/2024 - Lớp Thiếu Nhi',
+          paymentHistory: [
+            {
+              id: 'pay-002',
+              amount: 680000,
+              paymentDate: '12/02/2024',
+              paymentMethod: 'Tiền mặt',
+              reference: 'TM20240212'
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
 
 const Payments = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTab, setSelectedTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [payments, setPayments] = useState([]);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [paymentData, setPaymentData] = useState(mockPaymentData);
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState({
-    totalPaid: 0,
-    totalDue: 0,
-    unpaidInvoices: 0,
-  });
 
   useEffect(() => {
-    // TODO: Fetch payments data from API
-    const fetchPayments = async () => {
+    // Sử dụng mock data
       setLoading(true);
-      try {
-        // const response = await api.get('/parent/payments');
-        // setPayments(response.data.payments);
-        // setSummary(response.data.summary);
-      } catch (error) {
-        console.error('Error fetching payments:', error);
-      } finally {
+    setTimeout(() => {
         setLoading(false);
-      }
-    };
-
-    fetchPayments();
+    }, 1000);
   }, []);
 
-  const handleOpenDialog = (payment = null) => {
-    setSelectedPayment(payment);
+  const handleOpenDialog = (invoice = null) => {
+    setSelectedInvoice(invoice);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
-    setSelectedPayment(null);
+    setSelectedInvoice(null);
     setOpenDialog(false);
   };
 
-  const filteredPayments = payments.filter((payment) =>
-    payment.invoiceCode.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue);
+  };
+
+  // Tính toán tổng quan
+  const summary = useMemo(() => {
+    let totalPaid = 0;
+    let totalUnpaid = 0;
+    let totalDiscount = 0;
+    let unpaidInvoices = 0;
+    let paidInvoices = 0;
+
+    paymentData.children.forEach(child => {
+      child.invoices.forEach(invoice => {
+        if (invoice.status === 'paid') {
+          totalPaid += invoice.finalAmount;
+          paidInvoices++;
+        } else {
+          totalUnpaid += invoice.finalAmount;
+          unpaidInvoices++;
+        }
+        totalDiscount += invoice.discountAmount;
+      });
+    });
+
+    return {
+      totalPaid,
+      totalUnpaid,
+      totalDiscount,
+      unpaidInvoices,
+      paidInvoices,
+      totalInvoices: unpaidInvoices + paidInvoices
+    };
+  }, [paymentData]);
+
+  // Lọc hóa đơn theo tab
+  const allInvoices = paymentData.children.flatMap(child => child.invoices);
+  const filteredInvoices = allInvoices.filter((invoice) => {
+    const matchesSearch = invoice.invoiceCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.childName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.className.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (selectedTab === 0) return matchesSearch; // Tất cả
+    if (selectedTab === 1) return matchesSearch && invoice.status === 'unpaid'; // Chưa thanh toán
+    if (selectedTab === 2) return matchesSearch && invoice.status === 'paid'; // Đã thanh toán
+
+    return matchesSearch;
+  });
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  const getStatusColor = (status) => {
+    return status === 'paid' ? 'success' : 'error';
+  };
+
+  const getStatusLabel = (status) => {
+    return status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán';
+  };
 
   return (
     <DashboardLayout role="parent">
       <Box sx={commonStyles.pageContainer}>
-        <Box sx={commonStyles.contentContainer}>
-          <Box sx={commonStyles.pageHeader}>
-            <Typography sx={commonStyles.pageTitle}>
+        <Typography variant="h4" gutterBottom>
               Quản lý học phí
       </Typography>
-          </Box>
-
-      <Grid container spacing={3}>
-        {/* Card thông tin tổng quan */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Thông tin thanh toán
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Xem và quản lý hóa đơn học phí của con bạn
               </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <WalletIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Tổng số tiền đã thanh toán
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 600, color: 'success.main' }}>
-                        {summary.totalPaid.toLocaleString('vi-VN')} VNĐ
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <MoneyOffIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Số tiền còn nợ
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 600, color: 'error.main' }}>
-                        {summary.totalDue.toLocaleString('vi-VN')} VNĐ
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ReceiptLongIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Hóa đơn chưa thanh toán
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {summary.unpaidInvoices} hóa đơn
-                      </Typography>
-                    </Box>
-                  </Box>
-            </CardContent>
-          </Card>
+
+        {/* Stat Cards */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tổng hóa đơn"
+              value={summary.totalInvoices}
+              icon={<ReceiptIcon sx={{ fontSize: 40 }} />}
+              color="primary"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Đã thanh toán"
+              value={formatCurrency(summary.totalPaid)}
+              icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Chưa thanh toán"
+              value={formatCurrency(summary.totalUnpaid)}
+              icon={<MoneyOffIcon sx={{ fontSize: 40 }} />}
+              color="error"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tổng giảm giá"
+              value={formatCurrency(summary.totalDiscount)}
+              icon={<DiscountIcon sx={{ fontSize: 40 }} />}
+              color="warning"
+            />
+          </Grid>
         </Grid>
 
-        {/* Danh sách hóa đơn */}
-        <Grid item xs={12} md={8}>
-              <Box sx={commonStyles.searchContainer}>
+        {/* Tabs */}
+        <Tabs value={selectedTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+          <Tab label={`Tất cả (${allInvoices.length})`} />
+          <Tab label={`Chưa thanh toán (${summary.unpaidInvoices})`} />
+          <Tab label={`Đã thanh toán (${summary.paidInvoices})`} />
+        </Tabs>
+
+        {/* Search */}
+        <Paper sx={{ p: 2, mb: 3 }}>
                 <TextField
                   fullWidth
-                  placeholder="Tìm kiếm hóa đơn..."
+            placeholder="Tìm kiếm theo mã hóa đơn, tên con, hoặc lớp học..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   InputProps={{
@@ -150,52 +340,82 @@ const Payments = () => {
                       </InputAdornment>
                     ),
                   }}
-                  sx={commonStyles.searchField}
                 />
-              </Box>
+        </Paper>
 
+        {/* Invoices Table */}
               {loading ? (
                 <LinearProgress />
               ) : (
-                <TableContainer component={Paper} sx={commonStyles.tableContainer}>
+          <TableContainer component={Paper}>
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>Mã hóa đơn</TableCell>
-                  <TableCell>Ngày tạo</TableCell>
-                  <TableCell>Học viên</TableCell>
-                  <TableCell>Lớp học</TableCell>
-                  <TableCell>Số tiền</TableCell>
-                  <TableCell>Trạng thái</TableCell>
-                        <TableCell align="center" sx={commonStyles.actionCell}>Thao tác</TableCell>
+                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Mã hóa đơn</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Con</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Hạn thanh toán</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredPayments.map((payment) => (
-                        <TableRow key={payment.id} sx={commonStyles.tableRow}>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id} sx={{ '&:hover': { bgcolor: '#fafafa' } }}>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
-                              {payment.invoiceCode}
+                        {invoice.invoiceCode}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'primary.main' }}>
+                          <PersonIcon sx={{ fontSize: 16 }} />
+                        </Avatar>
+                        {invoice.childName}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <SchoolIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
+                        {invoice.className}
                             </Box>
                           </TableCell>
-                    <TableCell>{payment.createdAt}</TableCell>
-                    <TableCell>{payment.studentName}</TableCell>
-                    <TableCell>{payment.className}</TableCell>
-                          <TableCell sx={{ fontWeight: 500 }}>
-                            {payment.amount.toLocaleString('vi-VN')} VNĐ
+                    <TableCell>{invoice.month}</TableCell>
+                    <TableCell align="right">{formatCurrency(invoice.originalAmount)}</TableCell>
+                    <TableCell align="right">
+                      {invoice.discountAmount > 0 ? (
+                        <Chip
+                          label={`-${formatCurrency(invoice.discountAmount)}`}
+                          color="success"
+                          size="small"
+                          variant="outlined"
+                        />
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                      {formatCurrency(invoice.finalAmount)}
                           </TableCell>
                     <TableCell>
                       <Chip
-                              label={payment.status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                        color={payment.status === 'paid' ? 'success' : 'warning'}
+                        label={getStatusLabel(invoice.status)}
+                        color={getStatusColor(invoice.status)}
                         size="small"
                       />
                     </TableCell>
+                    <TableCell>{invoice.dueDate}</TableCell>
                     <TableCell align="center">
                       <IconButton
-                        onClick={() => handleOpenDialog(payment)}
+                        onClick={() => handleOpenDialog(invoice)}
                         color="primary"
+                        size="small"
                       >
                         <ViewIcon />
                       </IconButton>
@@ -206,109 +426,164 @@ const Payments = () => {
             </Table>
           </TableContainer>
               )}
-        </Grid>
-      </Grid>
 
-      {/* Dialog xem chi tiết hóa đơn */}
+        {filteredInvoices.length === 0 && !loading && (
+          <Typography sx={{ textAlign: 'center', mt: 4, color: 'text.secondary' }}>
+            Không tìm thấy hóa đơn nào.
+          </Typography>
+        )}
+
+        {/* Invoice Detail Dialog */}
           <Dialog
             open={openDialog}
             onClose={handleCloseDialog}
             maxWidth="md"
             fullWidth
           >
-            <DialogTitle sx={commonStyles.dialogTitle}>
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <ReceiptIcon color="primary" />
+              <Box>
+                <Typography variant="h6">
           Chi tiết hóa đơn
-        </DialogTitle>
-            <DialogContent sx={commonStyles.dialogContent}>
-          {selectedPayment && (
-                <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Thông tin hóa đơn
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Mã hóa đơn:</Typography>
-                    <Typography>{selectedPayment.invoiceCode}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedInvoice?.invoiceCode}
+                </Typography>
+              </Box>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            {selectedInvoice && (
+              <Box>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Thông tin hóa đơn
+                    </Typography>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText
+                          primary="Mã hóa đơn"
+                          secondary={selectedInvoice.invoiceCode}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Học sinh"
+                          secondary={selectedInvoice.childName}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Lớp học"
+                          secondary={selectedInvoice.className}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Tháng"
+                          secondary={selectedInvoice.month}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Ngày tạo"
+                          secondary={selectedInvoice.createdAt}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Hạn thanh toán"
+                          secondary={selectedInvoice.dueDate}
+                        />
+                      </ListItem>
+                    </List>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Ngày tạo:</Typography>
-                    <Typography>{selectedPayment.createdAt}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Học viên:</Typography>
-                    <Typography>{selectedPayment.studentName}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Lớp học:</Typography>
-                    <Typography>{selectedPayment.className}</Typography>
-                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Chi tiết thanh toán
+                    </Typography>
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography>Số tiền gốc:</Typography>
+                        <Typography>{formatCurrency(selectedInvoice.originalAmount)}</Typography>
+                      </Box>
+                      {selectedInvoice.discountAmount > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography>Giảm giá ({selectedInvoice.discountPercent}%):</Typography>
+                          <Typography color="success.main">
+                            -{formatCurrency(selectedInvoice.discountAmount)}
+                          </Typography>
+                        </Box>
+                      )}
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                          Số tiền cần thanh toán:
+                        </Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                          {formatCurrency(selectedInvoice.finalAmount)}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={getStatusLabel(selectedInvoice.status)}
+                        color={getStatusColor(selectedInvoice.status)}
+                        sx={{ mt: 1 }}
+                      />
+                    </Paper>
                 </Grid>
               </Grid>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Chi tiết thanh toán
+                {/* Payment History */}
+                {selectedInvoice.paymentHistory.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Lịch sử thanh toán
                 </Typography>
-                    <TableContainer component={Paper} sx={commonStyles.tableContainer}>
+                    <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell>Mô tả</TableCell>
-                        <TableCell>Số lượng</TableCell>
-                        <TableCell>Đơn giá</TableCell>
-                        <TableCell>Thành tiền</TableCell>
+                            <TableCell>Ngày thanh toán</TableCell>
+                            <TableCell>Phương thức</TableCell>
+                            <TableCell>Tham chiếu</TableCell>
+                            <TableCell align="right">Số tiền</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {selectedPayment.items?.map((item) => (
-                            <TableRow key={item.id} sx={commonStyles.tableRow}>
-                          <TableCell>{item.description}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{item.unitPrice.toLocaleString('vi-VN')} VNĐ</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>
-                                {item.total.toLocaleString('vi-VN')} VNĐ
-                              </TableCell>
+                          {selectedInvoice.paymentHistory.map((payment) => (
+                            <TableRow key={payment.id}>
+                              <TableCell>{payment.paymentDate}</TableCell>
+                              <TableCell>{payment.paymentMethod}</TableCell>
+                              <TableCell>{payment.reference}</TableCell>
+                              <TableCell align="right">{formatCurrency(payment.amount)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Grid>
+                  </Box>
+                )}
 
-              <Grid item xs={12}>
-                    <Box sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      mt: 2,
-                      p: 2,
-                      bgcolor: 'grey.50',
-                      borderRadius: 1
-                    }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Tổng cộng: {selectedPayment.amount.toLocaleString('vi-VN')} VNĐ
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  <strong>Mô tả:</strong> {selectedInvoice.description}
                   </Typography>
                 </Box>
-              </Grid>
-            </Grid>
           )}
         </DialogContent>
-            <DialogActions sx={commonStyles.formActions}>
-              <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton}>
-                Đóng
-          </Button>
-          {selectedPayment?.status !== 'paid' && (
-            <Button
-              variant="contained"
-                  sx={commonStyles.primaryButton}
-              startIcon={<PaymentIcon />}
-            >
+          <DialogActions>
+            {selectedInvoice?.status === 'unpaid' && (
+              <Button variant="contained" color="primary">
                   Thanh toán ngay
             </Button>
           )}
+            <Button onClick={handleCloseDialog}>
+              Đóng
+            </Button>
         </DialogActions>
       </Dialog>
-    </Box>
       </Box>
     </DashboardLayout>
   );

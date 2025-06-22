@@ -1,10 +1,8 @@
 import React from 'react';
+import Profile from './index';
 
-const TeacherProfile = () => (
-  <div>
-    <h2>Trang cá nhân Giáo viên</h2>
-    {/* Thêm các trường thông tin và chức năng riêng cho giáo viên */}
-  </div>
-);
+const TeacherProfile = () => {
+  return <Profile role="teacher" />;
+};
 
 export default TeacherProfile;

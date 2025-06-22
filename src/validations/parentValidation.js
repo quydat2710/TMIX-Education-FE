@@ -1,5 +1,5 @@
 // Validate parent add form
-export function validateParent({ name, email, password, dayOfBirth, phone, address, gender }) {
+export function validateParent({ name, email, password, dayOfBirth, phone, address, gender }, isUpdate = false) {
   const errors = {};
 
   // Name
@@ -13,13 +13,15 @@ export function validateParent({ name, email, password, dayOfBirth, phone, addre
     errors.email = 'Email không hợp lệ';
   }
 
-  // Password: min 8, có cả chữ và số
-  if (!password) {
-    errors.password = 'Mật khẩu là bắt buộc';
-  } else if (password.length < 8) {
-    errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-  } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
-    errors.password = 'Mật khẩu phải chứa cả chữ và số';
+  // Password: min 8, có cả chữ và số (chỉ bắt buộc khi tạo mới)
+  if (!isUpdate) {
+    if (!password) {
+      errors.password = 'Mật khẩu là bắt buộc';
+    } else if (password.length < 8) {
+      errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
+    } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+      errors.password = 'Mật khẩu phải chứa cả chữ và số';
+    }
   }
 
   // Phone: 10 số, bắt đầu bằng 0

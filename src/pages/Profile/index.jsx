@@ -29,8 +29,9 @@ import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 
-const Profile = () => {
+const Profile = ({ role }) => {
   const { user } = useAuth();
+  const userRole = role || user?.role || 'student';
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -141,7 +142,7 @@ const Profile = () => {
   };
 
   return (
-    <DashboardLayout role={user?.role || 'student'}>
+    <DashboardLayout role={userRole}>
       <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Typography sx={commonStyles.pageTitle}>Trang cá nhân</Typography>

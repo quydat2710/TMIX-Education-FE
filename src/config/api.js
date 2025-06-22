@@ -24,6 +24,7 @@ export const API_CONFIG = {
       CREATE: '/teachers',
       UPDATE: (id) => `/teachers/${id}`,
       DELETE: (id) => `/teachers/${id}`,
+      GET_MY_CLASSES: '/teachers/me/classes',
     },
     // Student endpoints
     STUDENTS: {
@@ -71,5 +72,8 @@ export const API_CONFIG = {
       PAY_TEACHER: (id) => `/teacher-payments/${id}/pay`,
       GET_TEACHER_PAYMENT_BY_ID: (id) => `/teacher-payments/${id}`,
     },
+    SCHEDULES: {
+      GET_STUDENT_SCHEDULE: '/schedules/student/me',
+    }
   },
 };

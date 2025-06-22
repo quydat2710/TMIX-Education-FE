@@ -1,10 +1,8 @@
 import React from 'react';
+import Profile from './index';
 
-const ParentProfile = () => (
-  <div>
-    <h2>Trang cá nhân Phụ huynh</h2>
-    {/* Thêm các trường thông tin và chức năng riêng cho phụ huynh */}
-  </div>
-);
+const ParentProfile = () => {
+  return <Profile role="parent" />;
+};
 
 export default ParentProfile;

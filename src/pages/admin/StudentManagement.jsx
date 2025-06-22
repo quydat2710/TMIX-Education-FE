@@ -34,7 +34,7 @@ import {
 import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { createStudentAPI, getAllStudentsAPI, getParentByIdAPI, deleteStudentAPI } from '../../services/api';
+import { createStudentAPI, getAllStudentsAPI, getParentByIdAPI, deleteStudentAPI, updateStudentAPI } from '../../services/api';
 import { validateStudent } from '../../validations/studentValidation';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 
@@ -65,18 +65,40 @@ const StudentManagement = () => {
     address: '',
     gender: 'female',
   });
+  const [classEdits, setClassEdits] = useState([]);
 
   const handleOpenDialog = (student = null) => {
     setSelectedStudent(student);
-    setForm({
-      name: '',
-      email: '',
-      password: '',
-      dayOfBirth: '',
-      phone: '',
-      address: '',
-      gender: 'female',
-    });
+    if (student) {
+      setForm({
+        name: student.userId?.name || '',
+        email: student.userId?.email || '',
+        password: '',
+        dayOfBirth: student.userId?.dayOfBirth || '',
+        phone: student.userId?.phone || '',
+        address: student.userId?.address || '',
+        gender: student.userId?.gender || 'female',
+      });
+      setClassEdits(
+        (student.classes || []).map(cls => ({
+          classId: cls.classId?._id || cls.classId,
+          className: cls.classId?.name || '',
+          discountPercent: cls.discountPercent || 0,
+          status: cls.status || 'active',
+        }))
+      );
+    } else {
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        dayOfBirth: '',
+        phone: '',
+        address: '',
+        gender: 'female',
+      });
+      setClassEdits([]);
+    }
     setOpenDialog(true);
   };
 
@@ -100,6 +122,10 @@ const StudentManagement = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleClassEditChange = (idx, field, value) => {
+    setClassEdits(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
+  };
+
   const handleSubmit = async () => {
     const errors = validateStudent(form);
     setFormErrors(errors);
@@ -107,7 +133,28 @@ const StudentManagement = () => {
     setLoading(true);
     setError('');
     try {
-      await createStudentAPI(form);
+      if (selectedStudent) {
+        // UPDATE
+        const body = {
+          userData: {
+            name: form.name,
+            email: form.email,
+            dayOfBirth: form.dayOfBirth,
+            phone: form.phone,
+            address: form.address,
+            gender: form.gender,
+          },
+          studentData: classEdits.map(cls => ({
+            classId: cls.classId,
+            discountPercent: Number(cls.discountPercent),
+            status: cls.status,
+          })),
+        };
+        await updateStudentAPI(selectedStudent.id, body);
+      } else {
+        // CREATE (giữ nguyên logic cũ)
+        await createStudentAPI(form);
+      }
       handleCloseDialog();
       fetchStudents(page);
     } catch (err) {
@@ -333,7 +380,7 @@ const StudentManagement = () => {
                         <IconButton size="small" title="Xem chi tiết" onClick={() => handleOpenViewDialog(student)}>
                           <ViewIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small">
+                        <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(student)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton size="small" onClick={() => handleOpenDeleteDialog(student)}>
@@ -415,6 +462,50 @@ const StudentManagement = () => {
               </FormControl>
             </Grid>
           </Grid>
+          {selectedStudent && classEdits.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                Danh sách lớp đang học
+              </Typography>
+              <Grid container spacing={2}>
+                {classEdits.map((cls, idx) => (
+                  <React.Fragment key={cls.classId}>
+                    <Grid item xs={12} sm={5}>
+                      <TextField
+                        label="Tên lớp"
+                        value={cls.className}
+                        InputProps={{ readOnly: true }}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <TextField
+                        label="Giảm giá (%)"
+                        type="number"
+                        value={cls.discountPercent}
+                        onChange={e => handleClassEditChange(idx, 'discountPercent', e.target.value)}
+                        fullWidth
+                        inputProps={{ min: 0, max: 100 }}
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <FormControl fullWidth>
+                        <InputLabel>Trạng thái</InputLabel>
+                        <Select
+                          value={cls.status}
+                          label="Trạng thái"
+                          onChange={e => handleClassEditChange(idx, 'status', e.target.value)}
+                        >
+                          <MenuItem value="active">Đang học</MenuItem>
+                          <MenuItem value="inactive">Đã nghỉ</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </React.Fragment>
+                ))}
+              </Grid>
+            </Box>
+          )}
         </DialogContent>
             <DialogActions sx={commonStyles.formActions}>
               <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton}>

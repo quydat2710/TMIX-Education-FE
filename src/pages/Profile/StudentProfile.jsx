@@ -1,10 +1,8 @@
 import React from 'react';
+import Profile from './index';
 
-const StudentProfile = () => (
-  <div>
-    <h2>Trang cá nhân Học sinh</h2>
-    {/* Thêm các trường thông tin và chức năng riêng cho học sinh */}
-  </div>
-);
+const StudentProfile = () => {
+  return <Profile role="student" />;
+};
 
 export default StudentProfile;

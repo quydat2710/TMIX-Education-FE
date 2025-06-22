@@ -16,13 +16,15 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import { getAllStudentsAPI, enrollStudentAPI } from '../../services/api';
+import { getAllStudentsAPI, enrollStudentAPI, getStudentsInClassAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [allStudents, setAllStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [studentDiscounts, setStudentDiscounts] = useState({});
+  const [existingStudentIds, setExistingStudentIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [notification, setNotification] = useState({
@@ -31,7 +33,27 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
     severity: 'success',
   });
 
-  const existingStudentIds = classData.students?.map(s => s.id) || [];
+  // Fetch existing students in class
+  useEffect(() => {
+    const fetchExistingStudents = async () => {
+      try {
+        const params = { page: 1, limit: 100 };
+        const res = await getStudentsInClassAPI(classData.id, params);
+        if (res.data && res.data.students) {
+          setExistingStudentIds(res.data.students.map(s => s.id));
+        } else {
+          setExistingStudentIds([]);
+        }
+      } catch (error) {
+        console.error('Error fetching existing students:', error);
+        setExistingStudentIds([]);
+      }
+    };
+
+    if (open && classData?.id) {
+      fetchExistingStudents();
+    }
+  }, [open, classData?.id]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -56,25 +78,45 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
     }, 500); // Debounce search query
 
     return () => clearTimeout(debounceFetch);
-  }, [searchQuery, classData]);
+  }, [searchQuery, existingStudentIds]);
 
   const handleToggleStudent = (studentId) => {
     const currentIndex = selectedStudents.indexOf(studentId);
     const newSelected = [...selectedStudents];
+    const newDiscounts = { ...studentDiscounts };
 
     if (currentIndex === -1) {
       newSelected.push(studentId);
+      newDiscounts[studentId] = 0; // Default discount 0%
     } else {
       newSelected.splice(currentIndex, 1);
+      delete newDiscounts[studentId];
     }
     setSelectedStudents(newSelected);
+    setStudentDiscounts(newDiscounts);
+  };
+
+  const handleDiscountChange = (studentId, discount) => {
+    setStudentDiscounts(prev => ({
+      ...prev,
+      [studentId]: Math.max(0, Math.min(100, parseInt(discount) || 0))
+    }));
   };
 
   const handleAddStudents = async () => {
     setLoading(true);
     try {
-      await enrollStudentAPI(classData.id, { studentIds: selectedStudents });
+      // Format data according to API requirements
+      const studentsData = selectedStudents.map(studentId => ({
+        studentId: studentId,
+        discountPercent: studentDiscounts[studentId] || 0
+      }));
+
+      await enrollStudentAPI(classData.id, studentsData);
       setNotification({ open: true, message: 'Thêm học sinh vào lớp thành công!', severity: 'success' });
+      // Reset form
+      setSelectedStudents([]);
+      setStudentDiscounts({});
       if (onUpdate) onUpdate();
       onClose();
     } catch (error) {
@@ -89,7 +131,7 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
     setNotification({ ...notification, open: false });
   };
 
-  const remainingSlots = classData.maxStudents - (classData.students?.length || 0);
+  const remainingSlots = classData.maxStudents - existingStudentIds.length;
 
   return (
     <>
@@ -140,6 +182,18 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
                         primary={student.userId?.name || 'N/A'}
                         secondary={student.userId?.email || 'N/A'}
                       />
+                      {selectedStudents.includes(student.id) && (
+                        <TextField
+                          type="number"
+                          size="small"
+                          label="Giảm giá (%)"
+                          value={studentDiscounts[student.id] || 0}
+                          onChange={(e) => handleDiscountChange(student.id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          sx={{ width: 100, ml: 1 }}
+                          inputProps={{ min: 0, max: 100 }}
+                        />
+                      )}
                     </ListItem>
                   ))
                 ) : (

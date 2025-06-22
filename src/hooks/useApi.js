@@ -9,11 +9,11 @@ export const useApi = (apiFunction, params = null, executeOnMount = true) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await apiFunction(executionParams);
-      setData(response.data);
-      
-      return response.data;
+      setData(response);
+
+      return response;
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'An error occurred');
       throw err;

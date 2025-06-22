@@ -35,7 +35,7 @@ import {
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
-import { createTeacherAPI, getAllTeachersAPI, deleteTeacherAPI } from '../../services/api';
+import { createTeacherAPI, getAllTeachersAPI, deleteTeacherAPI, updateTeacherAPI } from '../../services/api';
 import { validateTeacher } from '../../validations/teacherValidation';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 
@@ -55,6 +55,7 @@ const TeacherManagement = () => {
   const [selectedTeacherForView, setSelectedTeacherForView] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const [classEdits, setClassEdits] = useState([]);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -72,20 +73,46 @@ const TeacherManagement = () => {
 
   const handleOpenDialog = (teacher = null) => {
     setSelectedTeacher(teacher);
-    setForm({
-      name: '',
-      email: '',
-      password: '',
-      phone: '',
-      dayOfBirth: '',
-      address: '',
-      gender: 'male',
-      salaryPerLesson: '',
-      qualifications: '',
-      specialization: '',
-      description: '',
-      isActive: true,
-    });
+    if (teacher) {
+      setForm({
+        name: teacher.userId?.name || '',
+        email: teacher.userId?.email || '',
+        password: '',
+        phone: teacher.userId?.phone || '',
+        dayOfBirth: teacher.userId?.dayOfBirth || '',
+        address: teacher.userId?.address || '',
+        gender: teacher.userId?.gender || 'male',
+        salaryPerLesson: teacher.salaryPerLesson || '',
+        qualifications: teacher.qualifications?.join(', ') || '',
+        specialization: teacher.specialization?.join(', ') || '',
+        description: teacher.description || '',
+        isActive: teacher.isActive !== undefined ? teacher.isActive : true,
+      });
+      setClassEdits(
+        (teacher.classes || []).map(cls => ({
+          classId: cls.classId?._id || cls.classId,
+          className: cls.classId?.name || '',
+          discountPercent: cls.discountPercent || 0,
+          status: cls.status || 'active',
+        }))
+      );
+    } else {
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        dayOfBirth: '',
+        address: '',
+        gender: 'male',
+        salaryPerLesson: '',
+        qualifications: '',
+        specialization: '',
+        description: '',
+        isActive: true,
+      });
+      setClassEdits([]);
+    }
     setError('');
     setFormErrors({});
     setOpenDialog(true);
@@ -108,6 +135,7 @@ const TeacherManagement = () => {
       description: '',
       isActive: true,
     });
+    setClassEdits([]);
     setError('');
     setFormErrors({});
   };
@@ -158,9 +186,13 @@ const TeacherManagement = () => {
     }
   };
 
+  const handleClassEditChange = (idx, field, value) => {
+    setClassEdits(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
+  };
+
   const handleSubmit = async () => {
     // Validate form before submitting
-    const errors = validateTeacher(form);
+    const errors = validateTeacher(form, !!selectedTeacher);
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
@@ -171,34 +203,51 @@ const TeacherManagement = () => {
     setError('');
 
     try {
-      const requestData = {
-        userData: {
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          phone: form.phone,
-          dayOfBirth: form.dayOfBirth,
-          address: form.address,
-          gender: form.gender,
-        },
-        teacherData: {
-          salaryPerLesson: Number(form.salaryPerLesson),
-          qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
-          specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
-          description: form.description,
-          isActive: form.isActive,
-        },
-      };
-
-      console.log('Sending teacher data:', requestData);
-
-      await createTeacherAPI(requestData);
+      if (selectedTeacher) {
+        // UPDATE
+        const body = {
+          userData: {
+            name: form.name,
+            email: form.email,
+            dayOfBirth: form.dayOfBirth,
+            phone: form.phone,
+            address: form.address,
+            gender: form.gender,
+          },
+          studentData: classEdits.map(cls => ({
+            classId: cls.classId,
+            discountPercent: Number(cls.discountPercent),
+            status: cls.status,
+          })),
+        };
+        await updateTeacherAPI(selectedTeacher.id, body);
+      } else {
+        // CREATE
+        const requestData = {
+          userData: {
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            phone: form.phone,
+            dayOfBirth: form.dayOfBirth,
+            address: form.address,
+            gender: form.gender,
+          },
+          teacherData: {
+            salaryPerLesson: Number(form.salaryPerLesson),
+            qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
+            specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
+            description: form.description,
+            isActive: form.isActive,
+          },
+        };
+        await createTeacherAPI(requestData);
+      }
 
       handleCloseDialog();
-      setPage(1); // Go back to first page to see the new teacher
-      fetchTeachers(1); // Refresh teacher list from first page
+      fetchTeachers(page);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi thêm giáo viên');
+      setError(err?.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -520,6 +569,51 @@ const TeacherManagement = () => {
               />
             </Grid>
           </Grid>
+
+          {selectedTeacher && classEdits.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Danh sách lớp đang dạy
+              </Typography>
+              <Grid container spacing={2}>
+                {classEdits.map((cls, idx) => (
+                  <React.Fragment key={cls.classId}>
+                    <Grid item xs={12} sm={5}>
+                      <TextField
+                        label="Tên lớp"
+                        value={cls.className}
+                        InputProps={{ readOnly: true }}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        label="Giảm giá (%)"
+                        type="number"
+                        value={cls.discountPercent}
+                        onChange={(e) => handleClassEditChange(idx, 'discountPercent', e.target.value)}
+                        fullWidth
+                        inputProps={{ min: 0, max: 100 }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth>
+                        <InputLabel>Trạng thái</InputLabel>
+                        <Select
+                          label="Trạng thái"
+                          value={cls.status}
+                          onChange={(e) => handleClassEditChange(idx, 'status', e.target.value)}
+                        >
+                          <MenuItem value="active">Đang hoạt động</MenuItem>
+                          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </React.Fragment>
+                ))}
+              </Grid>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>
