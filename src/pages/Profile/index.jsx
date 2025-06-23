@@ -156,10 +156,10 @@ const Profile = ({ role }) => {
                            response.imageUrl;
 
         if (newAvatarUrl) {
-          setAvatarPreview(newAvatarUrl);
-          setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
-          setAvatarFile(null);
-          setSuccess('Cập nhật avatar thành công!');
+        setAvatarPreview(newAvatarUrl);
+        setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
+        setAvatarFile(null);
+        setSuccess('Cập nhật avatar thành công!');
 
           // Update user in AuthContext
           updateUser({ avatar: newAvatarUrl });
@@ -334,14 +334,14 @@ const Profile = ({ role }) => {
                       mb: 2,
                       border: '4px solid #fff',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      cursor: isEditing && !avatarLoading ? 'pointer' : 'default',
+                      cursor: !avatarLoading ? 'pointer' : 'default',
                       opacity: avatarLoading ? 0.7 : 1
                     }}
-                    onClick={isEditing && !avatarLoading ? handleAvatarClick : undefined}
+                    onClick={!avatarLoading ? handleAvatarClick : undefined}
                   >
                     {!avatarPreview && profileData.name.charAt(0)}
                   </Avatar>
-                  {isEditing && !avatarLoading && (
+                  {!avatarLoading && (
                     <IconButton
                       sx={{ position: 'absolute', bottom: 10, right: 10, bgcolor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', '&:hover': { bgcolor: 'white' } }}
                       onClick={handleAvatarClick}
