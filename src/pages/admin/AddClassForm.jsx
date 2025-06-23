@@ -141,41 +141,57 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      console.log('Form submitted in AddClassForm');
+      console.log('Form data:', form);
 
-    // Format dates to yyyy/mm/dd format
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}/${month}/${day}`;
-    };
+      // Format dates to yyyy/mm/dd format
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+      };
 
-    // Prepare data according to API format
-    const submitData = {
-      status: form.status,
-      feePerLesson: parseInt(form.feePerLesson),
-      maxStudents: parseInt(form.maxStudents),
-      description: form.description,
-      room: form.room,
-      schedule: {
-        startDate: formatDate(form.schedule.startDate),
-        endDate: formatDate(form.schedule.endDate),
-        dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
-        timeSlots: {
-          startTime: form.schedule.timeSlots.startTime,
-          endTime: form.schedule.timeSlots.endTime
+      // Prepare data according to API format
+      const submitData = {
+        grade: form.grade,
+        section: form.section,
+        name: form.name,
+        year: parseInt(form.year),
+        status: form.status,
+        feePerLesson: parseInt(form.feePerLesson),
+        maxStudents: parseInt(form.maxStudents),
+        description: form.description,
+        room: form.room,
+        schedule: {
+          startDate: formatDate(form.schedule.startDate),
+          endDate: formatDate(form.schedule.endDate),
+          dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+          timeSlots: {
+            startTime: form.schedule.timeSlots.startTime,
+            endTime: form.schedule.timeSlots.endTime
+          }
         }
-      }
-    };
+      };
 
-    if (onSubmit) onSubmit(submitData);
+      console.log('Submit data prepared:', submitData);
+      if (onSubmit) {
+        console.log('Calling onSubmit with data:', submitData);
+        onSubmit(submitData);
+      } else {
+        console.log('No onSubmit function provided');
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+    }
   };
 
   return (
-    <Box component="form" id="class-form" onSubmit={handleSubmit}>
+    <Box component="form" id="class-form" onSubmit={handleSubmit} noValidate>
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TextField label="Khối " name="grade" value={form.grade} onChange={handleChange} fullWidth required />
@@ -199,7 +215,7 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
               label="Trạng thái"
             >
               {statusOptions.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                <MenuItem key={String(opt.value)} value={opt.value}>{opt.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -249,7 +265,7 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
               renderValue={(selected) => selected.map(val => daysOfWeek.find(d => d.value === val)?.label).join(', ')}
             >
               {daysOfWeek.map(day => (
-                <MenuItem key={day.value} value={day.value}>
+                <MenuItem key={String(day.value)} value={day.value}>
                   <Checkbox checked={form.schedule.dayOfWeeks.indexOf(day.value) > -1} />
                   <ListItemText primary={day.label} />
                 </MenuItem>
@@ -268,7 +284,7 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
               required
             >
               {timeSlotOptions.map(slot => (
-                <MenuItem key={slot.value} value={slot.value}>
+                <MenuItem key={String(slot.value)} value={slot.value}>
                   {slot.label}
                 </MenuItem>
               ))}

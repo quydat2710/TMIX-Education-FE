@@ -145,7 +145,7 @@ const ClassStudentManagement = ({ classData, onUpdate }) => {
               </TableRow>
             ) : students.length > 0 ? (
               students.map((student) => (
-                <TableRow key={student.id}>
+                <TableRow key={String(student.id || student._id || Math.random())}>
                   <TableCell>{student.name || 'N/A'}</TableCell>
                   <TableCell>{student.email || 'N/A'}</TableCell>
                   <TableCell>{student.phone || 'N/A'}</TableCell>

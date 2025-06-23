@@ -65,9 +65,11 @@ const StudentManagement = () => {
     gender: 'female',
   });
   const [classEdits, setClassEdits] = useState([]);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleOpenDialog = (student = null) => {
     setSelectedStudent(student);
+    setFormSubmitted(false);
     if (student) {
       setForm({
         name: student.userId?.name || '',
@@ -78,9 +80,9 @@ const StudentManagement = () => {
         gender: student.userId?.gender || 'female',
       });
       setClassEdits(
-        (student.classes || []).map(cls => ({
-          classId: cls.classId?._id || cls.classId,
-          className: cls.classId?.name || '',
+        (student.classes || []).map((cls, index) => ({
+          classId: cls.classId?.id || cls.classId?._id || cls.classId || `class-${index}`,
+          className: cls.classId?.name || `Lớp ${cls.classId?.grade || ''}.${cls.classId?.section || ''}`,
           discountPercent: cls.discountPercent || 0,
           status: cls.status || 'active',
         }))
@@ -102,6 +104,7 @@ const StudentManagement = () => {
   const handleCloseDialog = () => {
     setSelectedStudent(null);
     setOpenDialog(false);
+    setFormSubmitted(false);
     setForm({
       name: '',
       email: '',
@@ -123,7 +126,10 @@ const StudentManagement = () => {
   };
 
   const handleSubmit = async () => {
-    const errors = validateStudent(form);
+    setFormSubmitted(true);
+    console.log('handleSubmit called', { selectedStudent, form, classEdits });
+    const errors = validateStudent(form, !!selectedStudent);
+    console.log('Validation errors:', errors);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
@@ -146,17 +152,35 @@ const StudentManagement = () => {
             status: cls.status,
           })),
         };
+        console.log('Calling updateStudentAPI with:', selectedStudent.id, body);
         await updateStudentAPI(selectedStudent.id, body);
       } else {
-        // CREATE (giữ nguyên logic cũ)
-        await createStudentAPI(form);
+        // CREATE (gửi đúng body backend yêu cầu)
+        const body = {
+          email: form.email,
+          password: form.password,
+          name: form.name,
+          dayOfBirth: form.dayOfBirth,
+          phone: form.phone,
+          address: form.address,
+          gender: form.gender,
+        };
+        console.log('Calling createStudentAPI with:', body);
+        await createStudentAPI(body);
       }
       handleCloseDialog();
       fetchStudents(page);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra');
+      setError(
+        err?.response?.data?.message ||
+        JSON.stringify(err?.response?.data) ||
+        err?.message ||
+        'Có lỗi xảy ra'
+      );
+      console.error('API error:', err?.response?.data, err);
     } finally {
       setLoading(false);
+      console.log('handleSubmit finished');
     }
   };
 
@@ -363,7 +387,7 @@ const StudentManagement = () => {
                   </TableRow>
                 ) : (
                   students.map((student) => (
-                    <TableRow key={student.id}>
+                    <TableRow key={String(student.id || student._id || Math.random())}>
                       <TableCell>{renderText(student.userId?.name)}</TableCell>
                       <TableCell>{renderText(student.userId?.email)}</TableCell>
                       <TableCell>{renderText(student.userId?.phone)}</TableCell>
@@ -421,22 +445,38 @@ const StudentManagement = () => {
                   <TextField fullWidth label="Email" name="email" type="email" value={form.email} onChange={handleChange} required sx={commonStyles.formField}
                     error={!!formErrors.email} helperText={formErrors.email} />
                 </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Ngày sinh"
+                {selectedStudent == null && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Mật khẩu"
+                      name="password"
+                      type="password"
+                      value={form.password || ''}
+                      onChange={handleChange}
+                      required
+                      sx={commonStyles.formField}
+                      error={formSubmitted && !!formErrors.password}
+                      helperText={formSubmitted ? formErrors.password : ''}
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Ngày sinh"
                     name="dayOfBirth"
                     type="text"
                     value={form.dayOfBirth}
                     onChange={handleChange}
-                required
+                    required
                     placeholder="12/03/2018"
                     sx={commonStyles.formField}
                     error={!!formErrors.dayOfBirth}
                     helperText={formErrors.dayOfBirth}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Số điện thoại" name="phone" value={form.phone} onChange={handleChange} required sx={commonStyles.formField}
                     error={!!formErrors.phone} helperText={formErrors.phone} />
                 </Grid>
@@ -460,7 +500,7 @@ const StudentManagement = () => {
               </Typography>
               <Grid container spacing={2}>
                 {classEdits.map((cls, idx) => (
-                  <React.Fragment key={cls.classId}>
+                  <React.Fragment key={String(cls.classId?.id || cls.classId || `class-edit-${idx}`)}>
                     <Grid item xs={12} sm={5}>
                       <TextField
                         label="Tên lớp"
@@ -505,7 +545,7 @@ const StudentManagement = () => {
               <Button
                 variant="contained"
                 sx={commonStyles.primaryButton}
-                onClick={handleSubmit}
+                onClick={() => { console.log('Button clicked'); handleSubmit(); }}
                 disabled={loading}
               >
                 {selectedStudent ? 'Cập nhật' : loading ? 'Đang thêm...' : 'Thêm mới'}
@@ -684,7 +724,7 @@ const StudentManagement = () => {
 
                       <Grid container spacing={2}>
                         {selectedStudentForView.classes.map((cls, index) => (
-                          <Grid item xs={12} md={4} key={index}>
+                          <Grid item xs={12} md={4} key={String(cls.classId?.id || cls.classId || `view-class-${index}`)}>
                             <Box sx={{
                               p: 1.5,
                               borderRadius: 1.5,

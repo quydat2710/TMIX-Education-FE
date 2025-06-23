@@ -128,9 +128,8 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
               >
                 <MenuItem value="">
                   <em>Không chọn</em>
-                </MenuItem>
-                {allTeachers.map((teacher) => (
-                  <MenuItem key={teacher.id} value={teacher.id}>
+                </MenuItem>                {allTeachers.map((teacher) => (
+                  <MenuItem key={String(teacher.id || teacher._id || Math.random())} value={teacher.id}>
                     {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
                   </MenuItem>
                 ))}

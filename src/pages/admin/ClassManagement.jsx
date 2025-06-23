@@ -178,14 +178,19 @@ const ClassManagement = () => {
   };
 
   const handleUpdateClass = async (data) => {
+    console.log('handleUpdateClass called with data:', data);
+    console.log('selectedClass:', selectedClass);
     if (!selectedClass) return;
     setLoading(true);
     setError('');
     try {
+      console.log('Calling updateClassAPI with:', selectedClass.id, data);
       await updateClassAPI(selectedClass.id, data);
+      console.log('Update successful');
       handleCloseDialog();
       fetchClasses(page); // Refresh class list
     } catch (err) {
+      console.error('Update error:', err);
       setError(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học');
     } finally {
       setLoading(false);
@@ -340,7 +345,7 @@ const ClassManagement = () => {
               </TableRow>
             ) : (
               classes.map((cls) => (
-                <TableRow key={cls.id}>
+                <TableRow key={String(cls.id || cls._id || Math.random())}>
                   <TableCell>{cls.name}</TableCell>
                   <TableCell>
                     {cls.teacherId?.name || cls.teacher?.name || cls.teacherName || 'Chưa gán giáo viên'}
@@ -403,9 +408,9 @@ const ClassManagement = () => {
               <>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                   <Tabs value={currentTab} onChange={handleTabChange} aria-label="class details tabs" centered>
-                    <Tab label="Thông tin chung" />
-                    <Tab label="Giáo viên" />
-                    <Tab label="Học sinh" />
+                    <Tab label="Thông tin chung" key="tab-general" />
+                    <Tab label="Giáo viên" key="tab-teacher" />
+                    <Tab label="Học sinh" key="tab-student" />
                   </Tabs>
                 </Box>
                 <DialogContent sx={{ p: 3, overflow: 'auto' }}>
@@ -414,21 +419,24 @@ const ClassManagement = () => {
                       {error}
                     </Typography>
                   )}
-                  <CustomTabPanel value={currentTab} index={0}>
+                  <CustomTabPanel value={currentTab} index={0} key="general-info">
                     <AddClassForm
+                      key={`edit-form-${selectedClass?.id || 'new'}`}
                       classData={selectedClass}
                       onSubmit={handleUpdateClass}
                       loading={loading}
                     />
                   </CustomTabPanel>
-                  <CustomTabPanel value={currentTab} index={1}>
+                  <CustomTabPanel value={currentTab} index={1} key="teacher-management">
                     <ClassTeacherManagement
+                      key={`teacher-mgmt-${selectedClass?.id}`}
                       classData={selectedClass}
                       onUpdate={handleForceRefresh}
                     />
                   </CustomTabPanel>
-                  <CustomTabPanel value={currentTab} index={2}>
+                  <CustomTabPanel value={currentTab} index={2} key="student-management">
                     <ClassStudentManagement
+                      key={`student-mgmt-${selectedClass?.id}`}
                       classData={selectedClass}
                       onUpdate={handleForceRefresh}
                     />
@@ -444,6 +452,7 @@ const ClassManagement = () => {
                 </Typography>
               )}
                 <AddClassForm
+                  key="add-form-new"
                   classData={null}
                   onSubmit={handleAddClass}
                   loading={loading}
@@ -458,8 +467,9 @@ const ClassManagement = () => {
                 {/* Show button only for General Info tab in Edit mode, or always in Add mode */}
                 {(currentTab === 0 || !selectedClass) && (
                     <Button
-                    type="submit"
-                    form="class-form"
+                    onClick={selectedClass ? handleDirectUpdate : undefined}
+                    type={selectedClass ? "button" : "submit"}
+                    form={selectedClass ? undefined : "class-form"}
                     variant="contained"
                     color="primary"
                     disabled={loading}
@@ -733,7 +743,7 @@ const ClassManagement = () => {
                       <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                         <Grid container spacing={1}>
                           {classStudents.map((student, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={student.id}>
+                            <Grid item xs={12} sm={6} md={4} key={String(student.id || student._id || `student-${index}`)}>
                               <Box sx={{
                                 p: 1.5,
                                 borderRadius: 1,
