@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -13,7 +13,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  InputAdornment
+  InputAdornment,
+  Chip,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -22,12 +25,17 @@ import {
   Cancel as CancelIcon,
   Lock as LockIcon,
   Visibility,
-  VisibilityOff
+  VisibilityOff,
+  School as SchoolIcon,
+  Person as PersonIcon,
+  AdminPanelSettings as AdminIcon,
+  FamilyRestroom as FamilyIcon
 } from '@mui/icons-material';
 import { COLORS } from '../../utils/colors';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { changePasswordAPI, uploadAvatarAPI } from '../../services/api';
 
 const Profile = ({ role }) => {
   const { user } = useAuth();
@@ -56,21 +64,109 @@ const Profile = ({ role }) => {
   });
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef();
+
+  // Initialize profile data from user context
+  useEffect(() => {
+    console.log('Profile useEffect - user data:', user);
+    console.log('Profile useEffect - userRole:', userRole);
+
+    if (user) {
+      const initialData = {
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        dayOfBirth: user.dayOfBirth || user.dateOfBirth || '',
+        avatar: user.avatar || '',
+        // Role-specific data
+        studentId: user.studentId || user.id || '',
+        grade: user.grade || '',
+        parentName: user.parentName || '',
+        parentPhone: user.parentPhone || '',
+        teacherId: user.teacherId || user.id || '',
+        subject: user.subject || '',
+        experience: user.experience || '',
+        adminId: user.id || '',
+        gender: user.gender || '',
+        isEmailVerified: user.isEmailVerified || false
+      };
+      console.log('Profile useEffect - initialData:', initialData);
+      setProfileData(initialData);
+      setAvatarPreview(user.avatar || '');
+    } else {
+      console.log('Profile useEffect - No user data found');
+    }
+  }, [user]);
 
   // Handle avatar upload
   const handleAvatarClick = () => {
     fileInputRef.current.click();
   };
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setAvatarPreview(ev.target.result);
-      };
-      reader.readAsDataURL(file);
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Vui lòng chọn file ảnh hợp lệ');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Kích thước file không được vượt quá 5MB');
+        return;
+      }
+
+      setAvatarLoading(true);
+      setError('');
+      setSuccess('');
+
+      try {
+        // Create FormData
+        const formData = new FormData();
+        formData.append('image', file);
+
+        // Upload avatar
+        const response = await uploadAvatarAPI(formData);
+
+        // Update avatar preview and profile data
+        const newAvatarUrl = response.data?.avatar || response.avatar;
+        setAvatarPreview(newAvatarUrl);
+        setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
+        setAvatarFile(null);
+        setSuccess('Cập nhật avatar thành công!');
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccess('');
+        }, 3000);
+
+      } catch (err) {
+        console.error('Upload avatar error:', err);
+        let errorMessage = 'Upload avatar thất bại';
+
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.status === 400) {
+          errorMessage = 'File không hợp lệ';
+        } else if (err.response?.status === 413) {
+          errorMessage = 'File quá lớn';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
+
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          setError('');
+        }, 5000);
+      } finally {
+        setAvatarLoading(false);
+      }
     }
   };
 
@@ -82,15 +178,28 @@ const Profile = ({ role }) => {
   };
   const handleCancel = () => {
     setIsEditing(false);
-    setProfileData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      address: user?.address || '',
-      dayOfBirth: user?.dayOfBirth || '',
-      avatar: user?.avatar || '',
-    });
-    setAvatarPreview(user?.avatar || '');
+    if (user) {
+      const initialData = {
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        dayOfBirth: user.dayOfBirth || user.dateOfBirth || '',
+        avatar: user.avatar || '',
+        studentId: user.studentId || user.id || '',
+        grade: user.grade || '',
+        parentName: user.parentName || '',
+        parentPhone: user.parentPhone || '',
+        teacherId: user.teacherId || user.id || '',
+        subject: user.subject || '',
+        experience: user.experience || '',
+        adminId: user.id || '',
+        gender: user.gender || '',
+        isEmailVerified: user.isEmailVerified || false
+      };
+      setProfileData(initialData);
+      setAvatarPreview(user.avatar || '');
+    }
     setAvatarFile(null);
     setSuccess('');
     setError('');
@@ -126,7 +235,7 @@ const Profile = ({ role }) => {
   const handleToggleShowPassword = (field) => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
       setError('Vui lòng nhập đầy đủ thông tin');
       return;
@@ -135,10 +244,41 @@ const Profile = ({ role }) => {
       setError('Mật khẩu mới không khớp');
       return;
     }
-    setSuccess('Đổi mật khẩu thành công!');
+    if (passwordData.new.length < 6) {
+      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
+      return;
+    }
+
+    setPasswordLoading(true);
     setError('');
-    setShowPasswordDialog(false);
-    // TODO: Gọi API đổi mật khẩu nếu cần
+    setSuccess('');
+
+    try {
+      await changePasswordAPI(passwordData.current, passwordData.new);
+      setSuccess('Đổi mật khẩu thành công!');
+      setPasswordData({ current: '', new: '', confirm: '' });
+      setTimeout(() => {
+        setShowPasswordDialog(false);
+        setSuccess('');
+      }, 2000);
+    } catch (err) {
+      console.error('Change password error:', err);
+      let errorMessage = 'Đổi mật khẩu thất bại';
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status === 400) {
+        errorMessage = 'Mật khẩu hiện tại không đúng';
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   return (
@@ -152,12 +292,20 @@ const Profile = ({ role }) => {
                 <Box sx={{ position: 'relative', display: 'inline-block' }}>
                   <Avatar
                     src={avatarPreview}
-                    sx={{ width: 150, height: 150, mb: 2, border: '4px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: isEditing ? 'pointer' : 'default' }}
-                    onClick={isEditing ? handleAvatarClick : undefined}
+                    sx={{
+                      width: 150,
+                      height: 150,
+                      mb: 2,
+                      border: '4px solid #fff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      cursor: isEditing && !avatarLoading ? 'pointer' : 'default',
+                      opacity: avatarLoading ? 0.7 : 1
+                    }}
+                    onClick={isEditing && !avatarLoading ? handleAvatarClick : undefined}
                   >
                     {!avatarPreview && profileData.name.charAt(0)}
                   </Avatar>
-                  {isEditing && (
+                  {isEditing && !avatarLoading && (
                     <IconButton
                       sx={{ position: 'absolute', bottom: 10, right: 10, bgcolor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', '&:hover': { bgcolor: 'white' } }}
                       onClick={handleAvatarClick}
@@ -165,16 +313,51 @@ const Profile = ({ role }) => {
                       <PhotoCameraIcon />
                     </IconButton>
                   )}
+                  {avatarLoading && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 10,
+                        right: 10,
+                        bgcolor: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Typography variant="caption">...</Typography>
+                    </Box>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
                     style={{ display: 'none' }}
                     ref={fileInputRef}
                     onChange={handleAvatarChange}
+                    disabled={avatarLoading}
                   />
                 </Box>
                 <Typography variant="h6" sx={{ mb: 1 }}>{profileData.name}</Typography>
-                <Typography color="textSecondary">{profileData.email}</Typography>
+                <Typography color="textSecondary" sx={{ mb: 2 }}>{profileData.email}</Typography>
+                {avatarLoading && (
+                  <Typography variant="caption" color="primary" sx={{ display: 'block', mb: 1 }}>
+                    Đang tải lên avatar...
+                  </Typography>
+                )}
+                {success && (
+                  <Typography variant="caption" color="success.main" sx={{ display: 'block', mb: 1 }}>
+                    {success}
+                  </Typography>
+                )}
+                {error && (
+                  <Typography variant="caption" color="error.main" sx={{ display: 'block', mb: 1 }}>
+                    {error}
+                  </Typography>
+                )}
               </Paper>
             </Grid>
             <Grid item xs={12} md={8}>
@@ -221,16 +404,116 @@ const Profile = ({ role }) => {
                       sx={commonStyles.formField}
                     />
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Địa chỉ"
-                      value={profileData.address}
-                      disabled={!isEditing}
-                      onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))}
-                      sx={commonStyles.formField}
-                    />
-                  </Grid>
+                  {userRole !== 'admin' && (
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Địa chỉ"
+                        value={profileData.address}
+                        disabled={!isEditing}
+                        onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))}
+                        sx={commonStyles.formField}
+                      />
+                    </Grid>
+                  )}
+
+                  {/* Role-specific fields */}
+                  {userRole === 'student' && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Lớp"
+                          value={profileData.grade}
+                          disabled={!isEditing}
+                          onChange={e => setProfileData(prev => ({ ...prev, grade: e.target.value }))}
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Tên phụ huynh"
+                          value={profileData.parentName}
+                          disabled={!isEditing}
+                          onChange={e => setProfileData(prev => ({ ...prev, parentName: e.target.value }))}
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="SĐT phụ huynh"
+                          value={profileData.parentPhone}
+                          disabled={!isEditing}
+                          onChange={e => setProfileData(prev => ({ ...prev, parentPhone: e.target.value }))}
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  {userRole === 'teacher' && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Môn học"
+                          value={profileData.subject}
+                          disabled={!isEditing}
+                          onChange={e => setProfileData(prev => ({ ...prev, subject: e.target.value }))}
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Kinh nghiệm (năm)"
+                          value={profileData.experience}
+                          disabled={!isEditing}
+                          onChange={e => setProfileData(prev => ({ ...prev, experience: e.target.value }))}
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  {userRole === 'admin' && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Giới tính"
+                          value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : 'Khác'}
+                          disabled
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Trạng thái email"
+                          value={profileData.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+                          disabled
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  {userRole === 'parent' && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Số con"
+                          value={user?.children?.length || 0}
+                          disabled
+                          sx={commonStyles.formField}
+                        />
+                      </Grid>
+                    </>
+                  )}
                 </Grid>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
                   {!isEditing ? (
@@ -318,8 +601,16 @@ const Profile = ({ role }) => {
           {success && <Typography color="success.main" sx={{ mt: 1 }}>{success}</Typography>}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClosePasswordDialog}>Hủy</Button>
-          <Button variant="contained" onClick={handleChangePassword}>Đổi mật khẩu</Button>
+          <Button onClick={handleClosePasswordDialog} disabled={passwordLoading}>
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleChangePassword}
+            disabled={passwordLoading}
+          >
+            {passwordLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+          </Button>
         </DialogActions>
       </Dialog>
     </DashboardLayout>

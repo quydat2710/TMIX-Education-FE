@@ -95,19 +95,19 @@ const TeacherManagement = () => {
         }))
       );
     } else {
-      setForm({
-        name: '',
-        email: '',
-        phone: '',
+    setForm({
+      name: '',
+      email: '',
+      phone: '',
         address: '',
         gender: 'female',
-        dayOfBirth: '',
-        salaryPerLesson: '',
-        qualifications: '',
-        specialization: '',
-        description: '',
-        isActive: true,
-      });
+      dayOfBirth: '',
+      salaryPerLesson: '',
+      qualifications: '',
+      specialization: '',
+      description: '',
+      isActive: true,
+    });
       setClassEdits([]);
     }
     setError('');
@@ -219,23 +219,23 @@ const TeacherManagement = () => {
         await updateTeacherAPI(selectedTeacher.id, body);
       } else {
         // CREATE
-        const requestData = {
-          userData: {
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            address: form.address,
-            gender: form.gender,
-          },
-          teacherData: {
-            salaryPerLesson: Number(form.salaryPerLesson),
-            qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
-            specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
-            description: form.description,
-            isActive: form.isActive,
-          },
-        };
-        await createTeacherAPI(requestData);
+      const requestData = {
+        userData: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          address: form.address,
+          gender: form.gender,
+        },
+        teacherData: {
+          salaryPerLesson: Number(form.salaryPerLesson),
+          qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
+          specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
+          description: form.description,
+          isActive: form.isActive,
+        },
+      };
+      await createTeacherAPI(requestData);
       }
 
       handleCloseDialog();
@@ -429,13 +429,13 @@ const TeacherManagement = () => {
                       onChange={handleChange}
                       error={!!formErrors.email}
                       helperText={formErrors.email}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Số điện thoại"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Số điện thoại"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
