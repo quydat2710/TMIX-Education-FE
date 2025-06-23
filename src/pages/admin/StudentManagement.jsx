@@ -59,7 +59,6 @@ const StudentManagement = () => {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '',
     dayOfBirth: '',
     phone: '',
     address: '',
@@ -73,7 +72,6 @@ const StudentManagement = () => {
       setForm({
         name: student.userId?.name || '',
         email: student.userId?.email || '',
-        password: '',
         dayOfBirth: student.userId?.dayOfBirth || '',
         phone: student.userId?.phone || '',
         address: student.userId?.address || '',
@@ -91,7 +89,6 @@ const StudentManagement = () => {
       setForm({
         name: '',
         email: '',
-        password: '',
         dayOfBirth: '',
         phone: '',
         address: '',
@@ -108,7 +105,6 @@ const StudentManagement = () => {
     setForm({
       name: '',
       email: '',
-      password: '',
       dayOfBirth: '',
       phone: '',
       address: '',
@@ -402,10 +398,9 @@ const StudentManagement = () => {
           <Dialog
             open={openDialog}
             onClose={handleCloseDialog}
-            maxWidth="md"
-            fullWidth
+            maxWidth="sm"
             PaperProps={{
-              sx: { borderRadius: 2 }
+              sx: { borderRadius: 2, width: '70%' }
             }}
           >
             <DialogTitle sx={commonStyles.dialogTitle}>
@@ -426,10 +421,6 @@ const StudentManagement = () => {
                   <TextField fullWidth label="Email" name="email" type="email" value={form.email} onChange={handleChange} required sx={commonStyles.formField}
                     error={!!formErrors.email} helperText={formErrors.email} />
                 </Grid>
-            <Grid item xs={12} sm={6}>
-                  <TextField fullWidth label="Mật khẩu" name="password" type="password" value={form.password} onChange={handleChange} required sx={commonStyles.formField}
-                    error={!!formErrors.password} helperText={formErrors.password} />
-            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth

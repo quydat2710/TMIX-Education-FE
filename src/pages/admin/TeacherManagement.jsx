@@ -59,11 +59,10 @@ const TeacherManagement = () => {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '',
     phone: '',
-    dayOfBirth: '',
     address: '',
-    gender: 'male',
+    gender: 'female',
+    dayOfBirth: '',
     salaryPerLesson: '',
     qualifications: '',
     specialization: '',
@@ -77,11 +76,10 @@ const TeacherManagement = () => {
       setForm({
         name: teacher.userId?.name || '',
         email: teacher.userId?.email || '',
-        password: '',
         phone: teacher.userId?.phone || '',
-        dayOfBirth: teacher.userId?.dayOfBirth || '',
         address: teacher.userId?.address || '',
-        gender: teacher.userId?.gender || 'male',
+        gender: teacher.userId?.gender || 'female',
+        dayOfBirth: teacher.userId?.dayOfBirth || '',
         salaryPerLesson: teacher.salaryPerLesson || '',
         qualifications: teacher.qualifications?.join(', ') || '',
         specialization: teacher.specialization?.join(', ') || '',
@@ -100,11 +98,10 @@ const TeacherManagement = () => {
       setForm({
         name: '',
         email: '',
-        password: '',
         phone: '',
-        dayOfBirth: '',
         address: '',
-        gender: 'male',
+        gender: 'female',
+        dayOfBirth: '',
         salaryPerLesson: '',
         qualifications: '',
         specialization: '',
@@ -124,11 +121,10 @@ const TeacherManagement = () => {
     setForm({
       name: '',
       email: '',
-      password: '',
       phone: '',
-      dayOfBirth: '',
       address: '',
-      gender: 'male',
+      gender: 'female',
+      dayOfBirth: '',
       salaryPerLesson: '',
       qualifications: '',
       specialization: '',
@@ -227,9 +223,7 @@ const TeacherManagement = () => {
           userData: {
             name: form.name,
             email: form.email,
-            password: form.password,
             phone: form.phone,
-            dayOfBirth: form.dayOfBirth,
             address: form.address,
             gender: form.gender,
           },
@@ -390,7 +384,14 @@ const TeacherManagement = () => {
               />
             </Box>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        PaperProps={{
+          sx: { borderRadius: 2, width: '70%' }
+        }}
+      >
         <DialogTitle>
           {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
         </DialogTitle>
@@ -434,20 +435,7 @@ const TeacherManagement = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Mật khẩu"
-                      type="password"
-                      name="password"
-                      value={form.password}
-                      onChange={handleChange}
-                      error={!!formErrors.password}
-                      helperText={formErrors.password}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Số điện thoại"
+                      label="Số điện thoại"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}

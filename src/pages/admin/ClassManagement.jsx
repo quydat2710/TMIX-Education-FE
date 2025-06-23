@@ -322,7 +322,7 @@ const ClassManagement = () => {
               <TableCell width="10%">Tên lớp</TableCell>
               <TableCell width="15%">Giáo viên</TableCell>
               <TableCell width="10%">Năm học</TableCell>
-              <TableCell width="10%">Số lượng học sinh</TableCell>
+              <TableCell width="10%">Học phí mỗi buổi</TableCell>
               <TableCell width="20%">Thời gian học</TableCell>
               <TableCell width="10%">Phòng học</TableCell>
               <TableCell width="10%">Trạng thái</TableCell>
@@ -347,7 +347,7 @@ const ClassManagement = () => {
                   </TableCell>
                   <TableCell>{cls.year}</TableCell>
                   <TableCell>
-                    {classStudentCounts[cls.id] !== undefined ? `${classStudentCounts[cls.id]}/${cls.maxStudents || 30}` : 'Đang tải...'}
+                    {cls.feePerLesson ? `${cls.feePerLesson.toLocaleString('vi-VN')} VNĐ` : 'Chưa cập nhật'}
                   </TableCell>
                   <TableCell>{formatSchedule(cls.schedule)}</TableCell>
                   <TableCell>{cls.room || '-'}</TableCell>
@@ -389,10 +389,9 @@ const ClassManagement = () => {
           <Dialog
             open={openDialog}
             onClose={handleCloseDialog}
-            maxWidth="md"
-            fullWidth
+            maxWidth="sm"
             PaperProps={{
-              sx: { borderRadius: 2 }
+              sx: { borderRadius: 2, width: '70%' }
             }}
           >
             <DialogTitle sx={{ ...commonStyles.dialogTitle, textAlign: 'center' }}>
@@ -475,8 +474,7 @@ const ClassManagement = () => {
       <Dialog
         open={openViewDialog}
         onClose={handleCloseViewDialog}
-        maxWidth="md"
-        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -592,7 +590,7 @@ const ClassManagement = () => {
                           Học phí mỗi buổi
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#7b1fa2' }}>
-                          {selectedClassForView.feePerLesson ? `${selectedClassForView.feePerLesson.toLocaleString()} VNĐ` : 'Chưa có'}
+                          {selectedClassForView.feePerLesson ? `${selectedClassForView.feePerLesson.toLocaleString('vi-VN')} VNĐ` : 'Chưa cập nhật'}
                         </Typography>
                       </Box>
 
