@@ -63,3 +63,23 @@ export const getTeacherPaymentByIdAPI = (id) => axiosInstance.get(API_CONFIG.END
 
 // Schedule APIs
 export const getLoggedInStudentSchedule = () => axiosInstance.get(API_CONFIG.ENDPOINTS.SCHEDULES.GET_STUDENT_SCHEDULE);
+
+// Announcement APIs (Quản lý quảng cáo)
+export const createAnnouncementAPI = (data) =>
+  axiosInstance.post('/announcements', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+export const getAllAnnouncementsAPI = (params) =>
+  axiosInstance.get('/announcements', { params });
+
+export const getAnnouncementByIdAPI = (id) =>
+  axiosInstance.get(`/announcements/${id}`);
+
+export const updateAnnouncementAPI = (id, data) =>
+  axiosInstance.patch(`/announcements/${id}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+export const deleteAnnouncementAPI = (id) =>
+  axiosInstance.delete(`/announcements/${id}`);

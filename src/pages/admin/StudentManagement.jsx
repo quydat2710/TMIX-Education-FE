@@ -461,22 +461,22 @@ const StudentManagement = () => {
                     />
                   </Grid>
                 )}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Ngày sinh"
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Ngày sinh"
                     name="dayOfBirth"
                     type="text"
                     value={form.dayOfBirth}
                     onChange={handleChange}
-                    required
+                required
                     placeholder="12/03/2018"
                     sx={commonStyles.formField}
                     error={!!formErrors.dayOfBirth}
                     helperText={formErrors.dayOfBirth}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Số điện thoại" name="phone" value={form.phone} onChange={handleChange} required sx={commonStyles.formField}
                     error={!!formErrors.phone} helperText={formErrors.phone} />
                 </Grid>

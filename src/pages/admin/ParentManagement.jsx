@@ -245,6 +245,13 @@ const ParentManagement = () => {
     }
   };
 
+  function toAPIDateFormat(dob) {
+    // dob: "09/12/2004" => "12/09/2004"
+    if (!dob) return '';
+    const [d, m, y] = dob.split('/');
+    return `${m.padStart(2, '0')}/${d.padStart(2, '0')}/${y}`;
+  }
+
   const handleSubmit = async () => {
     // Validate form before submitting
     const errors = validateParent(form, !!selectedParent);
@@ -264,16 +271,14 @@ const ParentManagement = () => {
           userData: {
             name: form.name,
             email: form.email,
-            dayOfBirth: form.dayOfBirth,
+            dayOfBirth: toAPIDateFormat(form.dayOfBirth),
             phone: form.phone,
             address: form.address,
             gender: form.gender,
           },
-          studentData: classEdits.map(cls => ({
-            classId: cls.classId,
-            discountPercent: Number(cls.discountPercent),
-            status: cls.status,
-          })),
+          parentData: {
+            canSeeTeacherInfo: form.canSeeTeacherInfo,
+          },
         };
         await updateParentAPI(selectedParent.id, body);
       } else {
@@ -298,7 +303,13 @@ const ParentManagement = () => {
       handleCloseDialog();
       fetchParents(page);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra');
+      setError(
+        err?.response?.data?.message ||
+        JSON.stringify(err?.response?.data) ||
+        err?.message ||
+        'Có lỗi xảy ra'
+      );
+      console.error('API error:', err?.response?.data, err);
     } finally {
       setLoading(false);
     }

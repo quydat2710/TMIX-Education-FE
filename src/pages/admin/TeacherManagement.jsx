@@ -203,27 +203,28 @@ const TeacherManagement = () => {
         // UPDATE
         const body = {
           userData: {
-            name: form.name,
-            email: form.email,
-            dayOfBirth: form.dayOfBirth,
             phone: form.phone,
+            dayOfBirth: form.dayOfBirth,
             address: form.address,
             gender: form.gender,
           },
-          studentData: classEdits.map(cls => ({
-            classId: cls.classId,
-            discountPercent: Number(cls.discountPercent),
-            status: cls.status,
-          })),
+          teacherData: {
+            salaryPerLesson: Number(form.salaryPerLesson),
+            qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
+            specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
+            description: form.description,
+          },
         };
         await updateTeacherAPI(selectedTeacher.id, body);
       } else {
-        // CREATE
-      const requestData = {
+        // CREATE (gửi đúng body backend yêu cầu)
+        const body = {
         userData: {
           name: form.name,
           email: form.email,
+            password: form.password,
           phone: form.phone,
+            dayOfBirth: form.dayOfBirth,
           address: form.address,
           gender: form.gender,
         },
@@ -235,7 +236,7 @@ const TeacherManagement = () => {
           isActive: form.isActive,
         },
       };
-      await createTeacherAPI(requestData);
+        await createTeacherAPI(body);
       }
 
       handleCloseDialog();
@@ -402,36 +403,49 @@ const TeacherManagement = () => {
                   </Typography>
                 )}
           <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>
-                      Thông tin cá nhân
-                    </Typography>
-                  </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Họ và tên"
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      error={!!formErrors.name}
-                      helperText={formErrors.name}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      error={!!formErrors.email}
-                      helperText={formErrors.email}
-                required
-              />
-            </Grid>
+            {/* Khi chỉnh sửa chỉ cho phép sửa các trường API yêu cầu */}
+            {selectedTeacher == null ? (
+              <React.Fragment>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Họ và tên"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    error={!!formErrors.name}
+                    helperText={formErrors.name}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    error={!!formErrors.email}
+                    helperText={formErrors.email}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Mật khẩu"
+                    name="password"
+                    type="password"
+                    value={form.password || ''}
+                    onChange={handleChange}
+                    required
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
+                  />
+                </Grid>
+              </React.Fragment>
+            ) : null}
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -483,12 +497,6 @@ const TeacherManagement = () => {
                       helperText={formErrors.address}
                       required
                     />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                      Thông tin giảng dạy
-                    </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
