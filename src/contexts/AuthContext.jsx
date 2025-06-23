@@ -57,6 +57,14 @@ const authReducer = (state, action) => {
         ...state,
         error: null
       };
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          ...action.payload,
+        },
+      };
     default:
       return state;
   }
@@ -190,6 +198,10 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGOUT' });
   };
 
+  const updateUser = (updatedData) => {
+    dispatch({ type: 'UPDATE_USER', payload: updatedData });
+  };
+
   const clearError = () => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
@@ -198,6 +210,7 @@ export const AuthProvider = ({ children }) => {
     ...state,
     login,
     logout,
+    updateUser,
     clearError
   };
 

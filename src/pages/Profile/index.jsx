@@ -38,7 +38,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { changePasswordAPI, uploadAvatarAPI } from '../../services/api';
 
 const Profile = ({ role }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const userRole = role || user?.role || 'student';
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -127,17 +127,47 @@ const Profile = ({ role }) => {
       try {
         // Create FormData
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', file); // Changed back to 'image' based on Postman screenshot
+
+        // Debug: Log FormData contents
+        console.log('FormData contents:');
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+
+        // Also try logging the file details
+        console.log('File details:', {
+          name: file.name,
+          type: file.type,
+          size: file.size
+        });
 
         // Upload avatar
         const response = await uploadAvatarAPI(formData);
+        console.log('Upload response:', response);
 
         // Update avatar preview and profile data
-        const newAvatarUrl = response.data?.avatar || response.avatar;
-        setAvatarPreview(newAvatarUrl);
-        setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
-        setAvatarFile(null);
-        setSuccess('Cập nhật avatar thành công!');
+        // Try different possible response formats
+        const newAvatarUrl = response.data?.avatar ||
+                           response.avatar ||
+                           response.data?.url ||
+                           response.url ||
+                           response.data?.imageUrl ||
+                           response.imageUrl;
+
+        if (newAvatarUrl) {
+          setAvatarPreview(newAvatarUrl);
+          setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
+          setAvatarFile(null);
+          setSuccess('Cập nhật avatar thành công!');
+
+          // Update user in AuthContext
+          updateUser({ avatar: newAvatarUrl });
+
+        } else {
+          console.warn('No avatar URL found in response:', response);
+          setError('Không nhận được URL avatar từ server');
+        }
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -146,10 +176,16 @@ const Profile = ({ role }) => {
 
       } catch (err) {
         console.error('Upload avatar error:', err);
+        console.error('Error response:', err.response);
+        console.error('Error message:', err.message);
+        console.error('Error status:', err.response?.status);
+
         let errorMessage = 'Upload avatar thất bại';
 
         if (err.response?.data?.message) {
           errorMessage = err.response.data.message;
+        } else if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
         } else if (err.response?.status === 400) {
           errorMessage = 'File không hợp lệ';
         } else if (err.response?.status === 413) {
