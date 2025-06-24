@@ -3,9 +3,46 @@ import { API_CONFIG } from '../config/api';
 
 // Auth APIs
 export const registerAPI = (data) => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, data);
-export const loginAPI = (data) => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, data);
-export const changePasswordAPI = (oldPassword, newPassword) => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD, { oldPassword, newPassword });
+export const registerAdminAPI = (data) => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, data);
+export const loginAPI = (data) => {
+  const formData = new URLSearchParams();
+  formData.append('email', data.email);
+  formData.append('password', data.password);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
+export const changePasswordAPI = (oldPassword, newPassword) => {
+  const formData = new URLSearchParams();
+  formData.append('oldPassword', oldPassword);
+  formData.append('newPassword', newPassword);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
 export const logoutAPI = () => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT);
+export const forgotPasswordAPI = (email) => {
+  const formData = new URLSearchParams();
+  formData.append('email', email);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
+export const verifyCodeAPI = (code, email) => {
+  const formData = new URLSearchParams();
+  formData.append('code', code);
+  formData.append('email', email);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.VERIFY_CODE, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
+export const resetPasswordAPI = (password, token) => {
+  const formData = new URLSearchParams();
+  formData.append('password', password);
+  return axiosInstance.post(`${API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD}?token=${token}`, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
 
 // User APIs
 export const uploadAvatarAPI = (formData) => axiosInstance.post(API_CONFIG.ENDPOINTS.USERS.UPLOAD_AVATAR, formData);

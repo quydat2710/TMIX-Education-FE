@@ -7,6 +7,9 @@ export const API_CONFIG = {
       REGISTER: '/auth/register',
       LOGOUT: '/auth/logout',
       CHANGE_PASSWORD: '/auth/change-password',
+      FORGOT_PASSWORD: '/auth/forgot-password',
+      VERIFY_CODE: '/auth/verify-code',
+      RESET_PASSWORD: '/auth/reset-password',
     },
     // User endpoints
     USERS: {

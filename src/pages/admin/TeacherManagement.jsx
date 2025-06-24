@@ -406,31 +406,31 @@ const TeacherManagement = () => {
             {/* Khi chỉnh sửa chỉ cho phép sửa các trường API yêu cầu */}
             {selectedTeacher == null ? (
               <React.Fragment>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Họ và tên"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    error={!!formErrors.name}
-                    helperText={formErrors.name}
-                    required
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    error={!!formErrors.email}
-                    helperText={formErrors.email}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Họ và tên"
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!formErrors.name}
+                      helperText={formErrors.name}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      error={!!formErrors.email}
+                      helperText={formErrors.email}
+                required
+              />
+            </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth

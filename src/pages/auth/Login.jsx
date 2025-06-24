@@ -25,7 +25,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
 import { loginValidationSchema } from '../../validations/loginValidation';
-import { getDashboardPath } from '../../utils/helpers';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -63,18 +62,11 @@ const Login = () => {
     }
 
     try {
-      const result = await login({
+      await login({
         email: values.email,
         password: values.password
       });
-      
-      // Điều hướng đến dashboard phù hợp với role
-      if (result?.user?.role) {
-        const dashboardPath = getDashboardPath(result.user.role);
-        navigate(dashboardPath, { replace: true });
-      } else {
-        navigate(from, { replace: true });
-      }
+      navigate(from, { replace: true });
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -132,7 +124,7 @@ const Login = () => {
             >
               <School sx={{
                 fontSize: 64,
-                color: 'primary.main',
+                color: 'primary.text',
                 mb: 2,
                 filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
               }} />
@@ -176,6 +168,32 @@ const Login = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    backgroundColor: 'white',
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#764ba2',
+                      boxShadow: 'none',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'white',
+                    },
+                    '&.Mui-autofill': {
+                      backgroundColor: 'white !important',
+                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
+                      '-webkit-text-fill-color': 'inherit !important',
+                    },
+                    '&.Mui-autofill:hover': {
+                      backgroundColor: 'white !important',
+                    },
+                    '&.Mui-autofill:focus': {
+                      backgroundColor: 'white !important',
+                    }
+                  },
+                  '& .MuiInputBase-input': {
+                    '&:-webkit-autofill': {
+                      backgroundColor: 'white !important',
+                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
+                      '-webkit-text-fill-color': 'inherit !important',
+                    }
                   }
                 }}
               />
@@ -215,9 +233,55 @@ const Login = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    backgroundColor: 'white',
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#764ba2',
+                      boxShadow: 'none',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'white',
+                    },
+                    '&.Mui-autofill': {
+                      backgroundColor: 'white !important',
+                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
+                      '-webkit-text-fill-color': 'inherit !important',
+                    },
+                    '&.Mui-autofill:hover': {
+                      backgroundColor: 'white !important',
+                    },
+                    '&.Mui-autofill:focus': {
+                      backgroundColor: 'white !important',
+                    }
+                  },
+                  '& .MuiInputBase-input': {
+                    '&:-webkit-autofill': {
+                      backgroundColor: 'white !important',
+                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
+                      '-webkit-text-fill-color': 'inherit !important',
+                    }
                   }
                 }}
               />
+
+              {/* Nút quên mật khẩu */}
+              <Box display="flex" justifyContent="flex-end" mt={1} mb={2}>
+                <Button
+                  variant="text"
+                  size="small"
+                  sx={{
+                    textTransform: 'none',
+                    color: 'primary.main',
+                    fontWeight: 500,
+                    '&:hover': {
+                      backgroundColor: 'rgba(118, 75, 162, 0.04)',
+                      textDecoration: 'underline'
+                    }
+                  }}
+                  onClick={() => navigate('/forgot-password')}
+                >
+                  Quên mật khẩu?
+                </Button>
+              </Box>
 
               <Button
                 type="submit"

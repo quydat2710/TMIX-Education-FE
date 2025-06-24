@@ -15,12 +15,12 @@ export function validateStudent({ name, email, password, dayOfBirth, phone }, is
 
   // Password: min 8, có cả chữ và số (chỉ bắt buộc khi tạo mới)
   if (!isEdit) {
-    if (!password) {
-      errors.password = 'Mật khẩu là bắt buộc';
-    } else if (password.length < 8) {
-      errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-    } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
-      errors.password = 'Mật khẩu phải chứa cả chữ và số';
+  if (!password) {
+    errors.password = 'Mật khẩu là bắt buộc';
+  } else if (password.length < 8) {
+    errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
+  } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+    errors.password = 'Mật khẩu phải chứa cả chữ và số';
     }
   }
 

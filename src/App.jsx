@@ -13,6 +13,7 @@ import theme from './theme';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import Profile from './pages/Profile';
 
 // Admin Pages
@@ -57,6 +58,7 @@ function App() {
             {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/profile" element={
               !user ? <Navigate to="/" replace /> : (
                 <DashboardLayout>
