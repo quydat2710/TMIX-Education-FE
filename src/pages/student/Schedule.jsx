@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import ScheduleCalendar from '../../components/common/ScheduleCalendar';
 import { useApi } from '../../hooks/useApi';
-import { getStudentScheduleAPI } from '../../services/api';
+import { getStudentScheduleAPI, getAllStudentsAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { Box, CircularProgress, Typography, Paper } from '@mui/material';
 
@@ -44,8 +44,13 @@ const Schedule = () => {
   const { data, loading, error, execute: fetchSchedule } = useApi(getStudentScheduleAPI, null, false);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchSchedule(user.id);
+    let studentId = user?.id;
+    if (user?.role === 'student' && user?.studentId) {
+      studentId = user.studentId;
+    }
+    console.log('Student Schedule - user context:', user, '=> studentId:', studentId);
+    if (studentId) {
+      fetchSchedule(studentId);
     }
   }, [user, fetchSchedule]);
 
@@ -77,21 +82,14 @@ const Schedule = () => {
       );
     }
 
-    if (data) {
+    if (lessons && lessons.length > 0) {
       return (
-        <Box>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            Kết quả API trả về:
-          </Typography>
-          <Paper component="pre" sx={{ p: 2, backgroundColor: '#e8f5e9', border: '1px solid #a5d6a7', overflowX: 'auto' }}>
-            {JSON.stringify(data, null, 2)}
-          </Paper>
-        </Box>
+        <ScheduleCalendar lessons={lessons} title="Lịch học của tôi" userType="student" />
       );
     }
 
-    // Default message if no data, no error, not loading
-    return <Typography sx={{ mt: 4, textAlign: 'center' }}>Đang chờ lấy dữ liệu...</Typography>;
+    // Nếu không có dữ liệu, không lỗi, không loading
+    return <Typography sx={{ mt: 4, textAlign: 'center' }}>Không có lịch học nào.</Typography>;
   };
 
   return (

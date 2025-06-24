@@ -16,7 +16,7 @@ import { getAllTeachersAPI, assignTeacherAPI, unassignTeacherAPI } from '../../s
 import { COLORS } from '../../utils/colors';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
-const ClassTeacherManagement = ({ classData, onUpdate }) => {
+const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage }) => {
   const [allTeachers, setAllTeachers] = useState([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,15 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
     severity: 'success',
   });
 
-  const currentTeacher = classData?.teacherId;
+  // Lấy object giáo viên hiện tại từ allTeachers nếu teacherId là string
+  let currentTeacherObj = null;
+  if (typeof classData?.teacherId === 'string' && allTeachers.length > 0) {
+    currentTeacherObj = allTeachers.find(
+      (t) => String(t.id || t._id) === classData.teacherId
+    );
+  } else if (typeof classData?.teacherId === 'object' && classData.teacherId) {
+    currentTeacherObj = classData.teacherId;
+  }
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -43,12 +51,12 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
 
   useEffect(() => {
     // Set the initial selected teacher if one is already assigned
-    if (currentTeacher) {
-      setSelectedTeacherId(currentTeacher.id);
+    if (currentTeacherObj && (currentTeacherObj.id || currentTeacherObj._id)) {
+      setSelectedTeacherId(String(currentTeacherObj.id || currentTeacherObj._id));
     } else {
       setSelectedTeacherId('');
     }
-  }, [currentTeacher]);
+  }, [currentTeacherObj]);
 
   const handleAssignTeacher = async () => {
     if (!selectedTeacherId) {
@@ -58,8 +66,10 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
     setLoading(true);
     try {
       await assignTeacherAPI(classData.id, selectedTeacherId);
+      if (onSuccessMessage) onSuccessMessage('Gán giáo viên thành công!', 'success');
       setNotification({ open: true, message: 'Gán giáo viên thành công!', severity: 'success' });
-      onUpdate(); // Callback to refresh data in the parent component
+      onUpdate();
+      if (onClose) onClose();
     } catch (error) {
       setNotification({ open: true, message: error.response?.data?.message || 'Lỗi khi gán giáo viên.', severity: 'error' });
     } finally {
@@ -71,9 +81,11 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
     setLoading(true);
     try {
       await unassignTeacherAPI(classData.id);
+      if (onSuccessMessage) onSuccessMessage('Hủy gán giáo viên thành công!', 'success');
       setNotification({ open: true, message: 'Hủy gán giáo viên thành công!', severity: 'success' });
       setSelectedTeacherId('');
-      onUpdate(); // Callback to refresh data in the parent component
+      onUpdate();
+      if (onClose) onClose();
     } catch (error) {
       setNotification({ open: true, message: error.response?.data?.message || 'Lỗi khi hủy gán giáo viên.', severity: 'error' });
     } finally {
@@ -97,13 +109,13 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: COLORS.primary }}>
               Giáo viên hiện tại
             </Typography>
-            {currentTeacher ? (
+            {currentTeacherObj ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PersonIcon color="action" />
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  {currentTeacher.name || 'Chưa có thông tin'}
+                  {currentTeacherObj.userId?.name || currentTeacherObj.name || 'Chưa có thông tin'}
                 </Typography>
-                <Chip label={currentTeacher.userId?.email || ''} size="small" />
+                <Chip label={currentTeacherObj.userId?.email || ''} size="small" />
               </Box>
             ) : (
               <Typography variant="body1" color="textSecondary">
@@ -117,26 +129,31 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
         <Grid item xs={12}>
           <Paper elevation={2} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: COLORS.primary }}>
-              {currentTeacher ? 'Thay đổi giáo viên' : 'Gán giáo viên mới'}
+              {currentTeacherObj ? 'Thay đổi giáo viên' : 'Gán giáo viên mới'}
             </Typography>
             <FormControl fullWidth sx={{ my: 1 }}>
               <InputLabel>Chọn giáo viên</InputLabel>
               <Select
-                value={selectedTeacherId}
+                value={selectedTeacherId || ''}
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
                 label="Chọn giáo viên"
               >
                 <MenuItem value="">
                   <em>Không chọn</em>
-                </MenuItem>                {allTeachers.map((teacher) => (
-                  <MenuItem key={String(teacher.id || teacher._id || Math.random())} value={teacher.id}>
-                    {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
-                  </MenuItem>
-                ))}
+                </MenuItem>
+                {allTeachers.map((teacher) => {
+                  const teacherId = teacher.id || teacher._id;
+                  if (!teacherId) return null;
+                  return (
+                    <MenuItem key={String(teacherId)} value={String(teacherId)}>
+                      {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
+                    </MenuItem>
+                  );
+                })}
               </Select>
             </FormControl>
             <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              {currentTeacher && (
+              {currentTeacherObj && (
                 <Button
                   variant="outlined"
                   color="error"
@@ -150,7 +167,7 @@ const ClassTeacherManagement = ({ classData, onUpdate }) => {
                 variant="contained"
                 color="primary"
                 onClick={handleAssignTeacher}
-                disabled={loading || selectedTeacherId === currentTeacher?.id}
+                disabled={loading || selectedTeacherId === String(currentTeacherObj?.id || currentTeacherObj?._id)}
               >
                 {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>

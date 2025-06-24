@@ -224,7 +224,7 @@ const StudentManagement = () => {
 
       if (response && response.data) {
         setStudents(response.data);
-        setTotalPages(Math.ceil(response.total / 10));
+        setTotalPages(response.totalPages || 1);
 
         // Extract parent information directly from response
         const parentMap = {};
@@ -416,7 +416,12 @@ const StudentManagement = () => {
 
           {/* Pagination */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+            />
           </Box>
 
           <Dialog

@@ -19,6 +19,7 @@ import 'dayjs/locale/vi';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Cấu hình dayjs để sử dụng tiếng Việt và plugin updateLocale
 dayjs.extend(updateLocale);
@@ -169,18 +170,20 @@ const StyledDateCalendar = styled(DateCalendar)(({ theme }) => ({
   },
 }));
 
-const ServerDay = ({ day, lessons, userType, ...other }) => {
+const ServerDay = ({ day, lessons, userType, selected, ...other }) => {
   const hasLesson = lessons.some(l => {
     const isMatchingDay = dayjs(l.date).isSame(day, 'day');
     const isCorrectType = !l.type || l.type === userType;
     return isMatchingDay && isCorrectType;
   });
   const isWeekend = day.day() === 0 || day.day() === 6;
+  const isToday = dayjs().isSame(day, 'day');
 
   return (
     <PickersDay
       {...other}
       day={day}
+      selected={selected}
       sx={{
         ...other.sx,
         position: 'relative',
@@ -196,13 +199,23 @@ const ServerDay = ({ day, lessons, userType, ...other }) => {
           backgroundColor: 'primary.main',
           borderRadius: '50%',
         } : {},
-        '&.MuiPickersDay-today': {
-          backgroundColor: 'primary.main',
-          color: '#fff',
-          '&:hover': {
-            backgroundColor: 'primary.dark',
-          },
-        },
+        ...(isToday
+          ? {
+              backgroundColor: 'primary.main',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+              },
+            }
+          : selected
+          ? {
+              border: '2px solid',
+              borderColor: 'primary.main',
+              backgroundColor: '#e3f2fd',
+              color: 'primary.main',
+              fontWeight: 700,
+            }
+          : {}),
       }}
     />
   );
@@ -298,57 +311,64 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
           PaperProps={{
             sx: {
               borderRadius: 2,
-              backgroundColor: '#ffebee',
+              backgroundColor: '#fff',
+              p: 2,
             }
           }}
         >
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 12,
+              top: 12,
+              color: (theme) => theme.palette.grey[500],
+              zIndex: 10,
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
           <DialogContent>
-            <Typography variant="h6" sx={{ mb: 2, color: '#d32f2f' }}>
-              Lịch học {lessonsOfDay.length > 1 ? `(${lessonsOfDay.length})` : ''}
-            </Typography>
-            <List sx={{ p: 0 }}>
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="h6" sx={{ color: 'primary.text', fontWeight: 700 }}>
+                {selectedDate ? dayjs(selectedDate).format('dddd, DD/MM/YYYY') : ''}
+              </Typography>
+              <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+                {lessonsOfDay.length > 1 ? `(${lessonsOfDay.length} buổi học)` : ''}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {lessonsOfDay.map((lesson, idx) => (
-                <ListItem
+                <Paper
                   key={idx}
+                  elevation={2}
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    py: 1,
-                    px: 0,
+                    p: 2,
+                    borderLeft: '6px solid #1976d2',
+                    background: '#f5faff',
+                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
                   }}
                 >
-                  <Box sx={{
-                    display: 'flex',
-                    width: '100%',
-                    alignItems: 'center',
-                    mb: 1
-                  }}>
-                    <Typography sx={{
-                      fontSize: '1.1rem',
-                      color: '#d32f2f',
-                      width: '120px'
-                    }}>
-                      {lesson.time}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.text', minWidth: 60 }}>
+                      Lớp: {lesson.className}
                     </Typography>
-                    <Typography sx={{
-                      fontSize: '1.1rem',
-                      color: '#d32f2f',
-                      flex: 1
-                    }}>
-                      {lesson.className}
+                    <Typography variant="subtitle1" sx={{ mb: 0.5,color: 'text.primary' }}>
+                      <b>Phòng:</b> {lesson.room || '---'}
                     </Typography>
                   </Box>
-                  <Typography sx={{
-                    fontSize: '1rem',
-                    color: '#d32f2f',
-                    pl: '120px'
-                  }}>
-                    {lesson.room}
+                  <Typography variant="body1" sx={{ mb: 0.5, color: 'text.primary' }}>
+                    <b>Thời gian:</b> {lesson.time}
                   </Typography>
-                </ListItem>
+                  {lesson.teacher && (
+                    <Typography variant="body1" sx={{ color: 'text.primary' }}>
+                      <b>Giáo viên:</b> {lesson.teacher}
+                    </Typography>
+                  )}
+                </Paper>
               ))}
-            </List>
+            </Box>
           </DialogContent>
         </Dialog>
       </Box>

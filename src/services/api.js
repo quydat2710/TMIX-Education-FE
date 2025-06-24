@@ -55,7 +55,13 @@ export const getClassByIdAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.CL
 export const enrollStudentAPI = (classId, students) => axiosInstance.patch(API_CONFIG.ENDPOINTS.CLASSES.ENROLL_STUDENT(classId), students);
 export const getStudentsInClassAPI = (classId, params) => axiosInstance.get(API_CONFIG.ENDPOINTS.CLASSES.GET_STUDENTS(classId), { params });
 export const removeStudentFromClassAPI = (classId, studentId) => axiosInstance.delete(API_CONFIG.ENDPOINTS.CLASSES.REMOVE_STUDENT(classId), { data: { studentId } });
-export const assignTeacherAPI = (classId, teacherId) => axiosInstance.patch(API_CONFIG.ENDPOINTS.CLASSES.ASSIGN_TEACHER(classId), { teacherId });
+export const assignTeacherAPI = (classId, teacherId) => {
+  const formData = new URLSearchParams();
+  formData.append('teacherId', teacherId);
+  return axiosInstance.patch(API_CONFIG.ENDPOINTS.CLASSES.ASSIGN_TEACHER(classId), formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
 export const unassignTeacherAPI = (classId) => axiosInstance.delete(API_CONFIG.ENDPOINTS.CLASSES.UNASSIGN_TEACHER(classId));
 
 // Student APIs

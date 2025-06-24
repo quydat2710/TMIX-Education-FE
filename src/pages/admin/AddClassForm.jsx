@@ -29,7 +29,7 @@ const timeSlotOptions = [
   { value: '20:00-22:00', label: '20:00 - 22:00', startTime: '20:00', endTime: '22:00' },
 ];
 
-const AddClassForm = ({ classData, onSubmit, loading }) => {
+const AddClassForm = ({ classData, onSubmit, loading, id }) => {
   const [form, setForm] = useState({
     grade: '',
     section: '',
@@ -143,9 +143,6 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
   const handleSubmit = (e) => {
     try {
       e.preventDefault();
-      console.log('Form submitted in AddClassForm');
-      console.log('Form data:', form);
-
       // Format dates to yyyy/mm/dd format
       const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -155,55 +152,68 @@ const AddClassForm = ({ classData, onSubmit, loading }) => {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}/${month}/${day}`;
       };
-
-      // Prepare data according to API format
-      const submitData = {
-        grade: form.grade,
-        section: form.section,
-        name: form.name,
-        year: parseInt(form.year),
-        status: form.status,
-        feePerLesson: parseInt(form.feePerLesson),
-        maxStudents: parseInt(form.maxStudents),
-        description: form.description,
-        room: form.room,
-        schedule: {
-          startDate: formatDate(form.schedule.startDate),
-          endDate: formatDate(form.schedule.endDate),
-          dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
-          timeSlots: {
-            startTime: form.schedule.timeSlots.startTime,
-            endTime: form.schedule.timeSlots.endTime
+      let submitData;
+      if (classData) {
+        // EDIT MODE: chỉ gửi đúng body update class
+        submitData = {
+          status: form.status,
+          feePerLesson: parseInt(form.feePerLesson),
+          maxStudents: parseInt(form.maxStudents),
+          description: form.description,
+          room: form.room,
+          schedule: {
+            startDate: formatDate(form.schedule.startDate),
+            endDate: formatDate(form.schedule.endDate),
+            dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+            timeSlots: {
+              startTime: form.schedule.timeSlots.startTime,
+              endTime: form.schedule.timeSlots.endTime
+            }
           }
-        }
-      };
-
-      console.log('Submit data prepared:', submitData);
-      if (onSubmit) {
-        console.log('Calling onSubmit with data:', submitData);
-        onSubmit(submitData);
+        };
       } else {
-        console.log('No onSubmit function provided');
+        // CREATE MODE: giữ nguyên như cũ
+        submitData = {
+          grade: form.grade,
+          section: form.section,
+          name: form.name,
+          year: parseInt(form.year),
+          status: form.status,
+          feePerLesson: parseInt(form.feePerLesson),
+          maxStudents: parseInt(form.maxStudents),
+          description: form.description,
+          room: form.room,
+          schedule: {
+            startDate: formatDate(form.schedule.startDate),
+            endDate: formatDate(form.schedule.endDate),
+            dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+            timeSlots: {
+              startTime: form.schedule.timeSlots.startTime,
+              endTime: form.schedule.timeSlots.endTime
+            }
+          }
+        };
       }
+      if (onSubmit) onSubmit(submitData);
     } catch (error) {
       console.error('Error in handleSubmit:', error);
     }
   };
 
   return (
-    <Box component="form" id="class-form" onSubmit={handleSubmit} noValidate>
+    <Box component="form" id={id || "class-form"} onSubmit={handleSubmit} noValidate>
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <TextField label="Khối " name="grade" value={form.grade} onChange={handleChange} fullWidth required />
+          <TextField label="Khối " name="grade" value={form.grade} onChange={handleChange} fullWidth required disabled={!!classData} />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Lớp " name="section" value={form.section} onChange={handleChange} fullWidth required />
+          <TextField label="Lớp " name="section" value={form.section} onChange={handleChange} fullWidth required disabled={!!classData} />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Tên lớp" name="name" value={form.name} onChange={handleChange} fullWidth required />
+          <TextField label="Tên lớp" name="name" value={form.name} onChange={handleChange} fullWidth required disabled={!!classData} />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Năm học" name="year" type="number" value={form.year} onChange={handleChange} fullWidth required />
+          <TextField label="Năm học" name="year" type="number" value={form.year} onChange={handleChange} fullWidth required disabled={!!classData} />
         </Grid>
         <Grid item xs={6}>
           <FormControl fullWidth>

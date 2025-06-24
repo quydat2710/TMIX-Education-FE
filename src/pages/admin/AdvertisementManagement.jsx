@@ -109,9 +109,9 @@ const AdvertisementManagement = () => {
     if (formData.image) data.append('image', formData.image);
 
     try {
-      if (editingAd) {
+    if (editingAd) {
         await updateAnnouncementAPI(editingAd.id, data);
-      } else {
+    } else {
         await createAnnouncementAPI(data);
       }
       fetchAdvertisements();

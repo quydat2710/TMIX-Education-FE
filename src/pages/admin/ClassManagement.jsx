@@ -31,16 +31,16 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import AddClassForm from './AddClassForm';
-import { createClassAPI, getAllClassesAPI, updateClassAPI, getClassByIdAPI, getStudentsInClassAPI } from '../../services/api';
+import { createClassAPI, getAllClassesAPI, updateClassAPI, getClassByIdAPI, getStudentsInClassAPI, getAllTeachersAPI } from '../../services/api';
 import ClassTeacherManagement from './ClassTeacherManagement';
 import ClassStudentManagement from './ClassStudentManagement';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const CustomTabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -77,6 +77,8 @@ const ClassManagement = () => {
   const [classStudentsLoading, setClassStudentsLoading] = useState(false);
   const [classStudentsError, setClassStudentsError] = useState('');
   const [classStudentCounts, setClassStudentCounts] = useState({});
+  const [allTeachers, setAllTeachers] = useState([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -127,13 +129,7 @@ const ClassManagement = () => {
   };
 
   const handleForceRefresh = async () => {
-    if (!selectedClass) return;
-    try {
-      const res = await getClassByIdAPI(selectedClass.id);
-      setSelectedClass(res.data); // Update the state with the latest class data
-    } catch (error) {
-      console.error("Failed to refresh class data:", error);
-    }
+    fetchClasses(page); // Luôn reload lại danh sách lớp học để cập nhật thông tin giáo viên
   };
 
   const fetchClassStudents = async (classId) => {
@@ -229,6 +225,19 @@ const ClassManagement = () => {
     fetchClasses(page);
   }, [page]);
 
+  // Fetch teachers on mount
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const res = await getAllTeachersAPI({ limit: 1000 });
+        setAllTeachers(res.data || []);
+      } catch (err) {
+        setAllTeachers([]);
+      }
+    };
+    fetchTeachers();
+  }, []);
+
   const handlePageChange = (event, value) => {
     setPage(value);
   };
@@ -263,6 +272,17 @@ const ClassManagement = () => {
       'closed': 'error'
     };
     return colorMap[status] || 'default';
+  };
+
+  // Helper: lấy object giáo viên từ id
+  const getTeacherObj = (teacherId) => {
+    if (!teacherId || !allTeachers.length) return null;
+    return allTeachers.find(t => String(t.id || t._id) === String(teacherId));
+  };
+
+  // Hàm show snackbar
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
   return (
@@ -344,11 +364,24 @@ const ClassManagement = () => {
                 <TableCell colSpan={8} align="center">Không có dữ liệu</TableCell>
               </TableRow>
             ) : (
-              classes.map((cls) => (
+              classes.map((cls) => {
+                let teacherObj = null;
+                if (typeof cls.teacherId === 'string') {
+                  teacherObj = getTeacherObj(cls.teacherId);
+                } else if (typeof cls.teacherId === 'object' && cls.teacherId) {
+                  teacherObj = cls.teacherId;
+                }
+                return (
                 <TableRow key={String(cls.id || cls._id || Math.random())}>
                   <TableCell>{cls.name}</TableCell>
                   <TableCell>
-                    {cls.teacherId?.name || cls.teacher?.name || cls.teacherName || 'Chưa gán giáo viên'}
+                      {teacherObj ? (
+                        <>
+                          {teacherObj.userId?.name || teacherObj.name}
+                          <br />
+                          <span style={{ color: '#888', fontSize: 12 }}>{teacherObj.userId?.email}</span>
+                        </>
+                      ) : 'Chưa gán giáo viên'}
                   </TableCell>
                   <TableCell>{cls.year}</TableCell>
                   <TableCell>
@@ -370,12 +403,10 @@ const ClassManagement = () => {
                     <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(cls)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" title="Xóa" color="error">
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -425,6 +456,7 @@ const ClassManagement = () => {
                       classData={selectedClass}
                       onSubmit={handleUpdateClass}
                       loading={loading}
+                      id="class-form"
                     />
                   </CustomTabPanel>
                   <CustomTabPanel value={currentTab} index={1} key="teacher-management">
@@ -432,6 +464,8 @@ const ClassManagement = () => {
                       key={`teacher-mgmt-${selectedClass?.id}`}
                       classData={selectedClass}
                       onUpdate={handleForceRefresh}
+                      onClose={handleCloseDialog}
+                      onSuccessMessage={showSnackbar}
                     />
                   </CustomTabPanel>
                   <CustomTabPanel value={currentTab} index={2} key="student-management">
@@ -439,6 +473,7 @@ const ClassManagement = () => {
                       key={`student-mgmt-${selectedClass?.id}`}
                       classData={selectedClass}
                       onUpdate={handleForceRefresh}
+                      onClose={handleCloseDialog}
                     />
                   </CustomTabPanel>
                 </DialogContent>
@@ -456,6 +491,7 @@ const ClassManagement = () => {
                   classData={null}
                   onSubmit={handleAddClass}
                   loading={loading}
+                  id="class-form"
                 />
         </DialogContent>
             )}
@@ -467,9 +503,8 @@ const ClassManagement = () => {
                 {/* Show button only for General Info tab in Edit mode, or always in Add mode */}
                 {(currentTab === 0 || !selectedClass) && (
                     <Button
-                    onClick={selectedClass ? handleDirectUpdate : undefined}
-                    type={selectedClass ? "button" : "submit"}
-                    form={selectedClass ? undefined : "class-form"}
+                    type="submit"
+                    form="class-form"
                     variant="contained"
                     color="primary"
                     disabled={loading}
@@ -531,7 +566,15 @@ const ClassManagement = () => {
                           Giáo viên phụ trách
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {selectedClassForView.teacherId?.name || selectedClassForView.teacher?.name || selectedClassForView.teacherName || 'Chưa gán giáo viên'}
+                          {(() => {
+                            let teacherObj = null;
+                            if (typeof selectedClassForView.teacherId === 'string') {
+                              teacherObj = getTeacherObj(selectedClassForView.teacherId);
+                            } else if (typeof selectedClassForView.teacherId === 'object' && selectedClassForView.teacherId) {
+                              teacherObj = selectedClassForView.teacherId;
+                            }
+                            return teacherObj ? `${teacherObj.userId?.name || teacherObj.name} (${teacherObj.userId?.email || ''})` : 'Chưa gán giáo viên';
+                          })()}
                         </Typography>
                       </Box>
 
@@ -786,6 +829,12 @@ const ClassManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
     </Box>
       </Box>
     </DashboardLayout>
