@@ -19,6 +19,7 @@ import AdvertisementSlider from '../../components/advertisement/AdvertisementSli
 import WelcomeAdPopup from '../../components/advertisement/WelcomeAdPopup';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { getAllAnnouncementsAPI } from '../../services/api';
 
 const courses = [
   {
@@ -83,6 +84,9 @@ const teachers = [
 const Home = () => {
   const { user } = useAuth();
   const [showWelcomeAd, setShowWelcomeAd] = useState(false);
+  const [ads, setAds] = useState([]);
+  const [popupAds, setPopupAds] = useState([]);
+  const [bannerAds, setBannerAds] = useState([]);
 
   useEffect(() => {
     const adShown = sessionStorage.getItem('welcomeAdShown');
@@ -94,6 +98,15 @@ const Home = () => {
     }
   }, []);
 
+  useEffect(() => {
+    getAllAnnouncementsAPI()
+      .then(res => {
+        setAds(res.data || []);
+        setPopupAds((res.data || []).filter(ad => ad.displayType === 'popup'));
+        setBannerAds((res.data || []).filter(ad => ad.displayType === 'banner'));
+      });
+  }, []);
+
   const handleCloseWelcomeAd = () => {
     sessionStorage.setItem('welcomeAdShown', 'true');
     setShowWelcomeAd(false);
@@ -101,11 +114,14 @@ const Home = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
-      <WelcomeAdPopup
-        open={showWelcomeAd}
-        onClose={handleCloseWelcomeAd}
-        userRole={user?.role}
-      />
+      {/* Quảng cáo popup động */}
+      {popupAds.length > 0 && (
+        <WelcomeAdPopup
+          open={showWelcomeAd}
+          onClose={handleCloseWelcomeAd}
+          ad={popupAds[0]} // hoặc random nếu muốn
+        />
+      )}
       <HomeHeader sx={{ bgcolor: '#fff', borderBottom: '1px solid #eee' }} />
       <Box sx={{ width: '100%' }}>
         <Box sx={commonStyles.contentContainer}>
@@ -166,9 +182,9 @@ const Home = () => {
             </Box>
           </Box>
 
-          {/* Advertisement Banner */}
+          {/* Advertisement Banner động */}
           <Box sx={{ mb: 6 }}>
-            <AdvertisementSlider userRole={user?.role} />
+            <AdvertisementSlider ads={bannerAds} />
           </Box>
 
           {/* Teachers Section */}

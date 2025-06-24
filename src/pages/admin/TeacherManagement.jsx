@@ -39,6 +39,15 @@ import { createTeacherAPI, getAllTeachersAPI, deleteTeacherAPI, updateTeacherAPI
 import { validateTeacher } from '../../validations/teacherValidation';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 
+function formatDateDDMMYYYY(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 const TeacherManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -73,13 +82,24 @@ const TeacherManagement = () => {
   const handleOpenDialog = (teacher = null) => {
     setSelectedTeacher(teacher);
     if (teacher) {
+      let dayOfBirth = teacher.userId?.dayOfBirth || '';
+      if (dayOfBirth && dayOfBirth.includes('GMT')) {
+        const date = new Date(dayOfBirth);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        dayOfBirth = `${day}/${month}/${year}`;
+      } else if (dayOfBirth && dayOfBirth.match(/^\d{4}-\d{2}-\d{2}/)) {
+        const [year, month, day] = dayOfBirth.split('T')[0].split('-');
+        dayOfBirth = `${day}/${month}/${year}`;
+      }
       setForm({
         name: teacher.userId?.name || '',
         email: teacher.userId?.email || '',
         phone: teacher.userId?.phone || '',
         address: teacher.userId?.address || '',
         gender: teacher.userId?.gender || 'female',
-        dayOfBirth: teacher.userId?.dayOfBirth || '',
+        dayOfBirth: dayOfBirth,
         salaryPerLesson: teacher.salaryPerLesson || '',
         qualifications: teacher.qualifications?.join(', ') || '',
         specialization: teacher.specialization?.join(', ') || '',
@@ -95,19 +115,19 @@ const TeacherManagement = () => {
         }))
       );
     } else {
-    setForm({
-      name: '',
-      email: '',
-      phone: '',
+      setForm({
+        name: '',
+        email: '',
+        phone: '',
         address: '',
         gender: 'female',
-      dayOfBirth: '',
-      salaryPerLesson: '',
-      qualifications: '',
-      specialization: '',
-      description: '',
-      isActive: true,
-    });
+        dayOfBirth: '',
+        salaryPerLesson: '',
+        qualifications: '',
+        specialization: '',
+        description: '',
+        isActive: true,
+      });
       setClassEdits([]);
     }
     setError('');
@@ -708,7 +728,7 @@ const TeacherManagement = () => {
                           Ngày sinh
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {selectedTeacherForView.userId?.dayOfBirth}
+                          {formatDateDDMMYYYY(selectedTeacherForView.userId?.dayOfBirth)}
                         </Typography>
                       </Box>
 

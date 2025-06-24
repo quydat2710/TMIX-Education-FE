@@ -5,85 +5,11 @@ import {
   ArrowForwardIos
 } from '@mui/icons-material';
 
-const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => {
+const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const getAdvertisements = () => {
-    const baseAds = [
-      {
-        id: 1,
-        title: 'Khóa học IELTS chất lượng cao',
-        description: 'Cam kết đầu ra 6.5+ với đội ngũ giáo viên kinh nghiệm. Đăng ký ngay để nhận ưu đãi 20% học phí!',
-        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=400&fit=crop',
-        link: '/courses/ielts',
-        buttonText: 'Đăng ký ngay',
-        badge: '20% OFF',
-        badgeColor: 'error'
-      },
-      {
-        id: 2,
-        title: 'Lớp Tiếng Anh Giao Tiếp',
-        description: 'Phát triển kỹ năng giao tiếp tự tin với phương pháp hiện đại. Khai giảng lớp mới - Số lượng có hạn!',
-        imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=400&fit=crop',
-        link: '/courses/speaking',
-        buttonText: 'Tìm hiểu thêm',
-        badge: 'HOT',
-        badgeColor: 'warning'
-      },
-      {
-        id: 3,
-        title: 'Chương trình học thiếu nhi',
-        description: 'Khóa học Tiếng Anh dành cho trẻ em với phương pháp vui nhộn, hiệu quả. Ưu đãi đặc biệt cho học sinh mới!',
-        imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop',
-        link: '/courses/kids',
-        buttonText: 'Xem chi tiết',
-        badge: 'NEW',
-        badgeColor: 'success'
-      },
-      {
-        id: 4,
-        title: 'Luyện thi TOEIC 990',
-        description: 'Chương trình luyện thi TOEIC chuyên sâu với tỷ lệ đậu cao. Cam kết điểm số hoặc học lại miễn phí!',
-        imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=400&fit=crop',
-        link: '/courses/toeic',
-        buttonText: 'Đăng ký tư vấn',
-        badge: 'BEST',
-        badgeColor: 'primary'
-      },
-      {
-        id: 5,
-        title: 'Tiếng Anh Doanh Nghiệp',
-        description: 'Chương trình tiếng Anh chuyên ngành cho các chuyên gia và doanh nhân. Nâng cao khả năng giao tiếp công việc.',
-        imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop',
-        link: '/courses/business',
-        buttonText: 'Khám phá ngay',
-        badge: 'PRO',
-        badgeColor: 'info'
-      }
-    ];
+  const advertisements = ads && ads.length > 0 ? ads : [];
 
-    // Tùy chỉnh quảng cáo theo userRole
-    if (userRole === 'parent') {
-      return baseAds.map(ad => {
-        if (ad.id === 3) {
-          return {
-            ...ad,
-            title: 'Đăng ký con em học Tiếng Anh',
-            description: 'Cho con cơ hội phát triển với chương trình Tiếng Anh chất lượng cao. Ưu đãi đặc biệt cho phụ huynh mới!',
-          };
-        }
-        return ad;
-      });
-    } else if (userRole === 'student') {
-      return baseAds.filter(ad => ![3, 5].includes(ad.id)); // Loại bỏ thiếu nhi và doanh nghiệp
-    } else if (userRole === 'teacher') {
-      return baseAds.slice(0, 3); // Chỉ hiển thị 3 quảng cáo đầu
-    }
-
-    return baseAds;
-  };
-
-  const advertisements = getAdvertisements();
   // Auto play functionality
   useEffect(() => {
     if (autoPlay && advertisements.length > 1) {
@@ -103,7 +29,8 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
     );
   };
 
-  const handlePrev = () => {    setCurrentIndex((prevIndex) =>
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? advertisements.length - 1 : prevIndex - 1
     );
   };
@@ -113,7 +40,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
     // Có thể thêm logic navigation ở đây
   };
 
-  if (advertisements.length === 0) {
+  if (!advertisements || advertisements.length === 0) {
     return null;
   }
 
@@ -142,7 +69,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
         <Box
           sx={{
             position: 'relative',
-            height: 350,
+            height: 480,
             borderRadius: 3,
             overflow: 'hidden',
             bgcolor: 'grey.100'
@@ -160,14 +87,14 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
               onClick={() => handleAdClick(currentAd)}
             >
               {/* Badge */}
-              {currentAd.badge && (
+              {(currentAd.badge || currentAd.priority) && (
                 <Box
                   sx={{
                     position: 'absolute',
                     top: 16,
                     left: 16,
                     zIndex: 2,
-                    bgcolor: `${currentAd.badgeColor}.main`,
+                    bgcolor: `${currentAd.badgeColor || 'primary'}.main`,
                     color: 'white',
                     px: 2,
                     py: 0.5,
@@ -176,14 +103,14 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
                     fontSize: '0.875rem'
                   }}
                 >
-                  {currentAd.badge}
+                  {currentAd.badge || currentAd.priority}
                 </Box>
               )}
 
               <CardMedia
                 component="img"
                 height="100%"
-                image={currentAd.imageUrl}
+                image={currentAd.imageUrl || currentAd.image}
                 alt={currentAd.title}
                 sx={{
                   position: 'absolute',
@@ -211,7 +138,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
                   {currentAd.title}
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 2, opacity: 0.9 }}>
-                  {currentAd.description}
+                  {currentAd.content || currentAd.description}
                 </Typography>
                 <Button
                   variant="contained"
@@ -227,7 +154,7 @@ const AdvertisementSlider = ({ userRole, autoPlay = true, interval = 4000 }) => 
                     transition: 'all 0.3s'
                   }}
                 >
-                  {currentAd.buttonText}
+                  {currentAd.buttonText || 'Xem chi tiết'}
                 </Button>
               </Box>
             </Card>

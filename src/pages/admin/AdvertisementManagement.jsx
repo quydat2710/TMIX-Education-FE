@@ -26,7 +26,8 @@ import {
 import {
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
@@ -249,31 +250,54 @@ const AdvertisementManagement = () => {
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Button
-                    variant="outlined"
+                <Grid item xs={12}>
+                  <Box
+                    sx={{
+                      border: '2px dashed #90caf9',
+                      borderRadius: 2,
+                      height: 220,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      background: '#f5faff',
+                      transition: 'border-color 0.2s',
+                      '&:hover': { borderColor: '#1976d2' }
+                    }}
                     component="label"
-                    fullWidth
                   >
-                    {formData.image ? formData.image.name : 'Chọn ảnh quảng cáo'}
                     <input
                       type="file"
                       accept="image/*"
                       hidden
                       onChange={handleFileChange}
                     />
-                  </Button>
-                  {formData.image && (
-                    <Box mt={1}>
+                    {formData.image ? (
                       <img
                         src={URL.createObjectURL(formData.image)}
                         alt="preview"
-                        style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 8 }}
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                          borderRadius: 8
+                        }}
                       />
-                    </Box>
-                  )}
+                    ) : (
+                      <Box sx={{ textAlign: 'center', color: '#90caf9' }}>
+                        <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
+                        <Typography variant="body2" color="inherit">
+                          Tải ảnh quảng cáo
+                        </Typography>
+                        <Typography variant="caption" color="inherit">
+                          (PNG, JPG, JPEG, GIF)
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     select
@@ -285,7 +309,7 @@ const AdvertisementManagement = () => {
                     <MenuItem value="popup">Popup</MenuItem>
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     type="number"

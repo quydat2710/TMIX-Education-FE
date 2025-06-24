@@ -2,48 +2,13 @@ import React from 'react';
 import { Dialog, IconButton, Box, Card, CardMedia, CardContent, Typography, Button, CardActions } from '@mui/material';
 import { Close as CloseIcon, ArrowForward } from '@mui/icons-material';
 
-const WelcomeAdPopup = ({ open, onClose, userRole }) => {
-  // Quảng cáo chào mừng tùy theo role
-  const getWelcomeAd = () => {
-    const welcomeAds = {
-      student: {
-        title: 'Chào mừng học sinh mới! 🎓',
-        description: 'Bắt đầu hành trình học tiếng Anh cùng chúng tôi. Nhận ngay voucher giảm 15% cho khóa học đầu tiên!',
-        imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=300&fit=crop',
-        buttonText: 'Nhận ưu đãi',
-        offer: '15% OFF'
-      },
-      parent: {
-        title: 'Chào mừng phụ huynh! 👨‍👩‍👧‍👦',
-        description: 'Đăng ký cho con em học tiếng Anh chất lượng cao. Ưu đãi đặc biệt: Giảm 20% học phí khi đăng ký 2 khóa!',
-        imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=300&fit=crop',
-        buttonText: 'Tư vấn miễn phí',
-        offer: '20% OFF'
-      },
-      teacher: {
-        title: 'Chào mừng giáo viên! 👩‍🏫',
-        description: 'Tham gia đội ngũ giáo viên chuyên nghiệp của chúng tôi. Cơ hội phát triển sự nghiệp và mức lương hấp dẫn!',
-        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=300&fit=crop',
-        buttonText: 'Ứng tuyển ngay',
-        offer: 'HOT'
-      },
-      default: {
-        title: 'Chào mừng đến với English Center! 🏫',
-        description: 'Khám phá các khóa học tiếng Anh chất lượng cao với đội ngũ giáo viên giàu kinh nghiệm. Đăng ký ngay!',
-        imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=300&fit=crop',
-        buttonText: 'Khám phá ngay',
-        offer: 'NEW'
-      }
-    };
-
-    return welcomeAds[userRole] || welcomeAds.default;
-  };
-
-  const welcomeAd = getWelcomeAd();
+const WelcomeAdPopup = ({ open, onClose, ad }) => {
+  if (!ad) return null;
+  const welcomeAd = ad;
 
   const handleAdClick = () => {
     // Xử lý khi click vào quảng cáo
-    console.log('Welcome ad clicked for role:', userRole);
+    console.log('Welcome ad clicked for role:', welcomeAd.userRole);
     onClose();
   };
 
@@ -124,7 +89,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
             boxShadow: 2
           }}
         >
-          {welcomeAd.offer}
+          {welcomeAd.offer || welcomeAd.priority || ''}
         </Box>
 
         <Card
@@ -139,7 +104,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
           <CardMedia
             component="img"
             height="250"
-            image={welcomeAd.imageUrl}
+            image={welcomeAd.imageUrl || welcomeAd.image}
             alt={welcomeAd.title}
             sx={{
               filter: 'brightness(0.9)',
@@ -162,7 +127,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
               color="text.secondary"
               sx={{ mb: 3, lineHeight: 1.6 }}
             >
-              {welcomeAd.description}
+              {welcomeAd.content || welcomeAd.description}
             </Typography>
 
             <CardActions sx={{ p: 0, justifyContent: 'space-between' }}>
@@ -184,7 +149,7 @@ const WelcomeAdPopup = ({ open, onClose, userRole }) => {
                   transition: 'all 0.3s'
                 }}
               >
-                {welcomeAd.buttonText}
+                {welcomeAd.buttonText || 'Xem chi tiết'}
               </Button>
 
               <Button
