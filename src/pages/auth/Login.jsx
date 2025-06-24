@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -49,6 +49,29 @@ const Login = () => {
     },
     loginValidationSchema
   );
+
+  // Autofill fix: đồng bộ giá trị input khi trình duyệt tự động điền
+  useEffect(() => {
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    // Nếu input có value mà state chưa có, cập nhật lại state
+    if (emailInput && emailInput.value && values.email !== emailInput.value) {
+      handleChange({ target: { name: 'email', value: emailInput.value } });
+    }
+    if (passwordInput && passwordInput.value && values.password !== passwordInput.value) {
+      handleChange({ target: { name: 'password', value: passwordInput.value } });
+    }
+    // Lắng nghe sự kiện autofill (có thể lặp lại khi trình duyệt autofill sau render)
+    const autofillInterval = setInterval(() => {
+      if (emailInput && emailInput.value && values.email !== emailInput.value) {
+        handleChange({ target: { name: 'email', value: emailInput.value } });
+      }
+      if (passwordInput && passwordInput.value && values.password !== passwordInput.value) {
+        handleChange({ target: { name: 'password', value: passwordInput.value } });
+      }
+    }, 500);
+    return () => clearInterval(autofillInterval);
+  }, [values.email, values.password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
