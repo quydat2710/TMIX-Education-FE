@@ -78,9 +78,13 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('access_token');
     const userData = localStorage.getItem('userData');
 
+    console.log('AuthContext - Initial load check:', { token: !!token, userData: !!userData });
+
     if (token && userData) {
       try {
         let user = JSON.parse(userData);
+        console.log('AuthContext - Parsed user data:', user);
+
         // Nếu là parent và thiếu permissions thì bổ sung mặc định
         if (user.role === 'parent' && !user.permissions) {
           user.permissions = [
@@ -96,7 +100,9 @@ export const AuthProvider = ({ children }) => {
           type: 'LOGIN_SUCCESS',
           payload: { user, accessToken: token }
         });
+        console.log('AuthContext - Login success dispatched');
       } catch (error) {
+        console.error('AuthContext - Error parsing user data:', error);
         localStorage.removeItem('access_token');
         localStorage.removeItem('userData');
       }
@@ -106,9 +112,11 @@ export const AuthProvider = ({ children }) => {
 
   // Luôn đồng bộ user/token vào localStorage khi thay đổi
   useEffect(() => {
+    console.log('AuthContext - State changed:', { user: !!state.user, token: !!state.token });
     if (state.user && state.token) {
       localStorage.setItem('access_token', state.token);
       localStorage.setItem('userData', JSON.stringify(state.user));
+      console.log('AuthContext - localStorage updated');
     }
   }, [state.user, state.token]);
 

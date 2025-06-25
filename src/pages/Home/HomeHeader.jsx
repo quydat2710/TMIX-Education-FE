@@ -47,10 +47,36 @@ const HomeHeader = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, logout } = useAuth();
 
+  // Debug log để kiểm tra trạng thái user
+  console.log('HomeHeader - User state:', user);
+  console.log('HomeHeader - Is mobile:', isMobile);
+
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero-section');
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // Debug useEffect để kiểm tra localStorage
+  useEffect(() => {
+    const checkLocalStorage = () => {
+      const token = localStorage.getItem('access_token');
+      const userData = localStorage.getItem('userData');
+      console.log('HomeHeader - localStorage check:', { token: !!token, userData: !!userData });
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          console.log('HomeHeader - Parsed user data:', parsedUser);
+        } catch (error) {
+          console.error('HomeHeader - Error parsing user data:', error);
+        }
+      }
+    };
+
+    checkLocalStorage();
+    // Kiểm tra mỗi 2 giây để debug
+    const interval = setInterval(checkLocalStorage, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -237,9 +263,23 @@ const HomeHeader = () => {
                   {item.label}
                 </MenuItem>
               ))}
-              <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
-                Đăng nhập
-              </MenuItem>
+              {user ? (
+                <>
+                  <MenuItem onClick={() => { handleDashboard(); handleMobileMenuClose(); }}>
+                    Dashboard
+                  </MenuItem>
+                  <MenuItem onClick={() => { handleProfile(); handleMobileMenuClose(); }}>
+                    Trang cá nhân
+                  </MenuItem>
+                  <MenuItem onClick={() => { handleLogout(); handleMobileMenuClose(); }}>
+                    Đăng xuất
+                  </MenuItem>
+                </>
+              ) : (
+                <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
+                  Đăng nhập
+                </MenuItem>
+              )}
             </Menu>
           </>
         ) : (
