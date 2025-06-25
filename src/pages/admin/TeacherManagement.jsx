@@ -115,19 +115,19 @@ const TeacherManagement = () => {
         }))
       );
     } else {
-      setForm({
-        name: '',
-        email: '',
-        phone: '',
+    setForm({
+      name: '',
+      email: '',
+      phone: '',
         address: '',
         gender: 'female',
-        dayOfBirth: '',
-        salaryPerLesson: '',
-        qualifications: '',
-        specialization: '',
-        description: '',
-        isActive: true,
-      });
+      dayOfBirth: '',
+      salaryPerLesson: '',
+      qualifications: '',
+      specialization: '',
+      description: '',
+      isActive: true,
+    });
       setClassEdits([]);
     }
     setError('');

@@ -174,25 +174,25 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       } else {
         // CREATE MODE: giữ nguyên như cũ
         submitData = {
-          grade: form.grade,
-          section: form.section,
-          name: form.name,
-          year: parseInt(form.year),
-          status: form.status,
-          feePerLesson: parseInt(form.feePerLesson),
-          maxStudents: parseInt(form.maxStudents),
-          description: form.description,
-          room: form.room,
-          schedule: {
-            startDate: formatDate(form.schedule.startDate),
-            endDate: formatDate(form.schedule.endDate),
-            dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
-            timeSlots: {
-              startTime: form.schedule.timeSlots.startTime,
-              endTime: form.schedule.timeSlots.endTime
-            }
+        grade: form.grade,
+        section: form.section,
+        name: form.name,
+        year: parseInt(form.year),
+        status: form.status,
+        feePerLesson: parseInt(form.feePerLesson),
+        maxStudents: parseInt(form.maxStudents),
+        description: form.description,
+        room: form.room,
+        schedule: {
+          startDate: formatDate(form.schedule.startDate),
+          endDate: formatDate(form.schedule.endDate),
+          dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+          timeSlots: {
+            startTime: form.schedule.timeSlots.startTime,
+            endTime: form.schedule.timeSlots.endTime
           }
-        };
+        }
+      };
       }
       if (onSubmit) onSubmit(submitData);
     } catch (error) {

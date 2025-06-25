@@ -116,11 +116,11 @@ const Home = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
       {/* Quảng cáo popup động */}
       {popupAds.length > 0 && (
-        <WelcomeAdPopup
-          open={showWelcomeAd}
-          onClose={handleCloseWelcomeAd}
+      <WelcomeAdPopup
+        open={showWelcomeAd}
+        onClose={handleCloseWelcomeAd}
           ad={popupAds[0]} // hoặc random nếu muốn
-        />
+      />
       )}
       <HomeHeader sx={{ bgcolor: '#fff', borderBottom: '1px solid #eee' }} />
       <Box sx={{ width: '100%' }}>

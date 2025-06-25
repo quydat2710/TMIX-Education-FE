@@ -146,8 +146,8 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
                   if (!teacherId) return null;
                   return (
                     <MenuItem key={String(teacherId)} value={String(teacherId)}>
-                      {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
-                    </MenuItem>
+                    {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
+                  </MenuItem>
                   );
                 })}
               </Select>

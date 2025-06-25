@@ -25,13 +25,11 @@ import {
   Tabs,
   Tab,
   MenuItem,
-  Avatar,
   Divider,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Visibility as ViewIcon,
-  Assignment as AssignmentIcon,
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
@@ -40,8 +38,12 @@ import {
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
+import { useAuth } from '../../contexts/AuthContext';
+import { getStudentScheduleAPI, getClassByIdAPI, getStudentAttendanceAPI } from '../../services/api';
+import dayjs from 'dayjs';
 
 const MyClasses = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
@@ -50,110 +52,117 @@ const MyClasses = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // TODO: Fetch classes data from API
     const fetchClasses = async () => {
       setLoading(true);
       try {
-        // const response = await api.get('/student/classes');
-        // setClasses(response.data);
+        let studentId = user?.id;
+        if (user?.role === 'student' && user?.studentId) {
+          studentId = user.studentId;
+        }
+        if (!studentId) throw new Error('Không tìm thấy thông tin học sinh');
 
-        // Dữ liệu mẫu cho demo
-        const mockData = [
-          {
-            id: 1,
-            code: 'LOP001',
-            name: 'Tiếng Anh Cơ Bản A1',
-            teacher: 'Nguyễn Thị Hương',
-            teacherAvatar: 'H',
-            schedule: 'Thứ 2, 4, 6 - 18:00-19:30',
-            status: 'ongoing',
-            progress: 75,
-            totalLessons: 24,
-            attendedLessons: 18,
-            missedLessons: 2,
-            upcomingLessons: 4,
-            room: 'Phòng 101',
-            startDate: '2024-01-15',
-            endDate: '2024-06-15',
-            feePerLesson: 150000,
-            description: 'Khóa học tiếng Anh cơ bản dành cho người mới bắt đầu',
-            attendanceHistory: [
-              { id: 1, date: '2024-03-18', dayOfWeek: 'Thứ 2', status: 'present', time: '18:00-19:30', note: '' },
-              { id: 2, date: '2024-03-16', dayOfWeek: 'Thứ 7', status: 'absent', time: '18:00-19:30', note: 'Nghỉ ốm' },
-              { id: 3, date: '2024-03-13', dayOfWeek: 'Thứ 4', status: 'present', time: '18:00-19:30', note: '' },
-              { id: 4, date: '2024-03-11', dayOfWeek: 'Thứ 2', status: 'present', time: '18:00-19:30', note: '' },
-              { id: 5, date: '2024-03-09', dayOfWeek: 'Thứ 7', status: 'present', time: '18:00-19:30', note: '' },
-              { id: 6, date: '2024-03-06', dayOfWeek: 'Thứ 4', status: 'absent', time: '18:00-19:30', note: 'Có việc gia đình' },
-              { id: 7, date: '2024-03-04', dayOfWeek: 'Thứ 2', status: 'present', time: '18:00-19:30', note: '' },
-              { id: 8, date: '2024-03-02', dayOfWeek: 'Thứ 7', status: 'present', time: '18:00-19:30', note: '' },
-            ]
-          },
-          {
-            id: 2,
-            code: 'LOP002',
-            name: 'Tiếng Anh Giao Tiếp B1',
-            teacher: 'Trần Văn Minh',
-            teacherAvatar: 'M',
-            schedule: 'Thứ 3, 5, 7 - 19:00-20:30',
-            status: 'ongoing',
-            progress: 45,
-            totalLessons: 30,
-            attendedLessons: 13,
-            missedLessons: 1,
-            upcomingLessons: 16,
-            room: 'Phòng 203',
-            startDate: '2024-02-01',
-            endDate: '2024-08-01',
-            feePerLesson: 180000,
-            description: 'Khóa học tiếng Anh giao tiếp nâng cao',
-            attendanceHistory: [
-              { id: 9, date: '2024-03-19', dayOfWeek: 'Thứ 3', status: 'present', time: '19:00-20:30', note: '' },
-              { id: 10, date: '2024-03-17', dayOfWeek: 'Chủ nhật', status: 'present', time: '19:00-20:30', note: '' },
-              { id: 11, date: '2024-03-14', dayOfWeek: 'Thứ 5', status: 'present', time: '19:00-20:30', note: '' },
-              { id: 12, date: '2024-03-12', dayOfWeek: 'Thứ 3', status: 'absent', time: '19:00-20:30', note: 'Nghỉ học' },
-              { id: 13, date: '2024-03-10', dayOfWeek: 'Chủ nhật', status: 'present', time: '19:00-20:30', note: '' },
-              { id: 14, date: '2024-03-07', dayOfWeek: 'Thứ 5', status: 'present', time: '19:00-20:30', note: '' },
-            ]
-          },
-          {
-            id: 3,
-            code: 'LOP003',
-            name: 'Tiếng Anh IELTS',
-            teacher: 'Lê Thị Lan',
-            teacherAvatar: 'L',
-            schedule: 'Thứ 2, 4, 6 - 20:00-21:30',
-            status: 'completed',
-            progress: 100,
-            totalLessons: 36,
-            attendedLessons: 34,
-            missedLessons: 2,
-            upcomingLessons: 0,
-            room: 'Phòng 305',
-            startDate: '2023-09-01',
-            endDate: '2024-02-28',
-            feePerLesson: 200000,
-            description: 'Khóa học luyện thi IELTS',
-            attendanceHistory: [
-              { id: 15, date: '2024-02-26', dayOfWeek: 'Thứ 2', status: 'present', time: '20:00-21:30', note: 'Buổi cuối' },
-              { id: 16, date: '2024-02-24', dayOfWeek: 'Thứ 7', status: 'present', time: '20:00-21:30', note: '' },
-              { id: 17, date: '2024-02-21', dayOfWeek: 'Thứ 4', status: 'present', time: '20:00-21:30', note: '' },
-              { id: 18, date: '2024-02-19', dayOfWeek: 'Thứ 2', status: 'present', time: '20:00-21:30', note: '' },
-              { id: 19, date: '2024-02-17', dayOfWeek: 'Thứ 7', status: 'absent', time: '20:00-21:30', note: 'Nghỉ ốm' },
-              { id: 20, date: '2024-02-14', dayOfWeek: 'Thứ 4', status: 'present', time: '20:00-21:30', note: '' },
-            ]
-          }
-        ];
+        // 1. Lấy lịch học
+        const scheduleRes = await getStudentScheduleAPI(studentId);
+        console.log('scheduleRes:', scheduleRes);
+        const schedules = scheduleRes.data.schedules;
+        console.log('Schedules lấy trực tiếp:', schedules, Array.isArray(schedules));
 
-        setClasses(mockData);
+        if (!Array.isArray(schedules) || schedules.length === 0) {
+          console.log('Không có lịch học nào');
+          setClasses([]);
+          return;
+        }
+
+        const classIds = Array.from(new Set(schedules.map(item => item.class?.id).filter(Boolean)));
+        console.log('classIds to fetch:', classIds);
+
+        // 2. Lấy thông tin từng lớp
+        const classPromises = classIds.map(async (classId) => {
+          console.log('Fetching class info for classId:', classId);
+          const classRes = await getClassByIdAPI(classId);
+          console.log('classRes for classId', classId, ':', classRes);
+          return classRes?.data || {};
+        });
+
+        const classList = await Promise.all(classPromises);
+        console.log('classList:', classList);
+
+        // 3. Lấy toàn bộ điểm danh của học sinh
+        const attendanceRes = await getStudentAttendanceAPI(studentId);
+        console.log('attendanceRes:', attendanceRes);
+
+        // Sử dụng detailedAttendance thay vì attendanceRecords
+        const attendanceList = attendanceRes?.data?.detailedAttendance || [];
+        console.log('attendanceList:', attendanceList);
+
+        // Lấy thống kê điểm danh
+        const attendanceStats = attendanceRes?.data?.attendanceStats || {
+          presentSessions: 0,
+          absentSessions: 0,
+          lateSessions: 0,
+          totalSessions: 0,
+          attendanceRate: 0
+        };
+        console.log('attendanceStats:', attendanceStats);
+
+        // 4. Gộp dữ liệu lại
+        const realClasses = classList.map(classData => {
+          console.log('Processing classData:', classData);
+
+          // Tìm thông tin schedule, teacher từ schedules
+          const scheduleInfo = schedules.find(s => s.class?.id === classData.id);
+          console.log('Found scheduleInfo for class', classData.id, ':', scheduleInfo);
+
+          // Lọc điểm danh cho đúng class
+          const classAttendance = attendanceList.filter(a => a.class?.id === classData.id);
+          console.log('Class attendance for', classData.id, ':', classAttendance);
+          console.log('All attendance records:', attendanceList.map(a => ({ classId: a.class?.id, status: a.status })));
+
+          const attendedLessons = classAttendance.filter(a => a.status === 'present').length;
+          const missedLessons = classAttendance.filter(a => a.status === 'absent').length;
+          const totalLessons = classAttendance.length;
+          const progress = totalLessons > 0 ? Math.round((attendedLessons / totalLessons) * 100) : 0;
+
+          const processedClass = {
+            id: classData.id,
+            name: classData.name,
+            teacher: scheduleInfo?.teacher?.name || 'Chưa phân công',
+            schedule: scheduleInfo ? `${scheduleInfo.schedule?.dayOfWeeks?.join(', ')} - ${scheduleInfo.schedule?.timeSlots?.startTime || ''}-${scheduleInfo.schedule?.timeSlots?.endTime || ''}` : 'Chưa có lịch',
+            status: classData.status || 'active',
+            progress,
+            totalLessons,
+            attendedLessons,
+            missedLessons,
+            upcomingLessons: 0, // Có thể tính thêm nếu muốn
+            room: classData.room || 'Chưa phân phòng',
+            startDate: classData.startDate,
+            endDate: classData.endDate,
+            feePerLesson: classData.feePerLesson || 0,
+            description: classData.description || '',
+            attendanceHistory: classAttendance.map(a => ({
+              id: a.checkedAt || a.date,
+              date: a.date,
+              dayOfWeek: dayjs(a.date).format('dddd'),
+              status: a.status,
+              time: dayjs(a.date).format('HH:mm'),
+              note: a.note || ''
+            }))
+          };
+
+          console.log('Processed class:', processedClass);
+          return processedClass;
+        });
+
+        console.log('Final realClasses:', realClasses);
+        setClasses(realClasses);
       } catch (error) {
         console.error('Error fetching classes:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchClasses();
-  }, []);
+  }, [user]);
 
   const handleOpenDialog = (classData = null) => {
     setSelectedClass(classData);
@@ -170,18 +179,48 @@ const MyClasses = () => {
   };
 
   const filteredClasses = classes.filter((classItem) => {
-    const matchesSearch = classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         classItem.code.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = selectedTab === 0 ? classItem.status === 'ongoing' : classItem.status === 'completed';
+    const name = classItem.name || '';
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Lọc theo tab và trạng thái
+    let matchesStatus = true;
+    if (selectedTab === 0) {
+      // Tab "Đang học" - hiển thị các lớp active
+      matchesStatus = classItem.status === 'active';
+    } else if (selectedTab === 1) {
+      // Tab "Đã kết thúc" - hiển thị các lớp closed
+      matchesStatus = classItem.status === 'closed';
+    } else if (selectedTab === 2) {
+      // Tab "Sắp khai giảng" - hiển thị các lớp upcoming
+      matchesStatus = classItem.status === 'upcoming';
+    }
+
     return matchesSearch && matchesStatus;
   });
 
+  // Debug log
+  console.log('Current classes state:', classes);
+  console.log('Filtered classes:', filteredClasses);
+  console.log('Search query:', searchQuery);
+
+  // Debug trạng thái lớp học
+  console.log('Class statuses:', classes.map(c => ({ id: c.id, name: c.name, status: c.status })));
+  console.log('Active classes:', classes.filter(c => c.status === 'active').length);
+  console.log('Closed classes:', classes.filter(c => c.status === 'closed').length);
+  console.log('Upcoming classes:', classes.filter(c => c.status === 'upcoming').length);
+
   const getStatusColor = (status) => {
-    return status === 'ongoing' ? 'success' : 'default';
+    if (status === 'active') return 'success';
+    if (status === 'closed') return 'info';
+    if (status === 'upcoming') return 'warning';
+    return 'default';
   };
 
   const getStatusLabel = (status) => {
-    return status === 'ongoing' ? 'Đang học' : 'Đã hoàn thành';
+    if (status === 'active') return 'Đang học';
+    if (status === 'closed') return 'Đã kết thúc';
+    if (status === 'upcoming') return 'Sắp khai giảng';
+    return 'Không xác định';
   };
 
   const calculateAttendanceRate = (attended, total) => {
@@ -219,15 +258,23 @@ const MyClasses = () => {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="subtitle2" color="text.secondary">Đang học:</Typography>
                         <Typography variant="h6" sx={{ color: 'success.main', fontWeight: 600 }}>
-                    {classes.filter((c) => c.status === 'ongoing').length} lớp
+                          {classes.filter((c) => c.status === 'active').length} lớp
                   </Typography>
                       </Box>
                 </Grid>
                 <Grid item xs={12}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Đã hoàn thành:</Typography>
+                        <Typography variant="subtitle2" color="text.secondary">Đã kết thúc:</Typography>
                         <Typography variant="h6" sx={{ color: 'info.main', fontWeight: 600 }}>
-                    {classes.filter((c) => c.status === 'completed').length} lớp
+                          {classes.filter((c) => c.status === 'closed').length} lớp
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" color="text.secondary">Sắp khai giảng:</Typography>
+                        <Typography variant="h6" sx={{ color: 'warning.main', fontWeight: 600 }}>
+                          {classes.filter((c) => c.status === 'upcoming').length} lớp
                   </Typography>
                       </Box>
                     </Grid>
@@ -284,23 +331,41 @@ const MyClasses = () => {
 
           <Tabs value={selectedTab} onChange={handleTabChange} sx={{ mb: 2 }}>
             <Tab label="Đang học" />
-            <Tab label="Đã hoàn thành" />
+            <Tab label="Đã kết thúc" />
+            <Tab label="Sắp khai giảng" />
           </Tabs>
 
           {loading ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
             <LinearProgress />
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                Đang tải dữ liệu lớp học...
+              </Typography>
+            </Box>
+          ) : filteredClasses.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {searchQuery ? 'Không tìm thấy lớp học phù hợp' :
+                 selectedTab === 0 ? 'Chưa có lớp học nào đang diễn ra' :
+                 selectedTab === 1 ? 'Chưa có lớp học nào đã kết thúc' :
+                 'Chưa có lớp học nào sắp khai giảng'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {searchQuery ? 'Hãy thử tìm kiếm với từ khóa khác' : 'Vui lòng liên hệ admin để được phân lớp'}
+              </Typography>
+            </Box>
           ) : (
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                       <TableRow sx={{ backgroundColor: COLORS.primary }}>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Mã lớp</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Tên lớp</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Giáo viên</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Lịch học</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Thống kê tham gia</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Tiến độ</TableCell>
-                        <TableCell sx={{ color: 'white', fontWeight: 600 }} align="center">Thao tác</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Tên lớp</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Giáo viên</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Lịch học</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Trạng thái</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Thống kê tham gia</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Tiến độ</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }} align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -308,26 +373,34 @@ const MyClasses = () => {
                         <TableRow key={classItem.id} hover>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
-                              {classItem.code}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
                               {classItem.name}
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: COLORS.primary }}>
-                                {classItem.teacherAvatar}
-                              </Avatar>
                               <Typography variant="body2">{classItem.teacher}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                                {classItem.schedule?.split(' - ')[0] || 'Chưa có lịch'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {classItem.schedule?.split(' - ')[1] || ''}
+                              </Typography>
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                              {classItem.schedule}
-                            </Typography>
+                            <Chip
+                              label={getStatusLabel(classItem.status)}
+                              color={getStatusColor(classItem.status)}
+                              size="small"
+                              sx={{
+                                fontWeight: 600,
+                                '& .MuiChip-icon': {
+                                  fontSize: '16px'
+                                }
+                              }}
+                            />
                           </TableCell>
                           <TableCell>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -412,12 +485,6 @@ const MyClasses = () => {
                   Thông tin lớp học
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Mã lớp:</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.primary }}>
-                          {selectedClass.code}
-                        </Typography>
-                      </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Tên lớp:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -426,12 +493,7 @@ const MyClasses = () => {
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Giáo viên:</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: COLORS.primary }}>
-                            {selectedClass.teacherAvatar}
-                          </Avatar>
                           <Typography variant="body1">{selectedClass.teacher}</Typography>
-                        </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Phòng học:</Typography>
@@ -439,13 +501,35 @@ const MyClasses = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Lịch học:</Typography>
-                        <Typography variant="body1">{selectedClass.schedule}</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                            {selectedClass.schedule?.split(' - ')[0] || 'Chưa có lịch'}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            {selectedClass.schedule?.split(' - ')[1] || ''}
+                          </Typography>
+                        </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" color="text.secondary">Học phí/buổi:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.secondary }}>
                           {selectedClass.feePerLesson?.toLocaleString()} VNĐ
                         </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" color="text.secondary">Trạng thái:</Typography>
+                        <Chip
+                          label={getStatusLabel(selectedClass.status)}
+                          color={getStatusColor(selectedClass.status)}
+                          size="small"
+                          sx={{
+                            fontWeight: 600,
+                            mt: 0.5,
+                            '& .MuiChip-icon': {
+                              fontSize: '16px'
+                            }
+                          }}
+                        />
                       </Grid>
                     </Grid>
                   </Grid>
