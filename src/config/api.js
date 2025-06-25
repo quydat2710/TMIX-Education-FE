@@ -28,6 +28,7 @@ export const API_CONFIG = {
       UPDATE: (id) => `/teachers/${id}`,
       DELETE: (id) => `/teachers/${id}`,
       GET_MY_CLASSES: '/teachers/me/classes',
+      GET_SCHEDULE: (id) => `/teachers/${id}/schedule`,
     },
     // Student endpoints
     STUDENTS: {

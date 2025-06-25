@@ -400,14 +400,16 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
           >
             <Box sx={{ mb: 3, borderBottom: '2px solid #e0e0e0', pb: 0.5 }}>
               <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 600, mb: 0.5 }}>
-                Lịch học {selectedDate ? dayjs(selectedDate).format('dddd') : ''} ngày {selectedDate ? dayjs(selectedDate).format('DD/MM/YYYY') : ''}
+                {userType === 'teacher'
+                  ? `Lịch dạy ${selectedDate ? dayjs(selectedDate).format('dddd') : ''} ngày ${selectedDate ? dayjs(selectedDate).format('DD/MM/YYYY') : ''}`
+                  : `Lịch học ${selectedDate ? dayjs(selectedDate).format('dddd') : ''} ngày ${selectedDate ? dayjs(selectedDate).format('DD/MM/YYYY') : ''}`}
               </Typography>
             </Box>
 
             {lessonsOfDay.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
                 <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 1 }}>
-                  {lessonsOfDay.length} buổi học
+                  {lessonsOfDay.length} {userType === 'teacher' ? 'buổi dạy' : 'buổi học'}
             </Typography>
               {lessonsOfDay.map((lesson, idx) => (
                   <Paper
@@ -427,20 +429,20 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                       <Typography variant="h6" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600, minWidth: '80px' }}>Lớp:</span>
+                        <span style={{ fontWeight: 600, minWidth: '80px' }}>{userType === 'teacher' ? 'Lớp dạy:' : 'Lớp:'}</span>
                         <span>{lesson.className}</span>
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                       <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600, minWidth: '80px' }}>Thời gian:</span>
+                        <span style={{ fontWeight: 600, minWidth: '80px' }}>{userType === 'teacher' ? 'Thời gian dạy:' : 'Thời gian:'}</span>
                         <span>{lesson.time}</span>
                       </Typography>
                       <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <span style={{ fontWeight: 600, minWidth: '80px' }}>Phòng:</span>
                         <span>{lesson.room || '---'}</span>
                       </Typography>
-                      {lesson.teacher && (
+                      {userType !== 'teacher' && lesson.teacher && (
                         <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
                           <span style={{ fontWeight: 600, minWidth: '80px' }}>Giáo viên:</span>
                           <span>{lesson.teacher}</span>
@@ -460,10 +462,10 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
                 textAlign: 'center'
               }}>
                 <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
-                  Không có lịch học
+                  {userType === 'teacher' ? 'Không có lịch dạy' : 'Không có lịch học'}
                     </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  Chọn một ngày khác để xem lịch học
+                  {userType === 'teacher' ? 'Chọn một ngày khác để xem lịch dạy' : 'Chọn một ngày khác để xem lịch học'}
                     </Typography>
                   </Box>
             )}
