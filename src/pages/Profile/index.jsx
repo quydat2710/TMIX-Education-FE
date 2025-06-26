@@ -74,13 +74,32 @@ const Profile = ({ role }) => {
     console.log('Profile useEffect - userRole:', userRole);
 
     if (user) {
+      // Format date for input type="date" (YYYY-MM-DD)
+      const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        // If date is in DD/MM/YYYY format, convert to YYYY-MM-DD
+        if (dateString.includes('/')) {
+          const parts = dateString.split('/');
+          if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+        // If already in YYYY-MM-DD format, return as is
+        if (dateString.includes('-') && dateString.length === 10) {
+          return dateString;
+        }
+        return '';
+      };
+
       const initialData = {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
-        dayOfBirth: user.dayOfBirth || user.dateOfBirth || '',
+        dayOfBirth: formatDateForInput(user.dayOfBirth || user.dateOfBirth || ''),
         avatar: user.avatar || '',
+        gender: user.gender || '',
+        isEmailVerified: user.isEmailVerified || false,
         // Role-specific data
         studentId: user.studentId || user.id || '',
         grade: user.grade || '',
@@ -90,8 +109,9 @@ const Profile = ({ role }) => {
         subject: user.subject || '',
         experience: user.experience || '',
         adminId: user.id || '',
-        gender: user.gender || '',
-        isEmailVerified: user.isEmailVerified || false
+        // Parent specific
+        parentId: user.parentId || '',
+        childrenCount: user.children?.length || 0
       };
       console.log('Profile useEffect - initialData:', initialData);
       setProfileData(initialData);
@@ -440,6 +460,24 @@ const Profile = ({ role }) => {
                       sx={commonStyles.formField}
                     />
                   </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Giới tính"
+                      value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : 'Khác'}
+                      disabled
+                      sx={commonStyles.formField}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Trạng thái email"
+                      value={profileData.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+                      disabled
+                      sx={commonStyles.formField}
+                    />
+                  </Grid>
                   {userRole !== 'admin' && (
                     <Grid item xs={12}>
                       <TextField
@@ -456,16 +494,6 @@ const Profile = ({ role }) => {
                   {/* Role-specific fields */}
                   {userRole === 'student' && (
                     <>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Lớp"
-                          value={profileData.grade}
-                          disabled={!isEditing}
-                          onChange={e => setProfileData(prev => ({ ...prev, grade: e.target.value }))}
-                          sx={commonStyles.formField}
-                        />
-                      </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
@@ -514,36 +542,13 @@ const Profile = ({ role }) => {
                     </>
                   )}
 
-                  {userRole === 'admin' && (
-                    <>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Giới tính"
-                          value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : 'Khác'}
-                          disabled
-                          sx={commonStyles.formField}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Trạng thái email"
-                          value={profileData.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
-                          disabled
-                          sx={commonStyles.formField}
-                        />
-                      </Grid>
-                    </>
-                  )}
-
                   {userRole === 'parent' && (
                     <>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
                           label="Số con"
-                          value={user?.children?.length || 0}
+                          value={profileData.childrenCount}
                           disabled
                           sx={commonStyles.formField}
                         />

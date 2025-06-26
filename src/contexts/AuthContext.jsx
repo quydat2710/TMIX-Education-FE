@@ -110,6 +110,9 @@ export const AuthProvider = ({ children }) => {
     if (state.user && state.token) {
       localStorage.setItem('access_token', state.token);
       localStorage.setItem('userData', JSON.stringify(state.user));
+      if (state.user.role === 'parent' && state.user.parentId) {
+        localStorage.setItem('parent_id', state.user.parentId);
+      }
     }
   }, [state.user, state.token]);
 
@@ -157,6 +160,9 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('userData', JSON.stringify(userData));
+      if (userData.role === 'parent' && userData.parentId) {
+        localStorage.setItem('parent_id', userData.parentId);
+      }
 
       dispatch({
         type: 'LOGIN_SUCCESS',
