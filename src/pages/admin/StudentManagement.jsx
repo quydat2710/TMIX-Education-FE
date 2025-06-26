@@ -369,11 +369,11 @@ const StudentManagement = () => {
             <TableRow>
                   <TableCell width="18%">Họ và tên</TableCell>
                   <TableCell width="18%">Email</TableCell>
-                  <TableCell width="13%">Số điện thoại</TableCell>
+                  <TableCell width="11%">Số điện thoại</TableCell>
                   <TableCell width="15%">Phụ huynh</TableCell>
                   <TableCell width="18%">Lớp học</TableCell>
                   <TableCell width="8%">Giới tính</TableCell>
-                  <TableCell width="10%" align="center">Thao tác</TableCell>
+                  <TableCell width="12%" align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

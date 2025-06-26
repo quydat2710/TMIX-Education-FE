@@ -428,23 +428,23 @@ const ScheduleCalendar = ({ lessons, title, userType }) => {
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                      <Typography variant="h6" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600, minWidth: '80px' }}>{userType === 'teacher' ? 'Lớp dạy:' : 'Lớp:'}</span>
+                      <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <span style={{ fontWeight: 600}}>{userType === 'teacher' ? 'Lớp dạy:' : 'Lớp:'}</span>
                         <span>{lesson.className}</span>
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                       <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600, minWidth: '80px' }}>{userType === 'teacher' ? 'Thời gian dạy:' : 'Thời gian:'}</span>
+                        <span style={{ fontWeight: 600 }}>{userType === 'teacher' ? 'Thời gian dạy:' : 'Thời gian:'}</span>
                         <span>{lesson.time}</span>
                       </Typography>
                       <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600, minWidth: '80px' }}>Phòng:</span>
+                        <span style={{ fontWeight: 600 }}>Phòng:</span>
                         <span>{lesson.room || '---'}</span>
                       </Typography>
                       {userType !== 'teacher' && lesson.teacher && (
                         <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <span style={{ fontWeight: 600, minWidth: '80px' }}>Giáo viên:</span>
+                          <span style={{ fontWeight: 600 }}>Giáo viên:</span>
                           <span>{lesson.teacher}</span>
                         </Typography>
                       )}

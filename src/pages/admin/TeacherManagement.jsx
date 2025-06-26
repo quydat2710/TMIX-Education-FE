@@ -336,12 +336,12 @@ const TeacherManagement = () => {
             <TableRow>
                     <TableCell width="15%">Họ và tên</TableCell>
                     <TableCell width="15%">Email</TableCell>
-                    <TableCell width="12%">Số điện thoại</TableCell>
+                    <TableCell width="11%">Số điện thoại</TableCell>
                     <TableCell width="10%">Lương/buổi</TableCell>
                     <TableCell width="15%">Bằng cấp</TableCell>
                     <TableCell width="13%">Chuyên môn</TableCell>
                     <TableCell width="8%">Trạng thái</TableCell>
-                    <TableCell width="22%" align="center">Thao tác</TableCell>
+                    <TableCell width="13%" align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -430,12 +430,12 @@ const ParentManagement = () => {
           <TableHead>
             <TableRow>
                   <TableCell width="15%">Họ và tên</TableCell>
-                  <TableCell width="20%">Email</TableCell>
+                  <TableCell width="17%">Email</TableCell>
                   <TableCell width="15%">Số điện thoại</TableCell>
                   <TableCell width="15%">Con</TableCell>
                   <TableCell width="10%">Giới tính</TableCell>
                   <TableCell width="15%">Xem thông tin giáo viên</TableCell>
-                  <TableCell width="10%" align="center">Thao tác</TableCell>
+                  <TableCell width="13%" align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
