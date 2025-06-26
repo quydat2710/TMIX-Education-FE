@@ -250,9 +250,9 @@ const HomeHeader = () => {
                   </MenuItem>
                 </>
               ) : (
-                <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
-                  Đăng nhập
-                </MenuItem>
+              <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
+                Đăng nhập
+              </MenuItem>
               )}
             </Menu>
           </>
