@@ -24,6 +24,7 @@ import {
   DialogActions,
   Alert,
   MenuItem,
+  IconButton,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -39,12 +40,14 @@ import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   Warning as WarningIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
-import { getPaymentsByStudentAPI, getParentByIdAPI, getClassByIdAPI, payTuitionAPI } from '../../services/api';
+import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
+import { getPaymentsByStudentAPI, getParentByIdAPI, payTuitionAPI } from '../../services/api';
 
 const Payments = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,6 +66,10 @@ const Payments = () => {
   const [paymentNote, setPaymentNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
 
+  // Payment history modal states
+  const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState(false);
+  const [selectedPaymentForHistory, setSelectedPaymentForHistory] = useState(null);
+
   useEffect(() => {
     const fetchPaymentData = async () => {
       setLoading(true);
@@ -72,6 +79,7 @@ const Payments = () => {
 
         if (parentId) {
           const parentRes = await getParentByIdAPI(parentId);
+          console.log('Response từ API getParentById:', parentRes);
 
           if (parentRes && parentRes.studentIds) {
             setChildren(parentRes.studentIds);
@@ -81,20 +89,13 @@ const Payments = () => {
             for (const child of parentRes.studentIds) {
               try {
                 const paymentRes = await getPaymentsByStudentAPI(child.id);
+                console.log(`Response từ API getPaymentsByStudent cho học sinh ${child.id}:`, paymentRes);
 
                 if (paymentRes && paymentRes.data) {
                   // Thêm thông tin học sinh vào mỗi payment
-                  const paymentsWithChildInfo = await Promise.all(paymentRes.data.map(async (payment) => {
-                    // Fetch class information
-                    let className = `Lớp ${payment.classId}`;
-                    try {
-                      const classRes = await getClassByIdAPI(payment.classId);
-                      if (classRes && classRes.data) {
-                        className = classRes.data.name || classRes.data.className || `Lớp ${payment.classId}`;
-                      }
-                    } catch (err) {
-                      console.error('Error fetching class info for', payment.classId, ':', err);
-                    }
+                  const paymentsWithChildInfo = paymentRes.data.map((payment) => {
+                    // Lấy tên lớp từ response (không cần gọi API riêng)
+                    const className = payment.classId?.name || `Lớp ${payment.classId?.id || payment.classId}`;
 
                     return {
                       ...payment,
@@ -109,7 +110,7 @@ const Payments = () => {
                       createdAt: `${payment.month}/01/${payment.year}`,
                       description: `Học phí tháng ${payment.month}/${payment.year}`,
                     };
-                  }));
+                  });
                   allPayments.push(...paymentsWithChildInfo);
                 }
               } catch (err) {
@@ -222,6 +223,16 @@ const Payments = () => {
     setPaymentSuccess('');
   };
 
+  const handleOpenPaymentHistory = (payment) => {
+    setSelectedPaymentForHistory(payment);
+    setPaymentHistoryModalOpen(true);
+  };
+
+  const handleClosePaymentHistory = () => {
+    setSelectedPaymentForHistory(null);
+    setPaymentHistoryModalOpen(false);
+  };
+
   const handleConfirmPayment = async () => {
     if (!selectedInvoice || !paymentAmount) {
       setPaymentError('Vui lòng nhập số tiền thanh toán');
@@ -257,6 +268,10 @@ const Payments = () => {
         method: paymentMethod,
         note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
       });
+
+      console.log('Response từ API thanh toán:', response);
+      console.log('Response data:', response.data);
+
       setPaymentSuccess('Thanh toán thành công!');
       handleClosePaymentDialog();
       setTimeout(() => {
@@ -264,6 +279,9 @@ const Payments = () => {
       }, 2000);
 
     } catch (error) {
+      console.error('Error response từ API thanh toán:', error);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error response status:', error.response?.status);
       setPaymentError(error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán');
     } finally {
       setPaymentLoading(false);
@@ -406,23 +424,28 @@ const Payments = () => {
                       />
                     </TableCell>
                     <TableCell align="center">
-                      {invoice.status !== 'paid' ? (
-                        <Button
-                          variant="contained"
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        {invoice.status !== 'paid' ? (
+                          <Button
+                            variant="contained"
                         color="primary"
                         size="small"
-                          onClick={() => handlePayment(invoice)}
-                        >
-                          Thanh toán
-                        </Button>
-                      ) : (
-                        <Chip
-                          label="Đã thanh toán"
-                          color="success"
-                          size="small"
-                          variant="outlined"
-                        />
-                      )}
+                            onClick={() => handlePayment(invoice)}
+                          >
+                            Thanh toán
+                          </Button>
+                        ) : null}
+                        {invoice.paymentHistory && invoice.paymentHistory.length > 0 && (
+                          <IconButton
+                            size="small"
+                            color="info"
+                            onClick={() => handleOpenPaymentHistory(invoice)}
+                            title="Xem lịch sử thanh toán"
+                          >
+                            <HistoryIcon />
+                      </IconButton>
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -539,6 +562,15 @@ const Payments = () => {
             </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Payment History Modal */}
+      <PaymentHistoryModal
+        open={paymentHistoryModalOpen}
+        onClose={handleClosePaymentHistory}
+        paymentData={selectedPaymentForHistory}
+        title="Lịch sử thanh toán học phí"
+        showPaymentDetails={true}
+      />
       </Box>
     </DashboardLayout>
   );

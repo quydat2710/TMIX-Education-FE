@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination
+  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton
 } from '@mui/material';
+import { History as HistoryIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { getPaymentsAPI, getTeacherPaymentsAPI } from '../../services/api';
+import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
 
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -33,6 +35,10 @@ const FinancialStatisticsPanel = () => {
     totalRemainingAmount: 0,
     totalTeacherSalary: 0
   });
+
+  // Payment history modal states
+  const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState(false);
+  const [selectedPaymentForHistory, setSelectedPaymentForHistory] = useState(null);
 
   const fetchTotalStatistics = async () => {
     try {
@@ -103,6 +109,16 @@ const FinancialStatisticsPanel = () => {
 
   const handleStudentPageChange = (event, newPage) => {
     fetchStudentPayments(newPage); // API sử dụng page bắt đầu từ 1, giống ParentManagement
+  };
+
+  const handleOpenPaymentHistory = (payment) => {
+    setSelectedPaymentForHistory(payment);
+    setPaymentHistoryModalOpen(true);
+  };
+
+  const handleClosePaymentHistory = () => {
+    setSelectedPaymentForHistory(null);
+    setPaymentHistoryModalOpen(false);
   };
 
   // Bộ lọc thời gian
@@ -264,6 +280,7 @@ const FinancialStatisticsPanel = () => {
                       <TableCell align="center">Đã đóng</TableCell>
                       <TableCell align="center">Còn thiếu</TableCell>
                       <TableCell align="center">Trạng thái</TableCell>
+                      <TableCell align="center">Thao tác</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -282,6 +299,11 @@ const FinancialStatisticsPanel = () => {
                             color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
                             size="small"
                           />
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton onClick={() => handleOpenPaymentHistory(p)}>
+                            <HistoryIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -306,6 +328,15 @@ const FinancialStatisticsPanel = () => {
           )}
         </Box>
       </Paper>
+
+      {/* Payment History Modal */}
+      <PaymentHistoryModal
+        open={paymentHistoryModalOpen}
+        onClose={handleClosePaymentHistory}
+        paymentData={selectedPaymentForHistory}
+        title="Lịch sử thanh toán học phí"
+        showPaymentDetails={true}
+      />
     </Box>
   );
 };

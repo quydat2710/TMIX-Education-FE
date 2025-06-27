@@ -115,8 +115,7 @@ const getPaymentMethodLabel = (method) => {
 const PaymentHistoryModal = ({
   open,
   onClose,
-  paymentId,
-  fetchPaymentHistoryAPI, // API function to fetch payment history
+  paymentData, // Direct payment data instead of paymentId
   title = "Lịch sử thanh toán",
   showPaymentDetails = true // Whether to show payment details at the top
 }) => {
@@ -126,32 +125,27 @@ const PaymentHistoryModal = ({
   const [paymentDetails, setPaymentDetails] = useState(null);
 
   useEffect(() => {
-    if (open && paymentId) {
-      fetchPaymentHistory();
-    }
-  }, [open, paymentId]);
+    if (open && paymentData) {
+      // Extract data from paymentData
+      setPaymentHistory(paymentData.paymentHistory || []);
 
-  const fetchPaymentHistory = async () => {
-    if (!paymentId || !fetchPaymentHistoryAPI) return;
-
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetchPaymentHistoryAPI(paymentId);
-
-      if (response.data) {
-        setPaymentHistory(response.data.paymentHistory || []);
-        if (showPaymentDetails) {
-          setPaymentDetails(response.data.paymentDetails || null);
-        }
+      if (showPaymentDetails) {
+        setPaymentDetails({
+          paymentCode: `INV-${paymentData.month}/${paymentData.year}-${paymentData.id?.slice(-6)}`,
+          totalAmount: paymentData.totalAmount || 0,
+          paidAmount: paymentData.paidAmount || 0,
+          remainingAmount: paymentData.remainingAmount || 0,
+          finalAmount: paymentData.finalAmount || 0,
+          discountAmount: paymentData.discountAmount || 0,
+          status: paymentData.status,
+          month: paymentData.month,
+          year: paymentData.year,
+          className: paymentData.classId?.name || 'N/A',
+          studentName: paymentData.studentId?.userId?.name || 'N/A'
+        });
       }
-    } catch (err) {
-      console.error('Error fetching payment history:', err);
-      setError(err?.response?.data?.message || 'Không thể tải lịch sử thanh toán');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [open, paymentData, showPaymentDetails]);
 
   const handleClose = () => {
     setPaymentHistory([]);
@@ -178,8 +172,14 @@ const PaymentHistoryModal = ({
         background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
         color: 'white',
         textAlign: 'center',
-        py: 2
+        py: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start'
       }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: 1, color: 'black' }}>
+          Lịch sử thanh toán
+        </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
           <ReceiptIcon />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -210,41 +210,71 @@ const PaymentHistoryModal = ({
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Mã thanh toán
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {paymentDetails.paymentCode || 'N/A'}
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Học sinh: {paymentDetails.studentName}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Tổng số tiền
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.primary }}>
-                        {formatCurrency(paymentDetails.totalAmount || 0)}
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Lớp học: {paymentDetails.className}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Đã thanh toán
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'success.main' }}>
-                        {formatCurrency(paymentDetails.paidAmount || 0)}
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Tháng/Năm: {paymentDetails.month}/{paymentDetails.year}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Còn lại
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Số tiền gốc: {formatCurrency(paymentDetails.totalAmount || 0)}
                       </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'warning.main' }}>
-                        {formatCurrency((paymentDetails.totalAmount || 0) - (paymentDetails.paidAmount || 0))}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Giảm giá: {formatCurrency(paymentDetails.discountAmount || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Số tiền cuối: {formatCurrency(paymentDetails.finalAmount || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Đã thanh toán: {formatCurrency(paymentDetails.paidAmount || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                        Còn lại: {formatCurrency(paymentDetails.remainingAmount || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Trạng thái:
+                        <Chip
+                          label={getStatusInfo(paymentDetails.status).label}
+                          color={getStatusInfo(paymentDetails.status).color}
+                          size="small"
+                          icon={getStatusInfo(paymentDetails.status).icon}
+                          variant="outlined"
+                        />
                       </Typography>
                     </Box>
                   </Grid>
@@ -287,12 +317,12 @@ const PaymentHistoryModal = ({
                   </TableHead>
                   <TableBody>
                     {paymentHistory.map((transaction, index) => {
-                      const statusInfo = getStatusInfo(transaction.status);
+                      const statusInfo = getStatusInfo(transaction.status || 'completed'); // Default to completed since paymentHistory items are usually completed
                       return (
                         <TableRow key={transaction.id || index} hover>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {formatDate(transaction.paymentDate)}
+                              {formatDate(transaction.date)}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -308,7 +338,7 @@ const PaymentHistoryModal = ({
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                              {getPaymentMethodLabel(transaction.paymentMethod)}
+                              {getPaymentMethodLabel(transaction.method)}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -339,37 +369,30 @@ const PaymentHistoryModal = ({
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={4}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary">
-                        Tổng giao dịch
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {paymentHistory.length}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box>
-                      <Typography variant="caption" color="textSecondary">
-                        Tổng đã thanh toán
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: 'success.main' }}>
-                        {formatCurrency(
-                          paymentHistory
-                            .filter(t => t.status?.toLowerCase() === 'completed' || t.status?.toLowerCase() === 'paid')
-                            .reduce((sum, t) => sum + (t.amount || 0), 0)
-                        )}
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Tổng giao dịch: <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
+                          {paymentHistory.length}
+                        </Typography>
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <Box>
-                      <Typography variant="caption" color="textSecondary">
-                        Giao dịch thành công
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Tổng đã thanh toán: <Typography variant="h6" component="span" sx={{ fontWeight: 600, color: 'success.main' }}>
+                          {formatCurrency(
+                            paymentHistory.reduce((sum, t) => sum + (t.amount || 0), 0)
+                          )}
+                        </Typography>
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: 'success.main' }}>
-                        {paymentHistory.filter(t =>
-                          t.status?.toLowerCase() === 'completed' || t.status?.toLowerCase() === 'paid'
-                        ).length}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Giao dịch thành công: <Typography variant="h6" component="span" sx={{ fontWeight: 600, color: 'success.main' }}>
+                          {paymentHistory.length}
+                        </Typography>
                       </Typography>
                     </Box>
                   </Grid>
