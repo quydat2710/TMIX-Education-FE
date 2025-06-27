@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  MenuItem,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -60,6 +61,7 @@ const Payments = () => {
   const [paymentError, setPaymentError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState('');
   const [paymentNote, setPaymentNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
 
   useEffect(() => {
     const fetchPaymentData = async () => {
@@ -202,6 +204,7 @@ const Payments = () => {
     setSelectedInvoice(invoice);
     setPaymentAmount(invoice.remainingAmount.toString());
     setPaymentNote('');
+    setPaymentMethod('cash');
     setPaymentError('');
     setPaymentSuccess('');
     setPaymentDialogOpen(true);
@@ -212,6 +215,7 @@ const Payments = () => {
     setSelectedInvoice(null);
     setPaymentAmount('');
     setPaymentNote('');
+    setPaymentMethod('cash');
     setPaymentError('');
     setPaymentSuccess('');
   };
@@ -241,17 +245,16 @@ const Payments = () => {
       console.log('Dữ liệu gửi đi khi thanh toán:', {
         paymentId: selectedInvoice.id,
         amount,
-        method: 'cash',
+        method: paymentMethod,
         note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`,
       });
 
-      const formData = new URLSearchParams();
-      formData.append('paymentId', selectedInvoice.id);
-      formData.append('amount', amount);
-      formData.append('method', 'cash'); // hoặc cho chọn
-      formData.append('note', paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`);
-
-      const response = await payTuitionAPI(formData);
+      const response = await payTuitionAPI({
+        paymentId: selectedInvoice.id,
+        amount,
+        method: paymentMethod,
+        note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
+      });
       setPaymentSuccess('Thanh toán thành công!');
 
       setTimeout(() => {
@@ -418,8 +421,8 @@ const Payments = () => {
                       {invoice.status !== 'paid' ? (
                         <Button
                           variant="contained"
-                          color="primary"
-                          size="small"
+                        color="primary"
+                        size="small"
                           onClick={() => handlePayment(invoice)}
                         >
                           Thanh toán
@@ -447,16 +450,16 @@ const Payments = () => {
         )}
 
         {/* Payment Dialog */}
-        <Dialog
+          <Dialog
           open={paymentDialogOpen}
           onClose={handleClosePaymentDialog}
           maxWidth="sm"
-          fullWidth
-        >
+            fullWidth
+          >
           <DialogTitle>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Thanh toán học phí
-            </Typography>
+                </Typography>
           </DialogTitle>
           <DialogContent>
             {selectedInvoice && (
@@ -480,16 +483,16 @@ const Payments = () => {
                     <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
                       <Typography variant="body2">
                         <strong>Học sinh:</strong> {selectedInvoice.childName}
-                      </Typography>
+                    </Typography>
                       <Typography variant="body2">
                         <strong>Lớp học:</strong> {selectedInvoice.className}
-                      </Typography>
+                          </Typography>
                       <Typography variant="body2">
                         <strong>Tháng:</strong> {selectedInvoice.month}
-                      </Typography>
+                        </Typography>
                       <Typography variant="body2">
                         <strong>Số tiền còn lại:</strong> {formatCurrency(selectedInvoice.remainingAmount)}
-                      </Typography>
+                        </Typography>
                     </Paper>
                   </Grid>
 
@@ -508,6 +511,19 @@ const Payments = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
+                      select
+                      fullWidth
+                      label="Phương thức thanh toán"
+                      value={paymentMethod}
+                      onChange={e => setPaymentMethod(e.target.value)}
+                      sx={{ mt: 2 }}
+                    >
+                      <MenuItem value="cash">Tiền mặt</MenuItem>
+                      <MenuItem value="bank">Chuyển khoản</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
                       fullWidth
                       label="Ghi chú (tuỳ chọn)"
                       value={paymentNote}
@@ -518,9 +534,9 @@ const Payments = () => {
                     />
                   </Grid>
                 </Grid>
-              </Box>
-            )}
-          </DialogContent>
+                </Box>
+          )}
+        </DialogContent>
           <DialogActions>
             <Button onClick={handleClosePaymentDialog} disabled={paymentLoading}>
               Hủy
@@ -533,8 +549,8 @@ const Payments = () => {
             >
               {paymentLoading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
             </Button>
-          </DialogActions>
-        </Dialog>
+        </DialogActions>
+      </Dialog>
       </Box>
     </DashboardLayout>
   );
