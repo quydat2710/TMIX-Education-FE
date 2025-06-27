@@ -64,7 +64,6 @@ const TeacherManagement = () => {
   const [selectedTeacherForView, setSelectedTeacherForView] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
-  const [classEdits, setClassEdits] = useState([]);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -106,14 +105,6 @@ const TeacherManagement = () => {
         description: teacher.description || '',
         isActive: teacher.isActive !== undefined ? teacher.isActive : true,
       });
-      setClassEdits(
-        (teacher.classes || []).map(cls => ({
-          classId: cls.classId?._id || cls.classId,
-          className: cls.classId?.name || '',
-          discountPercent: cls.discountPercent || 0,
-          status: cls.status || 'active',
-        }))
-      );
     } else {
     setForm({
       name: '',
@@ -128,7 +119,6 @@ const TeacherManagement = () => {
       description: '',
       isActive: true,
     });
-      setClassEdits([]);
     }
     setError('');
     setFormErrors({});
@@ -151,7 +141,6 @@ const TeacherManagement = () => {
       description: '',
       isActive: true,
     });
-    setClassEdits([]);
     setError('');
     setFormErrors({});
   };
@@ -200,10 +189,6 @@ const TeacherManagement = () => {
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }));
     }
-  };
-
-  const handleClassEditChange = (idx, field, value) => {
-    setClassEdits(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   };
 
   const handleSubmit = async () => {
@@ -585,51 +570,6 @@ const TeacherManagement = () => {
               />
             </Grid>
           </Grid>
-
-          {selectedTeacher && classEdits.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Danh sách lớp đang dạy
-              </Typography>
-              <Grid container spacing={2}>
-                {classEdits.map((cls, idx) => (
-                  <React.Fragment key={cls.classId}>
-                    <Grid item xs={12} sm={5}>
-                      <TextField
-                        label="Tên lớp"
-                        value={cls.className}
-                        InputProps={{ readOnly: true }}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label="Giảm giá (%)"
-                        type="number"
-                        value={cls.discountPercent}
-                        onChange={(e) => handleClassEditChange(idx, 'discountPercent', e.target.value)}
-                        fullWidth
-                        inputProps={{ min: 0, max: 100 }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <InputLabel>Trạng thái</InputLabel>
-                        <Select
-                          label="Trạng thái"
-                          value={cls.status}
-                          onChange={(e) => handleClassEditChange(idx, 'status', e.target.value)}
-                        >
-                          <MenuItem value="active">Đang hoạt động</MenuItem>
-                          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </React.Fragment>
-                ))}
-              </Grid>
-            </Box>
-          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>

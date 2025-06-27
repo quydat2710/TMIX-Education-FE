@@ -1,41 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip
+  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { getPaymentsAPI, getTeacherPaymentsAPI } from '../../services/api';
 
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const quarters = [1, 2, 3, 4];
-
-const mockStats = {
-  teacherStats: {
-    totalAmount: 50000000,
-    paidAmount: 40000000,
-    pendingAmount: 10000000,
-    teacherCount: 12,
-    sessionCount: 120,
-    payments: [
-      { id: 1, teacherName: 'Nguyễn Văn A', teacherId: 'GV01', numberOfSessions: 10, amount: 10000000, status: 'paid', paidDate: '2024-05-01', classDetails: [{ classId: 'C01', className: 'Lớp 1', sessions: 5 }] },
-      { id: 2, teacherName: 'Trần Thị B', teacherId: 'GV02', numberOfSessions: 8, amount: 8000000, status: 'pending', paidDate: null, classDetails: [{ classId: 'C02', className: 'Lớp 2', sessions: 8 }] },
-    ]
-  },
-  studentStats: {
-    expectedAmount: 60000000,
-    paidAmount: 45000000,
-    remainingAmount: 15000000,
-    studentCount: 100,
-    classCount: 10,
-    payments: [
-      { id: 1, studentName: 'Lê Văn C', studentId: 'HS01', className: 'Lớp 1', classId: 'C01', expectedAmount: 1000000, paidAmount: 1000000, remainingAmount: 0, status: 'paid', lastPaymentDate: '2024-05-10' },
-      { id: 2, studentName: 'Phạm Thị D', studentId: 'HS02', className: 'Lớp 2', classId: 'C02', expectedAmount: 1200000, paidAmount: 800000, remainingAmount: 400000, status: 'partial', lastPaymentDate: '2024-05-12' },
-    ]
-  },
-  profitStats: {
-    expectedProfit: 10000000,
-    actualProfit: 5000000
-  }
-};
 
 const FinancialStatisticsPanel = () => {
   const [periodType, setPeriodType] = useState('month');
@@ -45,6 +17,93 @@ const FinancialStatisticsPanel = () => {
   const [tab, setTab] = useState(0);
   const [customStart, setCustomStart] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
   const [customEnd, setCustomEnd] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
+  const [studentPayments, setStudentPayments] = useState([]);
+  const [teacherPayments, setTeacherPayments] = useState([]);
+  const [loadingStudent, setLoadingStudent] = useState(false);
+  const [loadingTeacher, setLoadingTeacher] = useState(false);
+  const [studentPagination, setStudentPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalResults: 0
+  });
+  const [totalStatistics, setTotalStatistics] = useState({
+    totalStudentFees: 0,
+    totalPaidAmount: 0,
+    totalRemainingAmount: 0,
+    totalTeacherSalary: 0
+  });
+
+  const fetchTotalStatistics = async () => {
+    try {
+      // Gọi API để lấy thống kê tổng quan từ tất cả các trang
+      const res = await getPaymentsAPI({ page: 1, limit: 1000 }); // Lấy tất cả dữ liệu
+      const allStudentPayments = res.data || [];
+
+      const totalStudentFees = allStudentPayments.reduce((total, p) => total + (p.finalAmount ?? 0), 0);
+      const totalPaidAmount = allStudentPayments.reduce((total, p) => total + (p.paidAmount ?? 0), 0);
+      const totalRemainingAmount = allStudentPayments.reduce((total, p) => total + (p.remainingAmount ?? 0), 0);
+
+      // Tính tổng lương giáo viên từ dữ liệu hiện tại
+      const totalTeacherSalary = teacherPayments.reduce((total, p) => total + ((p.totalLessons ?? 0) * (p.salaryPerLesson ?? 0)), 0);
+
+      setTotalStatistics({
+        totalStudentFees,
+        totalPaidAmount,
+        totalRemainingAmount,
+        totalTeacherSalary
+      });
+    } catch (err) {
+      console.error('Error fetching total statistics:', err);
+    }
+  };
+
+  const fetchStudentPayments = async (page = 1) => {
+    setLoadingStudent(true);
+    try {
+      const res = await getPaymentsAPI({ page, limit: 10 });
+      console.log('Student payments API response:', res.data);
+      setStudentPayments(res.data || []);
+      // Cập nhật thông tin phân trang từ response
+      if (res.page && res.limit && res.totalPages && res.totalResults) {
+        setStudentPagination({
+          page: res.page,
+          limit: res.limit,
+          totalPages: res.totalPages,
+          totalResults: res.totalResults
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching student payments:', err);
+      setStudentPayments([]);
+    } finally {
+      setLoadingStudent(false);
+    }
+  };
+
+  const fetchTeacherPayments = async () => {
+    setLoadingTeacher(true);
+    try {
+      const res = await getTeacherPaymentsAPI();
+      console.log('Teacher payments API response:', res.data);
+      setTeacherPayments(res.data || []);
+    } catch (err) {
+      console.error('Error fetching teacher payments:', err);
+      setTeacherPayments([]);
+    } finally {
+      setLoadingTeacher(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudentPayments();
+    fetchTeacherPayments();
+    fetchTotalStatistics();
+  }, []);
+
+  const handleStudentPageChange = (event, newPage) => {
+    fetchStudentPayments(newPage); // API sử dụng page bắt đầu từ 1, giống ParentManagement
+  };
 
   // Bộ lọc thời gian
   return (
@@ -115,16 +174,16 @@ const FinancialStatisticsPanel = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Đã trả giáo viên</Typography>
-              <Typography variant="h5" color="error.main" fontWeight="bold">{mockStats.teacherStats.paidAmount.toLocaleString()} ₫</Typography>
+              <Typography color="textSecondary" gutterBottom>Tổng lương giáo viên</Typography>
+              <Typography variant="h5" color="error.main" fontWeight="bold">{totalStatistics.totalTeacherSalary.toLocaleString()} ₫</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Học phí dự kiến</Typography>
-              <Typography variant="h5" color="info.main" fontWeight="bold">{mockStats.studentStats.expectedAmount.toLocaleString()} ₫</Typography>
+              <Typography color="textSecondary" gutterBottom>Tổng học phí</Typography>
+              <Typography variant="h5" color="info.main" fontWeight="bold">{totalStatistics.totalStudentFees.toLocaleString()} ₫</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -132,7 +191,7 @@ const FinancialStatisticsPanel = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>Đã thu</Typography>
-              <Typography variant="h5" color="success.main" fontWeight="bold">{mockStats.studentStats.paidAmount.toLocaleString()} ₫</Typography>
+              <Typography variant="h5" color="success.main" fontWeight="bold">{totalStatistics.totalPaidAmount.toLocaleString()} ₫</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -140,7 +199,7 @@ const FinancialStatisticsPanel = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>Còn thiếu</Typography>
-              <Typography variant="h5" color="warning.main" fontWeight="bold">{mockStats.studentStats.remainingAmount.toLocaleString()} ₫</Typography>
+              <Typography variant="h5" color="warning.main" fontWeight="bold">{totalStatistics.totalRemainingAmount.toLocaleString()} ₫</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -159,19 +218,31 @@ const FinancialStatisticsPanel = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Giáo viên</TableCell>
+                    <TableCell>Lớp</TableCell>
+                    <TableCell align="center">Tháng/Năm</TableCell>
+                    <TableCell align="right">Lương/buổi</TableCell>
                     <TableCell align="right">Số buổi dạy</TableCell>
                     <TableCell align="right">Tổng lương</TableCell>
+                    <TableCell align="right">Đã trả</TableCell>
                     <TableCell align="center">Trạng thái</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mockStats.teacherStats.payments.map((p) => (
+                  {teacherPayments.map((p) => (
                     <TableRow key={p.id} hover>
-                      <TableCell>{p.teacherName}</TableCell>
-                      <TableCell align="right">{p.numberOfSessions}</TableCell>
-                      <TableCell align="right">{p.amount.toLocaleString()} ₫</TableCell>
+                      <TableCell>{p.teacherId?.userId?.name || p.teacherId?.name || 'Chưa có tên'}</TableCell>
+                      <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
+                      <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
+                      <TableCell align="right">{(p.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
+                      <TableCell align="right">{p.totalLessons || 0}</TableCell>
+                      <TableCell align="right">{((p.totalLessons ?? 0) * (p.salaryPerLesson ?? 0)).toLocaleString()} ₫</TableCell>
+                      <TableCell align="right">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
                       <TableCell align="center">
-                        <Chip label={p.status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'} color={p.status === 'paid' ? 'success' : 'warning'} size="small" />
+                        <Chip
+                          label={p.status === 'paid' ? 'Đã thanh toán' : p.status === 'pending' ? 'Chờ thanh toán' : 'Chưa thanh toán'}
+                          color={p.status === 'paid' ? 'success' : p.status === 'pending' ? 'warning' : 'error'}
+                          size="small"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -180,34 +251,58 @@ const FinancialStatisticsPanel = () => {
             </TableContainer>
           )}
           {tab === 1 && (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Học sinh</TableCell>
-                    <TableCell>Lớp học</TableCell>
-                    <TableCell align="right">Học phí dự kiến</TableCell>
-                    <TableCell align="right">Đã đóng</TableCell>
-                    <TableCell align="right">Còn thiếu</TableCell>
-                    <TableCell align="center">Trạng thái</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {mockStats.studentStats.payments.map((p) => (
-                    <TableRow key={p.id} hover>
-                      <TableCell>{p.studentName}</TableCell>
-                      <TableCell>{p.className}</TableCell>
-                      <TableCell align="right">{p.expectedAmount.toLocaleString()} ₫</TableCell>
-                      <TableCell align="right">{p.paidAmount.toLocaleString()} ₫</TableCell>
-                      <TableCell align="right">{p.remainingAmount.toLocaleString()} ₫</TableCell>
-                      <TableCell align="center">
-                        <Chip label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'} color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'} size="small" />
-                      </TableCell>
+            <>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Học sinh</TableCell>
+                      <TableCell>Lớp</TableCell>
+                      <TableCell align="center">Tháng/Năm</TableCell>
+                      <TableCell align="center">Số buổi học</TableCell>
+                      <TableCell align="center">Tổng học phí</TableCell>
+                      <TableCell align="center">Đã đóng</TableCell>
+                      <TableCell align="center">Còn thiếu</TableCell>
+                      <TableCell align="center">Trạng thái</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {studentPayments.map((p) => (
+                      <TableRow key={p.id} hover>
+                        <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
+                        <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
+                        <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
+                        <TableCell align="center">{p.attendedLessons || 0}</TableCell>
+                        <TableCell align="center">{(p.finalAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">{(p.remainingAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
+                            color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
+                            size="small"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {/* Pagination */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Pagination
+                  count={studentPagination.totalPages}
+                  page={studentPagination.page}
+                  onChange={handleStudentPageChange}
+                  color="primary"
+                />
+              </Box>
+              <Box sx={{ textAlign: 'center', mt: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Hiển thị {studentPayments.length} trong tổng số {studentPagination.totalResults} bản ghi
+                </Typography>
+              </Box>
+            </>
           )}
         </Box>
       </Paper>

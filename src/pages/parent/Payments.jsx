@@ -191,6 +191,8 @@ const Payments = () => {
     switch (status) {
       case 'paid':
         return 'Đã thanh toán';
+      case 'partial':
+        return 'Đã thanh toán một phần';
       case 'pending':
         return 'Chờ thanh toán';
       case 'unpaid':
@@ -256,9 +258,8 @@ const Payments = () => {
         note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
       });
       setPaymentSuccess('Thanh toán thành công!');
-
+      handleClosePaymentDialog();
       setTimeout(() => {
-        handleClosePaymentDialog();
         window.location.reload();
       }, 2000);
 
@@ -352,9 +353,10 @@ const Payments = () => {
                   <TableCell sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi đã học</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Phần trăm giảm giá</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Còn lại</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                 </TableRow>
@@ -362,16 +364,13 @@ const Payments = () => {
               <TableBody>
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id} sx={{ '&:hover': { bgcolor: '#fafafa' } }}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'primary.main' }}>
-                          <PersonIcon sx={{ fontSize: 16 }} />
-                        </Avatar>
+                          <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {invoice.childName}
-                      </Box>
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                        {invoice.className}
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{invoice.className}</Typography>
                           </TableCell>
                     <TableCell>{invoice.month}</TableCell>
                     <TableCell align="center">
@@ -382,19 +381,7 @@ const Payments = () => {
                         variant="outlined"
                       />
                     </TableCell>
-                    <TableCell align="right">{formatCurrency(invoice.originalAmount)}</TableCell>
-                    <TableCell align="center">
-                      {invoice.discountPercent > 0 ? (
-                        <Chip
-                          label={`${invoice.discountPercent}%`}
-                          color="warning"
-                          size="small"
-                          variant="outlined"
-                        />
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
+                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.originalAmount)}</Typography></TableCell>
                     <TableCell align="right">
                       {invoice.discountAmount > 0 ? (
                         <Chip
@@ -407,14 +394,15 @@ const Payments = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                      {formatCurrency(invoice.finalAmount)}
-                          </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.finalAmount)}</Typography></TableCell>
+                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.paidAmount)}</Typography></TableCell>
+                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.remainingAmount)}</Typography></TableCell>
                     <TableCell>
                       <Chip
                         label={getStatusLabel(invoice.status)}
                         color={getStatusColor(invoice.status)}
                         size="small"
+                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell align="center">
