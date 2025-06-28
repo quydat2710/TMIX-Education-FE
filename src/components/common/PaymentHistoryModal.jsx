@@ -59,7 +59,7 @@ const getStatusInfo = (status) => {
       return {
         color: 'success',
         icon: <CheckCircleIcon />,
-        label: 'Đã thanh toán'
+        label: 'Thành công'
       };
     case 'pending':
     case 'processing':
@@ -97,18 +97,35 @@ const getPaymentMethodLabel = (method) => {
       return 'Tiền mặt';
     case 'bank_transfer':
       return 'Chuyển khoản';
-    case 'credit_card':
-      return 'Thẻ tín dụng';
-    case 'debit_card':
-      return 'Thẻ ghi nợ';
-    case 'momo':
-      return 'Ví MoMo';
-    case 'vnpay':
-      return 'VNPay';
-    case 'zalopay':
-      return 'ZaloPay';
     default:
       return method || 'Không xác định';
+  }
+};
+
+// Helper function to get payment status (different from transaction status)
+const getPaymentStatusInfo = (paymentData) => {
+  const totalAmount = paymentData.finalAmount || paymentData.totalAmount || 0;
+  const paidAmount = paymentData.paidAmount || 0;
+  const remainingAmount = paymentData.remainingAmount || 0;
+
+  if (paidAmount >= totalAmount) {
+    return {
+      color: 'success',
+      icon: <CheckCircleIcon />,
+      label: 'Đã thanh toán'
+    };
+  } else if (paidAmount > 0) {
+    return {
+      color: 'warning',
+      icon: <PaymentIcon />,
+      label: 'Thanh toán một phần'
+    };
+  } else {
+    return {
+      color: 'error',
+      icon: <CancelIcon />,
+      label: 'Chưa thanh toán'
+    };
   }
 };
 
@@ -127,7 +144,11 @@ const PaymentHistoryModal = ({
   useEffect(() => {
     if (open && paymentData) {
       // Extract data from paymentData
-      setPaymentHistory(paymentData.paymentHistory || []);
+      let history = paymentData.paymentHistory || [];
+      if (history && !Array.isArray(history) && typeof history === 'object') {
+        history = [history];
+      }
+      setPaymentHistory(history);
 
       if (showPaymentDetails) {
         setPaymentDetails({
@@ -208,76 +229,121 @@ const PaymentHistoryModal = ({
                   Thông tin thanh toán
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Học sinh: {paymentDetails.studentName}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Lớp học: {paymentDetails.className}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Tháng/Năm: {paymentDetails.month}/{paymentDetails.year}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Số tiền gốc: {formatCurrency(paymentDetails.totalAmount || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Giảm giá: {formatCurrency(paymentDetails.discountAmount || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Số tiền cuối: {formatCurrency(paymentDetails.finalAmount || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Đã thanh toán: {formatCurrency(paymentDetails.paidAmount || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                        Còn lại: {formatCurrency(paymentDetails.remainingAmount || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box>
-                      <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        Trạng thái:
-                        <Chip
-                          label={getStatusInfo(paymentDetails.status).label}
-                          color={getStatusInfo(paymentDetails.status).color}
-                          size="small"
-                          icon={getStatusInfo(paymentDetails.status).icon}
-                          variant="outlined"
-                        />
-                      </Typography>
-                    </Box>
-                  </Grid>
+                  {paymentData.teacherId ? (
+                    <>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Giáo viên: {paymentData.teacherId.userId?.name || paymentData.teacherId.name}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Email: {paymentData.teacherId.userId?.email || '-'}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            SĐT: {paymentData.teacherId.userId?.phone || '-'}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Lớp: {paymentData.classId?.name || '-'}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Tháng/Năm: {paymentData.month}/{paymentData.year}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Số buổi: {paymentData.totalLessons || '-'}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Lương/buổi: {formatCurrency(paymentData.salaryPerLesson || 0)}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Tổng lương: {formatCurrency((paymentData.totalLessons || 0) * (paymentData.salaryPerLesson || 0))}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Đã thanh toán: {formatCurrency(paymentData.paidAmount || 0)}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Trạng thái: <Chip label={getPaymentStatusInfo(paymentData).label} color={getPaymentStatusInfo(paymentData).color} size="small" icon={getPaymentStatusInfo(paymentData).icon} variant="outlined" />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </>
+                  ) : (
+                    <>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Học sinh: {paymentDetails.studentName}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Lớp học: {paymentDetails.className}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Tháng/Năm: {paymentDetails.month}/{paymentDetails.year}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Số tiền gốc: {formatCurrency(paymentDetails.totalAmount || 0)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Giảm giá: {formatCurrency(paymentDetails.discountAmount || 0)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Số tiền cuối: {formatCurrency(paymentDetails.finalAmount || 0)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Đã thanh toán: {formatCurrency(paymentDetails.paidAmount || 0)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600 }}>
+                            Còn lại: {formatCurrency(paymentDetails.remainingAmount || 0)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Trạng thái:
+                            <Chip
+                              label={getPaymentStatusInfo(paymentData).label}
+                              color={getPaymentStatusInfo(paymentData).color}
+                              size="small"
+                              icon={getPaymentStatusInfo(paymentData).icon}
+                              variant="outlined"
+                            />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </>
+                  )}
                 </Grid>
               </Paper>
             )}

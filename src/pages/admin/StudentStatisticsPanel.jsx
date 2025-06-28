@@ -151,8 +151,8 @@ const StudentStatisticsPanel = () => {
       <Grid container spacing={3}>
         {/* Bar Chart - Total Students by Month */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>Số lượng học sinh theo tháng</Typography>
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>Số lượng học sinh theo tháng</Typography>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
                 <CircularProgress />
@@ -160,14 +160,14 @@ const StudentStatisticsPanel = () => {
             ) : (
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={monthlyData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="monthName" label={{ value: 'Tháng', position: 'insideBottomRight', offset: -5 }} />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
                   <Bar dataKey="students" name="Tổng học sinh" fill="#1976d2" />
-                </BarChart>
-              </ResponsiveContainer>
+          </BarChart>
+        </ResponsiveContainer>
             )}
           </Paper>
         </Grid>
@@ -215,7 +215,7 @@ const StudentStatisticsPanel = () => {
                 </LineChart>
               </ResponsiveContainer>
             )}
-          </Paper>
+      </Paper>
         </Grid>
       </Grid>
     </Box>

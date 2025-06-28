@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import {
   History as HistoryIcon,
-  Visibility as VisibilityIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
@@ -63,11 +62,7 @@ const AttendanceHistoryModal = ({
         page: 1,
         sortBy: 'date'
       });
-      console.log('Attendance history API response:', res);
       setAttendanceHistory(res?.data || []);
-      console.log('attendanceHistory after set:', res?.data || []);
-      console.log('studentsList:', studentsList);
-      console.log('studentIdNameMap:', studentIdNameMap);
     } catch (err) {
       console.error('Error loading attendance history:', err);
     } finally {
@@ -151,7 +146,7 @@ const AttendanceHistoryModal = ({
                   <TableCell sx={{ fontWeight: 'bold' }}>Vắng</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Đi muộn</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Tỷ lệ tham gia</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -161,7 +156,11 @@ const AttendanceHistoryModal = ({
 
                   return (
                     <React.Fragment key={index}>
-                      <TableRow hover>
+                      <TableRow
+                        hover
+                        onClick={() => handleToggleRow(index)}
+                        sx={{ cursor: 'pointer' }}
+                      >
                         <TableCell>
                           <Typography variant="body2" fontWeight="medium">
                             {new Date(attendance.date).toLocaleDateString('vi-VN', {
@@ -206,7 +205,7 @@ const AttendanceHistoryModal = ({
                               size="small"
                               onClick={() => handleToggleRow(index)}
                             >
-                              <VisibilityIcon />
+                              {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                             </IconButton>
                           </Tooltip>
                         </TableCell>

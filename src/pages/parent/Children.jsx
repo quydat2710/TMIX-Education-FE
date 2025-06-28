@@ -75,7 +75,7 @@ const Children = () => {
   const [teacherDialogOpen, setTeacherDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [parentPermissions, setParentPermissions] = useState({
-    canViewTeacherDetails: true // Default to true, can be changed based on actual permissions
+    canViewTeacherDetails: false // Default to false, will be updated from parent data
   });
 
   useEffect(() => {
@@ -89,6 +89,11 @@ const Children = () => {
           if (res) {
             const parentData = res;
             const childrenList = parentData.studentIds || [];
+
+            // Update parent permissions based on actual data
+            setParentPermissions({
+              canViewTeacherDetails: parentData.canSeeTeacherInfo !== undefined ? parentData.canSeeTeacherInfo : false
+            });
 
             const formattedChildren = childrenList.map(child => ({
               id: child.userId.id,

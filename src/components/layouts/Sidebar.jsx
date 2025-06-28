@@ -35,6 +35,7 @@ const getMenuItemsByRole = (role) => {
         { text: 'Dashboard', icon: <HomeIcon />, path: '/teacher/dashboard' },
         { text: 'Lịch dạy', icon: <ClassIcon />, path: '/teacher/schedule' },
         { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/teacher/classes' },
+        { text: 'Lương', icon: <PaymentIcon />, path: '/teacher/salary' },
       ];
     case 'student':
       return [

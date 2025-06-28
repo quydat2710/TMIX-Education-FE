@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton
+  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, InputAdornment
 } from '@mui/material';
 import { History as HistoryIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { getPaymentsAPI, getTeacherPaymentsAPI } from '../../services/api';
+import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI } from '../../services/api';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
 
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
@@ -39,6 +39,15 @@ const FinancialStatisticsPanel = () => {
   // Payment history modal states
   const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState(false);
   const [selectedPaymentForHistory, setSelectedPaymentForHistory] = useState(null);
+
+  const [teacherPaymentDialogOpen, setTeacherPaymentDialogOpen] = useState(false);
+  const [selectedTeacherPayment, setSelectedTeacherPayment] = useState(null);
+  const [teacherPaymentAmount, setTeacherPaymentAmount] = useState('');
+  const [teacherPaymentMethod, setTeacherPaymentMethod] = useState('cash');
+  const [teacherPaymentNote, setTeacherPaymentNote] = useState('');
+  const [teacherPaymentLoading, setTeacherPaymentLoading] = useState(false);
+  const [teacherPaymentError, setTeacherPaymentError] = useState('');
+  const [teacherPaymentSuccess, setTeacherPaymentSuccess] = useState('');
 
   const fetchTotalStatistics = async () => {
     try {
@@ -119,6 +128,74 @@ const FinancialStatisticsPanel = () => {
   const handleClosePaymentHistory = () => {
     setSelectedPaymentForHistory(null);
     setPaymentHistoryModalOpen(false);
+  };
+
+  const handleOpenTeacherPaymentDialog = (payment) => {
+    setSelectedTeacherPayment(payment);
+    setTeacherPaymentAmount((payment.totalLessons * payment.salaryPerLesson - (payment.paidAmount || 0)).toString());
+    setTeacherPaymentMethod('cash');
+    setTeacherPaymentNote('');
+    setTeacherPaymentError('');
+    setTeacherPaymentSuccess('');
+    setTeacherPaymentDialogOpen(true);
+  };
+
+  const handleCloseTeacherPaymentDialog = () => {
+    setTeacherPaymentDialogOpen(false);
+    setSelectedTeacherPayment(null);
+    setTeacherPaymentAmount('');
+    setTeacherPaymentMethod('cash');
+    setTeacherPaymentNote('');
+    setTeacherPaymentError('');
+    setTeacherPaymentSuccess('');
+  };
+
+  const handleConfirmTeacherPayment = async () => {
+    if (!selectedTeacherPayment || !teacherPaymentAmount) {
+      setTeacherPaymentError('Vui lòng nhập số tiền thanh toán');
+      return;
+    }
+    const amount = parseFloat(teacherPaymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setTeacherPaymentError('Số tiền thanh toán không hợp lệ');
+      return;
+    }
+    const maxAmount = selectedTeacherPayment.totalLessons * selectedTeacherPayment.salaryPerLesson - (selectedTeacherPayment.paidAmount || 0);
+    if (amount > maxAmount) {
+      setTeacherPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
+      return;
+    }
+    setTeacherPaymentLoading(true);
+    setTeacherPaymentError('');
+    setTeacherPaymentSuccess('');
+
+    // Log data được gửi đi
+    const paymentData = {
+      amount,
+      method: teacherPaymentMethod,
+      note: teacherPaymentNote || 'Thanh toán lương giáo viên'
+    };
+    console.log('=== THANH TOÁN LƯƠNG GIÁO VIÊN ===');
+    console.log('Teacher Payment ID:', selectedTeacherPayment.id);
+    console.log('Teacher ID:', selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId);
+    console.log('Teacher Name:', selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name);
+    console.log('Class:', selectedTeacherPayment.classId?.name);
+    console.log('Month/Year:', selectedTeacherPayment.month + '/' + selectedTeacherPayment.year);
+    console.log('Payment Data:', paymentData);
+    console.log('================================');
+
+    try {
+      await payTeacherAPI(selectedTeacherPayment.id, paymentData);
+      setTeacherPaymentSuccess('Thanh toán thành công!');
+      await fetchTeacherPayments();
+      await fetchTotalStatistics();
+      handleCloseTeacherPaymentDialog();
+    } catch (error) {
+      console.error('Lỗi thanh toán lương giáo viên:', error);
+      setTeacherPaymentError(error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán');
+    } finally {
+      setTeacherPaymentLoading(false);
+    }
   };
 
   // Bộ lọc thời gian
@@ -241,6 +318,7 @@ const FinancialStatisticsPanel = () => {
                     <TableCell align="right">Tổng lương</TableCell>
                     <TableCell align="right">Đã trả</TableCell>
                     <TableCell align="center">Trạng thái</TableCell>
+                    <TableCell align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -260,6 +338,22 @@ const FinancialStatisticsPanel = () => {
                           size="small"
                         />
                       </TableCell>
+                      <TableCell align="center">
+                        <IconButton onClick={() => handleOpenPaymentHistory(p)}>
+                          <HistoryIcon />
+                        </IconButton>
+                        {((p.totalLessons * p.salaryPerLesson) - (p.paidAmount || 0) > 0) && (
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            sx={{ ml: 1 }}
+                            onClick={() => handleOpenTeacherPaymentDialog(p)}
+                          >
+                            Thanh toán
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -268,24 +362,24 @@ const FinancialStatisticsPanel = () => {
           )}
           {tab === 1 && (
             <>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Học sinh</TableCell>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Học sinh</TableCell>
                       <TableCell>Lớp</TableCell>
                       <TableCell align="center">Tháng/Năm</TableCell>
                       <TableCell align="center">Số buổi học</TableCell>
                       <TableCell align="center">Tổng học phí</TableCell>
                       <TableCell align="center">Đã đóng</TableCell>
                       <TableCell align="center">Còn thiếu</TableCell>
-                      <TableCell align="center">Trạng thái</TableCell>
+                    <TableCell align="center">Trạng thái</TableCell>
                       <TableCell align="center">Thao tác</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
                     {studentPayments.map((p) => (
-                      <TableRow key={p.id} hover>
+                    <TableRow key={p.id} hover>
                         <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
                         <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
                         <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
@@ -300,16 +394,16 @@ const FinancialStatisticsPanel = () => {
                             size="small"
                           />
                         </TableCell>
-                        <TableCell align="center">
+                      <TableCell align="center">
                           <IconButton onClick={() => handleOpenPaymentHistory(p)}>
                             <HistoryIcon />
                           </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
               {/* Pagination */}
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Pagination
@@ -337,6 +431,106 @@ const FinancialStatisticsPanel = () => {
         title="Lịch sử thanh toán học phí"
         showPaymentDetails={true}
       />
+
+      {/* Teacher Payment Dialog */}
+      <Dialog
+        open={teacherPaymentDialogOpen}
+        onClose={handleCloseTeacherPaymentDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Thanh toán lương giáo viên
+        </DialogTitle>
+        <DialogContent>
+          {selectedTeacherPayment && (
+            <Box sx={{ mt: 2 }}>
+              {teacherPaymentError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {teacherPaymentError}
+                </Alert>
+              )}
+              {teacherPaymentSuccess && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  {teacherPaymentSuccess}
+                </Alert>
+              )}
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Thông tin lương
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
+                    <Typography variant="body2">
+                      <strong>Giáo viên:</strong> {selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Lớp:</strong> {selectedTeacherPayment.classId?.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Tháng/Năm:</strong> {selectedTeacherPayment.month}/{selectedTeacherPayment.year}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Số tiền còn lại:</strong> {((selectedTeacherPayment.totalLessons * selectedTeacherPayment.salaryPerLesson - (selectedTeacherPayment.paidAmount || 0)).toLocaleString())} ₫
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Số tiền thanh toán"
+                    type="number"
+                    value={teacherPaymentAmount}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">VNĐ</InputAdornment>,
+                      readOnly: true,
+                    }}
+                    disabled
+                    helperText="Chỉ được thanh toán toàn bộ số tiền còn lại một lần duy nhất."
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Phương thức thanh toán"
+                    value={teacherPaymentMethod}
+                    onChange={e => setTeacherPaymentMethod(e.target.value)}
+                    sx={{ mt: 2 }}
+                  >
+                    <MenuItem value="cash">Tiền mặt</MenuItem>
+                    <MenuItem value="bank">Chuyển khoản</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Ghi chú (tuỳ chọn)"
+                    value={teacherPaymentNote}
+                    onChange={e => setTeacherPaymentNote(e.target.value)}
+                    multiline
+                    minRows={2}
+                    sx={{ mt: 2 }}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTeacherPaymentDialog} disabled={teacherPaymentLoading}>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmTeacherPayment}
+            variant="contained"
+            color="primary"
+            disabled={teacherPaymentLoading || !teacherPaymentAmount}
+          >
+            {teacherPaymentLoading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

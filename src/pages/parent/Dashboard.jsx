@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -19,6 +19,12 @@ import {
   IconButton,
   Tooltip,
   Badge,
+  LinearProgress,
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,131 +40,98 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import DiscountIcon from '@mui/icons-material/Discount';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
-
-// Mock data cho phụ huynh
-const mockParentData = {
-  parentId: 'parent-001',
-  name: 'Nguyễn Văn A',
-  children: [
-    {
-      id: 'child-001',
-      name: 'Nguyễn Thị B',
-      age: 12,
-      grade: 'Lớp 6',
-      avatar: null,
-      classes: [
-        {
-          classId: 'class-01',
-          className: 'Lớp TOEIC 550+',
-          teacher: 'Cô Trần Thị C',
-          schedule: 'T2-T4-T6, 18:00-19:30',
-          totalSessions: 24,
-          attendedSessions: 22,
-          absentSessions: 2,
-          absentDetails: ['Buổi 5 (15/01/2024)', 'Buổi 12 (05/02/2024)'],
-          monthlyFee: 1500000, // 1.5 triệu VND
-          discountPercent: 10, // Giảm 10%
-          discountReason: 'Gia đình quen biết',
-          paymentStatus: {
-            totalOwed: 4500000, // 4.5 triệu VND (3 tháng chưa đóng)
-            lastPaidMonth: 'Tháng 12/2023',
-            unpaidMonths: ['Tháng 1/2024', 'Tháng 2/2024', 'Tháng 3/2024'],
-            discountAmount: 450000, // 10% của 4.5 triệu
-            finalAmount: 4050000, // 4.5 triệu - 450k
-          }
-        },
-        {
-          classId: 'class-02',
-          className: 'Tiếng Anh Giao Tiếp Cơ Bản',
-          teacher: 'Thầy Lê Văn D',
-          schedule: 'T3-T5, 19:00-20:30',
-          totalSessions: 16,
-          attendedSessions: 15,
-          absentSessions: 1,
-          absentDetails: ['Buổi 8 (20/01/2024)'],
-          monthlyFee: 1200000, // 1.2 triệu VND
-          discountPercent: 0,
-          discountReason: null,
-          paymentStatus: {
-            totalOwed: 2400000, // 2.4 triệu VND (2 tháng chưa đóng)
-            lastPaidMonth: 'Tháng 1/2024',
-            unpaidMonths: ['Tháng 2/2024', 'Tháng 3/2024'],
-            discountAmount: 0,
-            finalAmount: 2400000,
-          }
-        }
-      ]
-    },
-    {
-      id: 'child-002',
-      name: 'Nguyễn Văn E',
-      age: 10,
-      grade: 'Lớp 4',
-      avatar: null,
-      classes: [
-        {
-          classId: 'class-03',
-          className: 'Tiếng Anh Thiếu Nhi',
-          teacher: 'Cô Phạm Thị F',
-          schedule: 'T7-CN, 09:00-11:00',
-          totalSessions: 12,
-          attendedSessions: 12,
-          absentSessions: 0,
-          absentDetails: [],
-          monthlyFee: 800000, // 800k VND
-          discountPercent: 15, // Giảm 15%
-          discountReason: 'Học sinh xuất sắc',
-          paymentStatus: {
-            totalOwed: 800000, // 800k VND (1 tháng chưa đóng)
-            lastPaidMonth: 'Tháng 2/2024',
-            unpaidMonths: ['Tháng 3/2024'],
-            discountAmount: 120000, // 15% của 800k
-            finalAmount: 680000,
-          }
-        }
-      ]
-    }
-  ]
-};
+import {
+  getParentByIdAPI,
+  getPaymentsByStudentAPI,
+} from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [parentData] = useState(mockParentData);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [parentData, setParentData] = useState(null);
+  const [childrenData, setChildrenData] = useState([]);
+  const [stats, setStats] = useState({
+    totalChildren: 0,
+    totalClasses: 0,
+    totalFees: 0,
+    paidFees: 0,
+    pendingPayments: 0,
+    attendanceRate: 0,
+  });
 
-  // Tính toán tổng quan
-  const summary = useMemo(() => {
-    let totalClasses = 0;
-    let totalSessions = 0;
-    let totalAttended = 0;
-    let totalAbsent = 0;
-    let totalOwed = 0;
-    let totalDiscount = 0;
-    let totalFinalAmount = 0;
+  useEffect(() => {
+    fetchParentData();
+  }, []);
 
-    parentData.children.forEach(child => {
-      child.classes.forEach(cls => {
-        totalClasses++;
-        totalSessions += cls.totalSessions;
-        totalAttended += cls.attendedSessions;
-        totalAbsent += cls.absentSessions;
-        totalOwed += cls.paymentStatus.totalOwed;
-        totalDiscount += cls.paymentStatus.discountAmount;
-        totalFinalAmount += cls.paymentStatus.finalAmount;
+  const fetchParentData = async () => {
+    setLoading(true);
+    try {
+      // Get parent ID from user data
+      const parentId = user?.parentId || user?.id;
+      if (!parentId) {
+        setError('Không tìm thấy thông tin phụ huynh');
+        return;
+      }
+
+      // Fetch parent data
+      const parentRes = await getParentByIdAPI(parentId);
+      const parent = parentRes?.data;
+      setParentData(parent);
+
+      // Fetch children data and their payments
+      const children = parent?.children || [];
+      const childrenWithPayments = await Promise.all(
+        children.map(async (child) => {
+          try {
+            const paymentsRes = await getPaymentsByStudentAPI(child.id, { limit: 100 });
+            const payments = paymentsRes?.data?.payments || [];
+
+            return {
+              ...child,
+              payments,
+              totalFees: payments.reduce((sum, p) => sum + (p.finalAmount || 0), 0),
+              paidFees: payments.reduce((sum, p) => sum + (p.paidAmount || 0), 0),
+              pendingPayments: payments.filter(p => p.status !== 'paid').length,
+            };
+          } catch (err) {
+            console.error(`Error fetching payments for child ${child.id}:`, err);
+            return {
+              ...child,
+              payments: [],
+              totalFees: 0,
+              paidFees: 0,
+              pendingPayments: 0,
+            };
+          }
+        })
+      );
+
+      setChildrenData(childrenWithPayments);
+
+      // Calculate overall statistics
+      const totalChildren = childrenWithPayments.length;
+      const totalClasses = childrenWithPayments.reduce((sum, child) => sum + (child.classes?.length || 0), 0);
+      const totalFees = childrenWithPayments.reduce((sum, child) => sum + child.totalFees, 0);
+      const paidFees = childrenWithPayments.reduce((sum, child) => sum + child.paidFees, 0);
+      const pendingPayments = childrenWithPayments.reduce((sum, child) => sum + child.pendingPayments, 0);
+
+      setStats({
+        totalChildren,
+        totalClasses,
+        totalFees,
+        paidFees,
+        pendingPayments,
+        attendanceRate: 85, // Mock attendance rate for now
       });
-    });
-
-    return {
-      totalClasses,
-      totalSessions,
-      totalAttended,
-      totalAbsent,
-      attendanceRate: totalSessions > 0 ? Math.round((totalAttended / totalSessions) * 100) : 0,
-      totalOwed,
-      totalDiscount,
-      totalFinalAmount
-    };
-  }, [parentData]);
+    } catch (err) {
+      console.error('Error fetching parent dashboard data:', err);
+      setError('Không thể tải dữ liệu dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -167,243 +140,236 @@ const Dashboard = () => {
     }).format(amount);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="parent">
+        <Box sx={{ py: 4 }}>
+          <LinearProgress />
+          <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
+        </Box>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="parent">
       <Box sx={commonStyles.pageContainer}>
-        <Typography variant="h4" gutterBottom>
-          Tổng quan - Phụ huynh
-            </Typography>
-          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Xin chào {parentData.name}, đây là thông tin học tập và thanh toán của con bạn
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          Dashboard Phụ huynh
+        </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Xin chào {parentData?.userId?.name || parentData?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
         </Typography>
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng số lớp"
-              value={summary.totalClasses}
-              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+              title="Số con đang học"
+              value={stats.totalChildren}
+              icon={<PersonIcon sx={{ fontSize: 40 }} />}
               color="primary"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tỷ lệ điểm danh"
-              value={`${summary.attendanceRate}%`}
-              icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+              title="Tổng số lớp"
+              value={stats.totalClasses}
+              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng nợ học phí"
-              value={formatCurrency(summary.totalOwed)}
-              icon={<AttachMoneyIcon sx={{ fontSize: 40 }} />}
+              title="Tổng học phí"
+              value={formatCurrency(stats.totalFees)}
+              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+              color="warning"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Đã thanh toán"
+              value={formatCurrency(stats.paidFees)}
+              icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+              color="info"
+            />
+          </Grid>
+        </Grid>
+
+        {/* Additional Stats */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Còn thiếu"
+              value={formatCurrency(stats.totalFees - stats.paidFees)}
+              icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="error"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Sau khi giảm giá"
-              value={formatCurrency(summary.totalFinalAmount)}
-              icon={<DiscountIcon sx={{ fontSize: 40 }} />}
+              title="Thanh toán chờ"
+              value={stats.pendingPayments}
+              icon={<AttachMoneyIcon sx={{ fontSize: 40 }} />}
               color="warning"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tỷ lệ thanh toán"
+              value={`${stats.totalFees > 0 ? Math.round((stats.paidFees / stats.totalFees) * 100) : 0}%`}
+              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tỷ lệ tham gia"
+              value={`${stats.attendanceRate}%`}
+              icon={<EventIcon sx={{ fontSize: 40 }} />}
+              color="secondary"
             />
           </Grid>
         </Grid>
 
         {/* Children Information */}
-        <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 2 }}>
-          Thông tin con cái
-          </Typography>
-
-        {parentData.children.map((child, childIndex) => (
-          <Card key={child.id} sx={{ mb: 3 }}>
-                <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar sx={{ width: 60, height: 60, mr: 2, bgcolor: 'primary.main' }}>
-                  <PersonIcon sx={{ fontSize: 30 }} />
-                </Avatar>
-                <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {child.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {child.age} tuổi - {child.grade}
-                  </Typography>
-                </Box>
-                <Chip
-                  label={`${child.classes.length} lớp học`}
-                  color="primary"
-                  variant="outlined"
-                />
-              </Box>
-
-              <Divider sx={{ mb: 2 }} />
-
-              {/* Classes Information */}
-              {child.classes.map((cls, classIndex) => (
-                <Paper key={cls.classId} sx={{ p: 2, mb: 2, bgcolor: '#fafafa' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                        {cls.className}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        <strong>Giáo viên:</strong> {cls.teacher}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        <strong>Lịch học:</strong> {cls.schedule}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Học phí:</strong> {formatCurrency(cls.monthlyFee)}/tháng
-                        {cls.discountPercent > 0 && (
-                          <Chip
-                            label={`Giảm ${cls.discountPercent}%`}
-                            color="success"
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Chip
-                        label={`${cls.attendedSessions}/${cls.totalSessions} buổi`}
-                        color={cls.attendanceRate >= 90 ? 'success' : cls.attendanceRate >= 80 ? 'warning' : 'error'}
-                        variant="outlined"
-                      />
-                    </Box>
-                  </Box>
-
-                  {/* Attendance Details */}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Chi tiết điểm danh:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CheckCircleIcon color="success" fontSize="small" />
-                        <Typography variant="body2">
-                          Có mặt: {cls.attendedSessions} buổi
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CancelIcon color="error" fontSize="small" />
-                        <Typography variant="body2">
-                          Vắng: {cls.absentSessions} buổi
-                        </Typography>
-                      </Box>
-                    </Box>
-                    {cls.absentDetails.length > 0 && (
-                      <Typography variant="body2" color="error" sx={{ fontSize: '0.875rem' }}>
-                        <strong>Buổi vắng:</strong> {cls.absentDetails.join(', ')}
-                      </Typography>
-                    )}
-                  </Box>
-
-                  {/* Payment Status */}
+        <Grid container spacing={3}>
+          {childrenData.map((child, childIndex) => (
+            <Grid item xs={12} key={child.id}>
+              <Paper sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                    {child.name?.charAt(0)?.toUpperCase()}
+                  </Avatar>
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Tình trạng thanh toán:
-                  </Typography>
-                    <TableContainer component={Paper} variant="outlined">
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Mô tả</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>Tổng nợ học phí</TableCell>
-                            <TableCell align="right">{formatCurrency(cls.paymentStatus.totalOwed)}</TableCell>
-                          </TableRow>
-                          {cls.paymentStatus.discountAmount > 0 && (
-                            <TableRow>
-                              <TableCell>Giảm giá ({cls.discountPercent}%)</TableCell>
-                              <TableCell align="right" sx={{ color: 'success.main' }}>
-                                -{formatCurrency(cls.paymentStatus.discountAmount)}
-                              </TableCell>
-                            </TableRow>
-                          )}
-                          <TableRow sx={{ bgcolor: '#f0f8ff' }}>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Số tiền cần thanh toán</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold', color: 'error.main' }}>
-                              {formatCurrency(cls.paymentStatus.finalAmount)}
+                    <Typography variant="h6" fontWeight="bold">
+                      {child.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {child.grade || 'N/A'} • {child.age || 'N/A'} tuổi
+                    </Typography>
+                  </Box>
+                  <Box sx={{ ml: 'auto' }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => navigate(`/parent/children/${child.id}`)}
+                    >
+                      Xem chi tiết
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* Child's Classes */}
+                {child.classes && child.classes.length > 0 ? (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Học phí</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {child.classes.map((classItem, classIndex) => (
+                          <TableRow key={classItem.id || classIndex} hover>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {classItem.name}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {classItem.teacherId?.userId?.name || classItem.teacherId?.name || 'N/A'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {classItem.schedule?.dayOfWeeks?.map(d => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d]).join(', ')} • {classItem.schedule?.timeSlots?.startTime} - {classItem.schedule?.timeSlots?.endTime}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="600">
+                                {formatCurrency(classItem.feePerLesson || 0)}/buổi
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={classItem.status === 'active' ? 'Đang học' : classItem.status}
+                                color={classItem.status === 'active' ? 'success' : 'default'}
+                                size="small"
+                              />
                             </TableCell>
                           </TableRow>
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      <strong>Tháng chưa đóng:</strong> {cls.paymentStatus.unpaidMonths.join(', ')}
-                    </Typography>
-                  </Box>
-                </Paper>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-
-        {/* Summary Payment */}
-        <Card sx={{ mt: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              Tổng kết thanh toán
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    Chưa có lớp học nào
                   </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Mô tả</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Tổng nợ học phí</TableCell>
-                    <TableCell align="right">{formatCurrency(summary.totalOwed)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Tổng giảm giá</TableCell>
-                    <TableCell align="right" sx={{ color: 'success.main' }}>
-                      -{formatCurrency(summary.totalDiscount)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow sx={{ bgcolor: '#f0f8ff' }}>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Số tiền cần thanh toán</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'error.main' }}>
-                      {formatCurrency(summary.totalFinalAmount)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
+                )}
 
-        {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-                  <Button
-                    variant="contained"
-            size="large"
-            startIcon={<PaymentIcon />}
-                    onClick={() => navigate('/parent/payments')}
-                  >
-            Thanh toán học phí
-          </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={<PersonIcon />}
-            onClick={() => navigate('/parent/children')}
-          >
-            Xem chi tiết con cái
-                  </Button>
-        </Box>
+                {/* Payment Summary */}
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                    Tóm tắt thanh toán
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Tổng học phí: <strong>{formatCurrency(child.totalFees)}</strong>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Đã thanh toán: <strong style={{ color: 'green' }}>{formatCurrency(child.paidFees)}</strong>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Còn thiếu: <strong style={{ color: 'red' }}>{formatCurrency(child.totalFees - child.paidFees)}</strong>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+
+        {childrenData.length === 0 && (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Chưa có con nào được đăng ký
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Vui lòng liên hệ admin để thêm con vào hệ thống.
+            </Typography>
+          </Paper>
+        )}
       </Box>
     </DashboardLayout>
   );

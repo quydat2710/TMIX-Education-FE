@@ -253,9 +253,6 @@ const MyClasses = () => {
                     <SchoolIcon fontSize="small" sx={{ mr: 1 }} />
                     <Typography variant="body2">Phòng {classItem.room}</Typography>
                   </Box>
-                    <Box>
-                    <Typography variant="body2" color="text.secondary">Học phí: {classItem.feePerLesson?.toLocaleString('vi-VN')} VNĐ/buổi</Typography>
-                    </Box>
                 </CardContent>
                 <CardActions>
                   <Button size="small" onClick={() => handleOpenDetail(classItem)}>Xem chi tiết</Button>

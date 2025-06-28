@@ -79,6 +79,13 @@ export const API_CONFIG = {
     },
     SCHEDULES: {
       GET_STUDENT_SCHEDULE: '/schedules/student/me',
-    }
+    },
+    ANNOUNCEMENTS: {
+      CREATE: '/announcements',
+      GET_ALL: '/announcements',
+      GET_BY_ID: (id) => `/announcements/${id}`,
+      UPDATE: (id) => `/announcements/${id}`,
+      DELETE: (id) => `/announcements/${id}`,
+    },
   },
 };

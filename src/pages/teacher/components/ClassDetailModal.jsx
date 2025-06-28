@@ -28,7 +28,6 @@ import {
   Event as EventIcon,
   People as PeopleIcon,
   Assignment as AssignmentIcon,
-  History as HistoryIcon,
 } from '@mui/icons-material';
 import {
   getClassByIdAPI,
@@ -38,7 +37,6 @@ import {
   updateAttendanceAPI
 } from '../../../services/api';
 import AttendanceModal from './AttendanceModal';
-import StudentHistoryModal from './StudentHistoryModal';
 
 const ATTENDANCE_STATUS = {
   PRESENT: 'present',
@@ -59,7 +57,6 @@ const ClassDetailModal = ({
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [detailTabValue, setDetailTabValue] = useState(0);
-  const [studentHistoryModal, setStudentHistoryModal] = useState({ open: false, student: null, history: [] });
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
 
   useEffect(() => {
@@ -104,14 +101,10 @@ const ClassDetailModal = ({
     let page = 1;
     const limit = 50;
 
-    console.log('Fetching students for class:', classId);
-
     while (true) {
       try {
         const res = await getStudentsInClassAPI(classId, { limit, page });
-        console.log('API response for page', page, ':', res);
         const students = res?.data?.students || [];
-        console.log('Students found:', students.length);
 
         if (students.length === 0) break;
 
@@ -126,7 +119,6 @@ const ClassDetailModal = ({
       }
     }
 
-    console.log('Total students fetched:', allStudents.length);
     return allStudents;
   };
 
@@ -157,25 +149,6 @@ const ClassDetailModal = ({
 
   const handleDetailTabChange = (event, newValue) => {
     setDetailTabValue(newValue);
-  };
-
-  const handleOpenStudentHistory = async (student) => {
-    try {
-      const res = await getAttendanceListAPI({
-        classId: selectedClassDetail.id,
-        limit: 50,
-        page: 1,
-        sortBy: 'date'
-      });
-      const history = res?.data?.attendances || [];
-      setStudentHistoryModal({ open: true, student, history });
-    } catch (err) {
-      console.error('Error loading student history:', err);
-    }
-  };
-
-  const handleCloseStudentHistory = () => {
-    setStudentHistoryModal({ open: false, student: null, history: [] });
   };
 
   const handleOpenAttendance = () => {
@@ -405,7 +378,6 @@ const ClassDetailModal = ({
               {/* Tab 1: Danh sách học sinh */}
               {detailTabValue === 1 && (
                 <Box>
-                  {console.log('Rendering students tab, studentsDetail:', studentsDetail)}
                   {loadingStudents ? (
                     <Box sx={{ py: 4 }}>
                       <LinearProgress />
@@ -420,7 +392,6 @@ const ClassDetailModal = ({
                             <TableCell sx={{ fontWeight: 'bold' }}>Họ và Tên</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Số điện thoại</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -428,28 +399,12 @@ const ClassDetailModal = ({
                             <TableRow key={student.id} hover>
                               <TableCell>{index + 1}</TableCell>
                               <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                                    {student.name?.charAt(0)?.toUpperCase()}
-                                  </Avatar>
-                                  <Typography variant="body2" fontWeight="medium">
-                                    {student.name}
-                                  </Typography>
-                                </Box>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {student.name}
+                                </Typography>
                               </TableCell>
                               <TableCell>{student.email}</TableCell>
                               <TableCell>{student.phone || '---'}</TableCell>
-                              <TableCell>
-                                <Tooltip title="Xem lịch sử điểm danh">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenStudentHistory(student)}
-                                    color="primary"
-                                  >
-                                    <HistoryIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -492,14 +447,6 @@ const ClassDetailModal = ({
         open={attendanceModalOpen}
         onClose={handleCloseAttendance}
         classData={selectedClassDetail}
-      />
-
-      {/* Student History Modal */}
-      <StudentHistoryModal
-        open={studentHistoryModal.open}
-        onClose={handleCloseStudentHistory}
-        student={studentHistoryModal.student}
-        history={studentHistoryModal.history}
       />
     </>
   );

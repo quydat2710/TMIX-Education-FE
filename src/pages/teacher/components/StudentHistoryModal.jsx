@@ -25,6 +25,8 @@ const StudentHistoryModal = ({
   student,
   history
 }) => {
+  console.log('StudentHistoryModal props:', { open, student, history });
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'present': return 'success';
@@ -79,9 +81,8 @@ const StudentHistoryModal = ({
               </TableHead>
               <TableBody>
                 {history.map((record, idx) => {
-                  const studentRecord = record.students?.find(s => s.studentId === student?.id);
-                  const status = studentRecord?.status || '';
-                  const note = studentRecord?.note || '';
+                  const status = record.status || '';
+                  const note = record.note || '';
 
                   return (
                     <TableRow key={idx} hover>

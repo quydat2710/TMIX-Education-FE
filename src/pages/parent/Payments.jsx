@@ -366,41 +366,34 @@ const Payments = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Con</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi đã học</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Còn lại</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tên con</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi học</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Còn lại</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id} sx={{ '&:hover': { bgcolor: '#fafafa' } }}>
-                          <TableCell>
+                          <TableCell align="center">
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {invoice.childName}
                       </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center">
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>{invoice.className}</Typography>
                           </TableCell>
-                    <TableCell>{invoice.month}</TableCell>
+                    <TableCell align="center">{invoice.month}</TableCell>
+                    <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{`${invoice.attendedLessons} buổi`}</Typography></TableCell>
+                    <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.originalAmount)}</Typography></TableCell>
                     <TableCell align="center">
-                      <Chip
-                        label={`${invoice.attendedLessons} buổi`}
-                        color="primary"
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.originalAmount)}</Typography></TableCell>
-                    <TableCell align="right">
                       {invoice.discountAmount > 0 ? (
                         <Chip
                           label={`-${formatCurrency(invoice.discountAmount)}`}
@@ -412,9 +405,9 @@ const Payments = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold' }}><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.finalAmount)}</Typography></TableCell>
-                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.paidAmount)}</Typography></TableCell>
-                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.remainingAmount)}</Typography></TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.finalAmount)}</Typography></TableCell>
+                    <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.paidAmount)}</Typography></TableCell>
+                    <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.remainingAmount)}</Typography></TableCell>
                     <TableCell>
                       <Chip
                         label={getStatusLabel(invoice.status)}

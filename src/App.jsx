@@ -31,6 +31,7 @@ import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherMyClasses from './pages/teacher/MyClasses';
 import TeacherSchedule from './pages/teacher/Schedule';
 import TeacherProfile from './pages/Profile/TeacherProfile';
+import Salary from './pages/teacher/Salary';
 
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard';
@@ -96,6 +97,7 @@ function App() {
                     <Route path="dashboard" element={<TeacherDashboard />} />
                     <Route path="classes" element={<TeacherMyClasses />} />
                     <Route path="schedule" element={<TeacherSchedule />} />
+                    <Route path="salary" element={<Salary />} />
                     <Route path="profile" element={<TeacherProfile />} />
                     <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                     </Routes>
