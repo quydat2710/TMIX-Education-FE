@@ -27,9 +27,9 @@ import { COLORS } from '../../utils/colors';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import {
-  getMyClassesAPI,
-  getTeacherPaymentsAPI,
   getTeacherScheduleAPI,
+  getTeacherPaymentsAPI,
+  getClassByIdAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -64,19 +64,43 @@ const Dashboard = () => {
       }
 
       // Fetch data in parallel
-      const [classesRes, paymentsRes, scheduleRes] = await Promise.all([
-        getMyClassesAPI(),
-        getTeacherPaymentsAPI({ teacherId, limit: 5, sortBy: 'date', sortOrder: 'desc' }),
+      const [scheduleRes, paymentsRes] = await Promise.all([
         getTeacherScheduleAPI(teacherId),
+        getTeacherPaymentsAPI({ teacherId, limit: 5 }),
       ]);
 
-      const classes = classesRes?.data || [];
+      console.log('scheduleRes:', scheduleRes);
+      console.log('paymentsRes:', paymentsRes);
+
+      const scheduleData = scheduleRes?.data || {};
+      const classes = scheduleData.classes || [];
       const payments = paymentsRes?.data || [];
-      const schedule = scheduleRes?.data || [];
+
+      // Get detailed class information
+      const detailedClasses = [];
+      for (const classItem of classes) {
+        try {
+          const classRes = await getClassByIdAPI(classItem.id);
+          if (classRes?.data) {
+            detailedClasses.push(classRes.data);
+          }
+        } catch (err) {
+          console.error(`Error fetching class details for ${classItem.id}:`, err);
+          // Add basic class info if detailed fetch fails
+          detailedClasses.push({
+            id: classItem.id,
+            name: classItem.name,
+            status: classItem.status || 'active',
+            students: classItem.students || [],
+            schedule: classItem.schedule,
+            room: classItem.room,
+          });
+        }
+      }
 
       // Calculate statistics
-      const activeClasses = classes.filter(c => c.status === 'active').length;
-      const totalStudents = classes.reduce((sum, c) => sum + (c.students?.length || 0), 0);
+      const activeClasses = detailedClasses.filter(c => c.status === 'active').length;
+      const totalStudents = detailedClasses.reduce((sum, c) => sum + (c.students?.length || 0), 0);
       const totalSalary = payments.reduce((sum, p) => sum + ((p.totalLessons || 0) * (p.salaryPerLesson || 0)), 0);
       const paidSalary = payments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
 
@@ -85,14 +109,14 @@ const Dashboard = () => {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const upcoming = classes.filter(c => {
+      const upcoming = detailedClasses.filter(c => {
         if (c.status !== 'active') return false;
         const classDate = new Date(c.schedule?.startDate);
         return classDate >= today && classDate <= tomorrow;
       }).slice(0, 3);
 
       setStats({
-        totalClasses: classes.length,
+        totalClasses: detailedClasses.length,
         activeClasses,
         totalStudents,
         totalSalary,
@@ -100,7 +124,7 @@ const Dashboard = () => {
         upcomingClasses: upcoming.length,
       });
 
-      setMyClasses(classes);
+      setMyClasses(detailedClasses);
       setRecentPayments(payments.slice(0, 3));
       setUpcomingClasses(upcoming);
     } catch (err) {
@@ -158,14 +182,18 @@ const Dashboard = () => {
           </Alert>
         )}
 
-        {/* Stat Cards */}
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+          Xin chào <strong>{JSON.parse(localStorage.getItem('userData') || '{}').name || 'Giáo viên'}</strong>, đây là thông tin giảng dạy của bạn
+        </Typography>
+
+        {/* Stat Cards - First Row */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Lớp đang dạy"
-              value={stats.activeClasses}
+              title="Tổng lớp học"
+              value={stats.totalClasses}
               icon={<ClassIcon sx={{ fontSize: 40 }} />}
-              color="primary"
+              color="secondary"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -178,32 +206,24 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng lương"
-              value={formatCurrency(stats.totalSalary)}
-              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
-              color="warning"
+              title="Lớp đang dạy"
+              value={stats.activeClasses}
+              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              color="primary"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Đã nhận"
-              value={formatCurrency(stats.paidSalary)}
-              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              color="info"
+              title="Lớp đã dạy"
+              value={stats.totalClasses - stats.activeClasses}
+              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              color="success"
             />
           </Grid>
         </Grid>
 
-        {/* Additional Stats */}
+        {/* Stat Cards - Second Row */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tổng lớp học"
-              value={stats.totalClasses}
-              icon={<ClassIcon sx={{ fontSize: 40 }} />}
-              color="secondary"
-            />
-          </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp sắp tới"
@@ -214,18 +234,26 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Còn lại"
-              value={formatCurrency(stats.totalSalary - stats.paidSalary)}
+              title="Tổng lương"
+              value={formatCurrency(stats.totalSalary)}
               icon={<PaymentIcon sx={{ fontSize: 40 }} />}
-              color="error"
+              color="warning"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tỷ lệ nhận lương"
-              value={`${stats.totalSalary > 0 ? Math.round((stats.paidSalary / stats.totalSalary) * 100) : 0}%`}
+              title="Lương đã nhận"
+              value={formatCurrency(stats.paidSalary)}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              color="success"
+              color="info"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Lương chưa nhận"
+              value={formatCurrency(stats.totalSalary - stats.paidSalary)}
+              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+              color="error"
             />
           </Grid>
         </Grid>
@@ -236,8 +264,8 @@ const Dashboard = () => {
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary.main, fontWeight: 600 }}>
-                Lớp học sắp tới
-              </Typography>
+                  Lớp học sắp tới
+                </Typography>
               {upcomingClasses.length > 0 ? (
                 <List>
                   {upcomingClasses.map((classItem, index) => (
@@ -284,18 +312,18 @@ const Dashboard = () => {
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ color: COLORS.secondary.main, fontWeight: 600 }}>
                 Thanh toán lương gần đây
-              </Typography>
+                </Typography>
               {recentPayments.length > 0 ? (
                 <List>
                   {recentPayments.map((payment, index) => (
                     <React.Fragment key={payment.id || index}>
-                      <ListItem>
+                  <ListItem>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: COLORS.secondary.main }}>
                             <PaymentIcon />
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText
+                    <ListItemText
                           primary={`${payment.classId?.name || 'N/A'} - ${payment.month}/${payment.year}`}
                           secondary={
                             <Box>
@@ -312,8 +340,8 @@ const Dashboard = () => {
                           label={payment.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
                           color={payment.status === 'paid' ? 'success' : 'warning'}
                           size="small"
-                        />
-                      </ListItem>
+                    />
+                  </ListItem>
                       {index < recentPayments.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}

@@ -46,7 +46,7 @@ const StatCard = ({
               {title}
             </Typography>
             <Typography variant="h4" component="div" gutterBottom>
-              {value}
+              {value !== undefined && value !== null ? value : '0'}
             </Typography>
             {subtitle && (
               <Typography variant="body2" color="textSecondary">

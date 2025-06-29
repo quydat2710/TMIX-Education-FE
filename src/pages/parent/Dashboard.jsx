@@ -38,11 +38,14 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import WarningIcon from '@mui/icons-material/Warning';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import DiscountIcon from '@mui/icons-material/Discount';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
 import {
   getParentByIdAPI,
   getPaymentsByStudentAPI,
+  getClassByIdAPI,
+  getTeacherByIdAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -62,43 +65,200 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    fetchParentData();
-  }, []);
+    if (user) {
+      console.log('User data loaded, fetching parent data');
+      fetchParentData();
+    } else {
+      console.log('User data not yet loaded');
+    }
+  }, [user]);
 
   const fetchParentData = async () => {
     setLoading(true);
+    setError(''); // Clear any previous errors
+
+    console.log('Starting fetchParentData, user:', user);
+
     try {
       // Get parent ID from user data
-      const parentId = user?.parentId || user?.id;
+      const parentId = user?.parentId || user?.id || localStorage.getItem('parent_id');
+      console.log('Parent ID:', parentId);
+
       if (!parentId) {
+        console.error('No parent ID found in user data or localStorage');
         setError('Không tìm thấy thông tin phụ huynh');
+        setLoading(false);
         return;
       }
 
+      console.log('Fetching parent data for ID:', parentId);
+
       // Fetch parent data
       const parentRes = await getParentByIdAPI(parentId);
-      const parent = parentRes?.data;
+      console.log('Parent API response:', parentRes);
+      console.log('Parent API response type:', typeof parentRes);
+      console.log('Parent API response keys:', Object.keys(parentRes || {}));
+
+      // Handle different possible response structures
+      const parent = parentRes?.data || parentRes;
+      console.log('Parent data:', parent);
+      console.log('Parent data type:', typeof parent);
+      console.log('Parent data keys:', Object.keys(parent || {}));
+      console.log('Parent studentIds:', parent?.studentIds);
+      console.log('Parent studentIds length:', parent?.studentIds?.length);
+      console.log('Parent studentIds type:', typeof parent?.studentIds);
       setParentData(parent);
 
       // Fetch children data and their payments
-      const children = parent?.children || [];
+      // Use studentIds from parent response instead of children property
+      const children = parent?.studentIds || [];
+      console.log('Children found:', children.length);
+      console.log('Children array:', children);
+
       const childrenWithPayments = await Promise.all(
         children.map(async (child) => {
           try {
+            console.log('Fetching payments for child:', child.id);
             const paymentsRes = await getPaymentsByStudentAPI(child.id, { limit: 100 });
-            const payments = paymentsRes?.data?.payments || [];
+            console.log('Payments response for child', child.id, ':', paymentsRes);
 
-            return {
-              ...child,
+            const payments = paymentsRes?.data?.payments || paymentsRes?.data || [];
+            console.log('Extracted payments array:', payments);
+            console.log('First payment example:', payments[0]);
+
+            const totalFees = payments.reduce((sum, p) => {
+              const amount = Number(p.finalAmount) || Number(p.amount) || 0;
+              console.log('Payment:', p, 'Amount:', amount);
+              return sum + amount;
+            }, 0);
+
+            const paidFees = payments.reduce((sum, p) => {
+              const amount = Number(p.paidAmount) || Number(p.amount) || 0;
+              console.log('Payment paid:', p, 'Amount:', amount);
+              return sum + amount;
+            }, 0);
+
+            const pendingPayments = payments.filter(p => p.status !== 'paid').length;
+
+            console.log('Calculated for child:', {
+              totalFees,
+              paidFees,
+              pendingPayments,
+              paymentsCount: payments.length
+            });
+
+            // Debug classes structure
+            console.log('Child classes:', child.classes);
+            console.log('First class example:', child.classes?.[0]);
+            console.log('Classes length:', child.classes?.length);
+
+            // Fetch detailed class information for each class
+            const classesWithDetails = await Promise.all(
+              (child.classes || []).map(async (classItem) => {
+                try {
+                  console.log('Fetching class details for:', classItem.classId || classItem.id);
+                  const classRes = await getClassByIdAPI(classItem.classId || classItem.id);
+                  console.log('Class API response:', classRes);
+
+                  const classData = classRes?.data || classRes;
+                  console.log('Class data:', classData);
+
+                  return {
+                    ...classItem,
+                    id: classItem.classId || classItem.id,
+                    name: classData?.name || classItem.name || 'N/A',
+                    teacherId: classData?.teacherId || classItem.teacherId,
+                    schedule: classData?.schedule || classItem.schedule,
+                    feePerLesson: classData?.feePerLesson || classItem.feePerLesson || 0,
+                    room: classData?.room || classData?.classroom || classItem.room || classItem.classroom,
+                    status: classItem.status || 'active',
+                  };
+                } catch (err) {
+                  console.error('Error fetching class details:', err);
+                  return {
+                    ...classItem,
+                    id: classItem.classId || classItem.id,
+                    name: classItem.name || 'N/A',
+                    teacherId: classItem.teacherId,
+                    schedule: classItem.schedule,
+                    feePerLesson: classItem.feePerLesson || 0,
+                    room: classItem.room || classItem.classroom,
+                    status: classItem.status || 'active',
+                  };
+                }
+              })
+            );
+
+            console.log('Classes with details:', classesWithDetails);
+
+            // Fetch teacher information for each class
+            const classesWithTeachers = await Promise.all(
+              classesWithDetails.map(async (classItem) => {
+                if (classItem.teacherId) {
+                  try {
+                    console.log('Fetching teacher details for:', classItem.teacherId);
+                    const teacherRes = await getTeacherByIdAPI(classItem.teacherId);
+                    console.log('Teacher API response:', teacherRes);
+
+                    const teacherData = teacherRes?.data || teacherRes;
+                    console.log('Teacher data:', teacherData);
+
+                    return {
+                      ...classItem,
+                      teacherName: teacherData?.userId?.name || teacherData?.name || 'Chưa phân công',
+                    };
+                  } catch (err) {
+                    console.error('Error fetching teacher details:', err);
+                    return {
+                      ...classItem,
+                      teacherName: 'Chưa phân công',
+                    };
+                  }
+                } else {
+                  return {
+                    ...classItem,
+                    teacherName: 'Chưa phân công',
+                  };
+                }
+              })
+            );
+
+            console.log('Classes with teachers:', classesWithTeachers);
+
+            // Format child data to match expected structure
+            const formattedChild = {
+              id: child.id,
+              studentId: child.id,
+              name: child.userId?.name || child.name || 'N/A',
+              email: child.userId?.email || child.email || 'N/A',
+              age: child.userId?.age || child.age || 0,
+              grade: child.userId?.grade || child.grade || 'N/A',
+              dateOfBirth: child.userId?.dayOfBirth || child.dateOfBirth || 'N/A',
+              avatar: child.userId?.avatar || child.avatar || null,
+              status: child.status || 'active',
+              classes: classesWithTeachers,
               payments,
-              totalFees: payments.reduce((sum, p) => sum + (p.finalAmount || 0), 0),
-              paidFees: payments.reduce((sum, p) => sum + (p.paidAmount || 0), 0),
-              pendingPayments: payments.filter(p => p.status !== 'paid').length,
+              totalFees,
+              paidFees,
+              pendingPayments,
             };
+
+            console.log('Formatted child:', formattedChild);
+
+            return formattedChild;
           } catch (err) {
             console.error(`Error fetching payments for child ${child.id}:`, err);
-            return {
-              ...child,
+    return {
+              id: child.id,
+              studentId: child.id,
+              name: child.userId?.name || child.name || 'N/A',
+              email: child.userId?.email || child.email || 'N/A',
+              age: child.userId?.age || child.age || 0,
+              grade: child.userId?.grade || child.grade || 'N/A',
+              dateOfBirth: child.userId?.dayOfBirth || child.dateOfBirth || 'N/A',
+              avatar: child.userId?.avatar || child.avatar || null,
+              status: child.status || 'active',
+              classes: child.classes || [],
               payments: [],
               totalFees: 0,
               paidFees: 0,
@@ -108,6 +268,7 @@ const Dashboard = () => {
         })
       );
 
+      console.log('Children with payments:', childrenWithPayments);
       setChildrenData(childrenWithPayments);
 
       // Calculate overall statistics
@@ -117,17 +278,32 @@ const Dashboard = () => {
       const paidFees = childrenWithPayments.reduce((sum, child) => sum + child.paidFees, 0);
       const pendingPayments = childrenWithPayments.reduce((sum, child) => sum + child.pendingPayments, 0);
 
-      setStats({
+      const calculatedStats = {
         totalChildren,
-        totalClasses,
+      totalClasses,
         totalFees,
         paidFees,
         pendingPayments,
         attendanceRate: 85, // Mock attendance rate for now
-      });
+      };
+
+      console.log('Calculated stats:', calculatedStats);
+      setStats(calculatedStats);
+
     } catch (err) {
       console.error('Error fetching parent dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
+
+      // Set fallback data to show something
+      setStats({
+        totalChildren: 0,
+        totalClasses: 0,
+        totalFees: 0,
+        paidFees: 0,
+        pendingPayments: 0,
+        attendanceRate: 0,
+      });
+      setChildrenData([]);
     } finally {
       setLoading(false);
     }
@@ -166,7 +342,7 @@ const Dashboard = () => {
       <Box sx={commonStyles.pageContainer}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
           Dashboard Phụ huynh
-        </Typography>
+            </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -174,7 +350,7 @@ const Dashboard = () => {
           </Alert>
         )}
 
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
           Xin chào {parentData?.userId?.name || parentData?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
         </Typography>
 
@@ -183,7 +359,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Số con đang học"
-              value={stats.totalChildren}
+              value={stats.totalChildren || 0}
               icon={<PersonIcon sx={{ fontSize: 40 }} />}
               color="primary"
             />
@@ -191,7 +367,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng số lớp"
-              value={stats.totalClasses}
+              value={stats.totalClasses || 0}
               icon={<SchoolIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
@@ -199,7 +375,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng học phí"
-              value={formatCurrency(stats.totalFees)}
+              value={formatCurrency(stats.totalFees || 0)}
               icon={<PaymentIcon sx={{ fontSize: 40 }} />}
               color="warning"
             />
@@ -207,7 +383,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Đã thanh toán"
-              value={formatCurrency(stats.paidFees)}
+              value={formatCurrency(stats.paidFees || 0)}
               icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
               color="info"
             />
@@ -219,7 +395,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Còn thiếu"
-              value={formatCurrency(stats.totalFees - stats.paidFees)}
+              value={formatCurrency((stats.totalFees || 0) - (stats.paidFees || 0))}
               icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="error"
             />
@@ -227,7 +403,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Thanh toán chờ"
-              value={stats.pendingPayments}
+              value={stats.pendingPayments || 0}
               icon={<AttachMoneyIcon sx={{ fontSize: 40 }} />}
               color="warning"
             />
@@ -235,7 +411,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tỷ lệ thanh toán"
-              value={`${stats.totalFees > 0 ? Math.round((stats.paidFees / stats.totalFees) * 100) : 0}%`}
+              value={`${(stats.totalFees || 0) > 0 ? Math.round(((stats.paidFees || 0) / (stats.totalFees || 0)) * 100) : 0}%`}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
@@ -243,7 +419,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tỷ lệ tham gia"
-              value={`${stats.attendanceRate}%`}
+              value={`${stats.attendanceRate || 0}%`}
               icon={<EventIcon sx={{ fontSize: 40 }} />}
               color="secondary"
             />
@@ -255,53 +431,59 @@ const Dashboard = () => {
           {childrenData.map((child, childIndex) => (
             <Grid item xs={12} key={child.id}>
               <Paper sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                    {child.name?.charAt(0)?.toUpperCase()}
-                  </Avatar>
+                    {child.name?.charAt(0)?.toUpperCase() || 'N'}
+                </Avatar>
                   <Box>
                     <Typography variant="h6" fontWeight="bold">
-                      {child.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {child.grade || 'N/A'} • {child.age || 'N/A'} tuổi
-                    </Typography>
-                  </Box>
+                    {child.name || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                      {child.email || 'N/A'}
+                  </Typography>
+                </Box>
                   <Box sx={{ ml: 'auto' }}>
                     <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => navigate(`/parent/children/${child.id}`)}
+                  variant="outlined"
+                            size="small"
+                      onClick={() => navigate(`/parent/children/${child.studentId || child.id}`)}
                     >
                       Xem chi tiết
                     </Button>
                   </Box>
-                </Box>
+                  </Box>
 
                 {/* Child's Classes */}
                 {child.classes && child.classes.length > 0 ? (
                   <TableContainer>
-                    <Table size="small">
-                      <TableHead>
+                      <Table size="small">
+                        <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Học phí</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
                         {child.classes.map((classItem, classIndex) => (
-                          <TableRow key={classItem.id || classIndex} hover>
+                          <TableRow key={classItem.id || classItem.classId || classIndex} hover>
                             <TableCell>
                               <Typography variant="body2" fontWeight="medium">
-                                {classItem.name}
+                                {classItem.name || classItem.className || 'N/A'}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
-                                {classItem.teacherId?.userId?.name || classItem.teacherId?.name || 'N/A'}
+                                {classItem.teacherName || 'Chưa phân công'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {classItem.room || classItem.classroom || 'N/A'}
                               </Typography>
                             </TableCell>
                             <TableCell>
@@ -311,25 +493,25 @@ const Dashboard = () => {
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" fontWeight="600">
-                                {formatCurrency(classItem.feePerLesson || 0)}/buổi
+                                {formatCurrency(classItem.feePerLesson || classItem.fee || 0)}/buổi
                               </Typography>
-                            </TableCell>
+                              </TableCell>
                             <TableCell>
                               <Chip
-                                label={classItem.status === 'active' ? 'Đang học' : classItem.status}
+                                label={classItem.status === 'active' ? 'Đang học' : classItem.status || 'N/A'}
                                 color={classItem.status === 'active' ? 'success' : 'default'}
                                 size="small"
                               />
                             </TableCell>
                           </TableRow>
                         ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                 ) : (
                   <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                     Chưa có lớp học nào
-                  </Typography>
+                    </Typography>
                 )}
 
                 {/* Payment Summary */}
@@ -340,21 +522,21 @@ const Dashboard = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Tổng học phí: <strong>{formatCurrency(child.totalFees)}</strong>
+                        Tổng học phí: <strong>{formatCurrency(child.totalFees || 0)}</strong>
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Đã thanh toán: <strong style={{ color: 'green' }}>{formatCurrency(child.paidFees)}</strong>
+                        Đã thanh toán: <strong style={{ color: 'green' }}>{formatCurrency(child.paidFees || 0)}</strong>
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Còn thiếu: <strong style={{ color: 'red' }}>{formatCurrency(child.totalFees - child.paidFees)}</strong>
+                        Còn thiếu: <strong style={{ color: 'red' }}>{formatCurrency((child.totalFees || 0) - (child.paidFees || 0))}</strong>
                       </Typography>
                     </Grid>
                   </Grid>
-                </Box>
+        </Box>
               </Paper>
             </Grid>
           ))}
