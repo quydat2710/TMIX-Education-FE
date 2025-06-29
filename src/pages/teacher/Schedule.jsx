@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/material';
+import dayjs from 'dayjs';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import ScheduleCalendar from '../../components/common/ScheduleCalendar';
 import { getTeacherScheduleAPI, getMyClassesAPI } from '../../services/api';
@@ -54,23 +55,17 @@ const Schedule = () => {
           classes.forEach(classItem => {
             if (classItem.schedule) {
               const { schedule } = classItem;
-              const startDate = new Date(schedule.startDate);
-              const endDate = new Date(schedule.endDate);
+              const startDate = dayjs(schedule.startDate);
+              const endDate = dayjs(schedule.endDate);
 
-              // Tạo lessons cho mỗi ngày trong tuần được lên lịch
-              schedule.dayOfWeeks.forEach(dayOfWeek => {
-                let currentDate = new Date(startDate);
+              // Sử dụng cách tiếp cận đơn giản như trang học sinh
+              let currentDate = startDate;
+              while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
+                const currentDay = currentDate.day(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 
-                // API sử dụng format: 0=Chủ nhật, 1=Thứ 2, ..., 6=Thứ 7
-                // JavaScript getDay() cũng sử dụng format tương tự
-                while (currentDate.getDay() !== dayOfWeek) {
-                  currentDate.setDate(currentDate.getDate() + 1);
-                }
-
-                // Tạo lessons cho tất cả các tuần từ startDate đến endDate
-                while (currentDate <= endDate) {
+                if (schedule.dayOfWeeks.includes(currentDay)) {
                   const lesson = {
-                    date: currentDate.toISOString().split('T')[0],
+                    date: currentDate.format('YYYY-MM-DD'),
                     className: classItem.name,
                     time: `${schedule.timeSlots.startTime} - ${schedule.timeSlots.endTime}`,
                     room: classItem.room,
@@ -83,11 +78,11 @@ const Schedule = () => {
                   };
 
                   formattedLessons.push(lesson);
-
-                  // Chuyển đến tuần tiếp theo
-                  currentDate.setDate(currentDate.getDate() + 7);
                 }
-              });
+
+                // Chuyển đến ngày tiếp theo
+                currentDate = currentDate.add(1, 'day');
+              }
             }
           });
 

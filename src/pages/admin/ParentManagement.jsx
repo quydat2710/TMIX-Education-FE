@@ -493,34 +493,119 @@ const ParentManagement = () => {
           <Dialog
             open={openDialog}
             onClose={handleCloseDialog}
-            maxWidth="sm"
+            maxWidth="md"
             fullWidth
             PaperProps={{
-              sx: { borderRadius: 2 }
+              sx: {
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                overflow: 'hidden'
+              }
             }}
           >
-            <DialogTitle sx={commonStyles.dialogTitle}>
+            <DialogTitle sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              py: 3,
+              px: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
           {selectedParent ? 'Chỉnh sửa thông tin phụ huynh' : 'Thêm phụ huynh mới'}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  {selectedParent ? 'Cập nhật thông tin phụ huynh' : 'Thêm phụ huynh mới vào hệ thống'}
+                </Typography>
+              </Box>
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                p: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {selectedParent ? (
+                  <EditIcon sx={{ fontSize: 28, color: 'white' }} />
+                ) : (
+                  <AddIcon sx={{ fontSize: 28, color: 'white' }} />
+                )}
+              </Box>
         </DialogTitle>
-            <DialogContent sx={{ p: 2 }}>
+            <DialogContent sx={{ p: 0 }}>
+              <Box sx={{ p: 4 }}>
               {error && (
-                <Typography color="error" sx={{ mb: 2 }}>
+                  <Box sx={{
+                    p: 2,
+                    mb: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+                    border: '1px solid #f44336'
+                  }}>
+                    <Typography color="error" sx={{ fontWeight: 600, textAlign: 'center' }}>
                   {error}
                 </Typography>
+                  </Box>
               )}
 
               {selectedParent ? (
                 // Tabs for editing parent
                 <Box>
-                  <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3 }}>
+                    <Tabs
+                      value={tabValue}
+                      onChange={handleTabChange}
+                      sx={{
+                        mb: 3,
+                        '& .MuiTab-root': {
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          '&.Mui-selected': {
+                            color: '#667eea',
+                          }
+                        },
+                        '& .MuiTabs-indicator': {
+                          backgroundColor: '#667eea',
+                        }
+                      }}
+                    >
                     <Tab label="Thông tin cơ bản" />
                     <Tab label="Quản lý con cái" />
                   </Tabs>
 
                   {tabValue === 0 && (
                     // Tab 1: Basic Information
-                    <Box>
-                      <Grid container spacing={2} sx={commonStyles.formGrid}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed'
+                      }}>
+                        <Typography variant="h6" gutterBottom sx={{
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2
+                        }}>
+                          <Box sx={{
+                            width: 4,
+                            height: 20,
+                            bgcolor: '#667eea',
+                            borderRadius: 2
+                          }} />
+                          Thông tin cơ bản
+                        </Typography>
+                        <Box sx={{
+                          p: 2,
+                          bgcolor: 'white',
+                          borderRadius: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
+                          <Grid container spacing={3}>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
@@ -531,7 +616,14 @@ const ParentManagement = () => {
                             error={!!formErrors.name}
                             helperText={formErrors.name}
                             required
-                            sx={commonStyles.formField}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -545,7 +637,14 @@ const ParentManagement = () => {
                             error={!!formErrors.email}
                             helperText={formErrors.email}
                             required
-                            sx={commonStyles.formField}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -559,7 +658,14 @@ const ParentManagement = () => {
                             error={!!formErrors.dayOfBirth}
                             helperText={formErrors.dayOfBirth}
                             required
-                            sx={commonStyles.formField}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -572,7 +678,14 @@ const ParentManagement = () => {
                             error={!!formErrors.phone}
                             helperText={formErrors.phone}
                             required
-                            sx={commonStyles.formField}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -585,11 +698,25 @@ const ParentManagement = () => {
                             error={!!formErrors.address}
                             helperText={formErrors.address}
                             required
-                            sx={commonStyles.formField}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <FormControl fullWidth sx={commonStyles.formField}>
+                              <FormControl fullWidth sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 2,
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#667eea',
+                                  },
+                                },
+                              }}>
                             <InputLabel>Giới tính</InputLabel>
                             <Select
                               label="Giới tính"
@@ -604,26 +731,58 @@ const ParentManagement = () => {
                             </Select>
                           </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                            <Grid item xs={12}>
                           <FormControlLabel
                             control={
                               <Checkbox
                                 name="canSeeTeacherInfo"
                                 checked={form.canSeeTeacherInfo}
                                 onChange={(e) => setForm(prev => ({ ...prev, canSeeTeacherInfo: e.target.checked }))}
+                                    sx={{
+                                      color: '#667eea',
+                                      '&.Mui-checked': {
+                                        color: '#667eea',
+                                      },
+                                    }}
                               />
                             }
                             label="Quyền xem thông tin giáo viên"
-                            sx={commonStyles.formField}
+                                sx={{ fontWeight: 500 }}
                           />
                         </Grid>
                       </Grid>
+                        </Box>
 
                       {classEdits.length > 0 && (
-                        <Box sx={{ mt: 3 }}>
-                          <Typography variant="h6" gutterBottom>
+                          <Paper sx={{
+                            p: 3,
+                            mt: 3,
+                            borderRadius: 2,
+                            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                            border: '1px solid #e0e6ed'
+                          }}>
+                            <Typography variant="h6" gutterBottom sx={{
+                              color: '#2c3e50',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              mb: 2
+                            }}>
+                              <Box sx={{
+                                width: 4,
+                                height: 20,
+                                bgcolor: '#667eea',
+                                borderRadius: 2
+                              }} />
                             Danh sách lớp đang học
                           </Typography>
+                            <Box sx={{
+                              p: 2,
+                              bgcolor: 'white',
+                              borderRadius: 2,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                            }}>
                           <Grid container spacing={2}>
                             {classEdits.map((cls, idx) => (
                               <React.Fragment key={cls.classId}>
@@ -633,6 +792,11 @@ const ParentManagement = () => {
                                     value={cls.className}
                                     InputProps={{ readOnly: true }}
                                     fullWidth
+                                        sx={{
+                                          '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                          },
+                                        }}
                                   />
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
@@ -643,10 +807,25 @@ const ParentManagement = () => {
                                     onChange={(e) => handleClassEditChange(idx, 'discountPercent', e.target.value)}
                                     fullWidth
                                     inputProps={{ min: 0, max: 100 }}
+                                        sx={{
+                                          '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#667eea',
+                                            },
+                                          },
+                                        }}
                                   />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                  <FormControl fullWidth>
+                                      <FormControl fullWidth sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                          borderRadius: 2,
+                                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#667eea',
+                                          },
+                                        },
+                                      }}>
                                     <InputLabel>Trạng thái</InputLabel>
                                     <Select
                                       label="Trạng thái"
@@ -662,15 +841,43 @@ const ParentManagement = () => {
                             ))}
                           </Grid>
                         </Box>
+                          </Paper>
                       )}
-                    </Box>
+                      </Paper>
                   )}
 
                   {tabValue === 1 && (
                     // Tab 2: Children Management
-                    <Box>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed'
+                      }}>
+                        <Typography variant="h6" gutterBottom sx={{
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2
+                        }}>
+                          <Box sx={{
+                            width: 4,
+                            height: 20,
+                            bgcolor: '#667eea',
+                            borderRadius: 2
+                          }} />
+                          Quản lý con cái
+                        </Typography>
+                        <Box sx={{
+                          p: 2,
+                          bgcolor: 'white',
+                          borderRadius: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
                       <Box sx={{ mb: 3 }}>
-                        <Typography variant="h6" gutterBottom>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50' }}>
                           Danh sách con hiện tại
                         </Typography>
                         {selectedParent.studentIds && selectedParent.studentIds.length > 0 ? (
@@ -682,11 +889,12 @@ const ParentManagement = () => {
                                 alignItems: 'center',
                                 p: 2,
                                 border: '1px solid #e0e0e0',
-                                borderRadius: 1,
-                                bgcolor: '#fafafa'
+                                    borderRadius: 2,
+                                    bgcolor: '#fafafa',
+                                    '&:hover': { bgcolor: '#f0f0f0' }
                               }}>
                                 <Box>
-                                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                     {student.userId?.name || 'Không có tên'}
                                   </Typography>
                                   <Typography variant="body2" color="textSecondary">
@@ -698,6 +906,11 @@ const ParentManagement = () => {
                                   color="error"
                                   variant="outlined"
                                   onClick={() => handleRemoveChild(student.id, selectedParent.id)}
+                                      sx={{
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        fontWeight: 600
+                                      }}
                                 >
                                   Xóa
                                 </Button>
@@ -712,7 +925,7 @@ const ParentManagement = () => {
                       </Box>
 
                       <Box>
-                        <Typography variant="h6" gutterBottom>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#2c3e50' }}>
                           Thêm con mới
                         </Typography>
                         <Box sx={{ mb: 2 }}>
@@ -722,6 +935,14 @@ const ParentManagement = () => {
                             placeholder="Nhập tên hoặc email học sinh"
                             value={studentSearchQuery}
                             onChange={handleStudentSearchChange}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#667eea',
+                                    },
+                                  },
+                                }}
                             InputProps={{
                               endAdornment: searchingStudents && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', pr: 1 }}>
@@ -749,14 +970,14 @@ const ParentManagement = () => {
                                     alignItems: 'center',
                                     p: 1.5,
                                     border: '1px solid #e0e0e0',
-                                    borderRadius: 1,
+                                        borderRadius: 2,
                                     mb: 1,
                                     bgcolor: '#fafafa',
                                     '&:hover': { bgcolor: '#f0f0f0' }
                                   }}
                                 >
                                   <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                       {student.userId?.name || 'Không có tên'}
                                     </Typography>
                                     <Typography variant="caption" color="textSecondary">
@@ -767,6 +988,13 @@ const ParentManagement = () => {
                                     size="small"
                                     variant="contained"
                                     onClick={() => handleAddChild(student.id, selectedParent.id)}
+                                        sx={{
+                                          borderRadius: 2,
+                                          textTransform: 'none',
+                                          fontWeight: 600,
+                                          bgcolor: '#667eea',
+                                          '&:hover': { bgcolor: '#5a6fd8' }
+                                        }}
                                   >
                                     Thêm
                                   </Button>
@@ -783,11 +1011,40 @@ const ParentManagement = () => {
                         )}
                       </Box>
                     </Box>
+                      </Paper>
                   )}
                 </Box>
               ) : (
                 // Create new parent form (no tabs)
-                <Grid container spacing={2} sx={commonStyles.formGrid}>
+                  <Paper sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    border: '1px solid #e0e6ed'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{
+                      color: '#2c3e50',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: '#667eea',
+                        borderRadius: 2
+                      }} />
+                      Thông tin phụ huynh mới
+                    </Typography>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
@@ -798,7 +1055,14 @@ const ParentManagement = () => {
                       error={!!formErrors.name}
                       helperText={formErrors.name}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -812,7 +1076,14 @@ const ParentManagement = () => {
                       error={!!formErrors.email}
                       helperText={formErrors.email}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -826,7 +1097,14 @@ const ParentManagement = () => {
                       error={!!formErrors.password}
                       helperText={formErrors.password}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -840,7 +1118,14 @@ const ParentManagement = () => {
                       error={!!formErrors.dayOfBirth}
                       helperText={formErrors.dayOfBirth}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -853,7 +1138,14 @@ const ParentManagement = () => {
                       error={!!formErrors.phone}
                       helperText={formErrors.phone}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -866,11 +1158,25 @@ const ParentManagement = () => {
                       error={!!formErrors.address}
                       helperText={formErrors.address}
                       required
-                      sx={commonStyles.formField}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth sx={commonStyles.formField}>
+                          <FormControl fullWidth sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}>
                       <InputLabel>Giới tính</InputLabel>
                       <Select
                         label="Giới tính"
@@ -885,24 +1191,53 @@ const ParentManagement = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                        <Grid item xs={12}>
                     <FormControlLabel
                       control={
                         <Checkbox
                           name="canSeeTeacherInfo"
                           checked={form.canSeeTeacherInfo}
                           onChange={(e) => setForm(prev => ({ ...prev, canSeeTeacherInfo: e.target.checked }))}
+                                sx={{
+                                  color: '#667eea',
+                                  '&.Mui-checked': {
+                                    color: '#667eea',
+                                  },
+                                }}
                         />
                       }
                       label="Quyền xem thông tin giáo viên"
-                      sx={commonStyles.formField}
+                            sx={{ fontWeight: 500 }}
                     />
                   </Grid>
                 </Grid>
+                    </Box>
+                  </Paper>
               )}
+              </Box>
             </DialogContent>
-            <DialogActions sx={commonStyles.formActions}>
-              <Button onClick={handleCloseDialog} sx={commonStyles.secondaryButton} disabled={loading}>
+            <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+              <Button
+                onClick={handleCloseDialog}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  border: '2px solid #667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    background: '#667eea',
+                    color: 'white',
+                  },
+                  '&:disabled': {
+                    borderColor: '#ccc',
+                    color: '#ccc'
+                  }
+                }}
+                disabled={loading}
+              >
                 Hủy
               </Button>
               {selectedParent && tabValue === 1 ? (
@@ -910,7 +1245,15 @@ const ParentManagement = () => {
                 <Button
                   variant="contained"
                   onClick={handleCloseDialog}
-                  sx={commonStyles.primaryButton}
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    bgcolor: '#667eea',
+                    '&:hover': { bgcolor: '#5a6fd8' }
+                  }}
                 >
                   Đóng
                 </Button>
@@ -920,7 +1263,18 @@ const ParentManagement = () => {
                   variant="contained"
                   onClick={handleSubmit}
                   disabled={loading}
-                  sx={commonStyles.primaryButton}
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    bgcolor: '#667eea',
+                    '&:hover': { bgcolor: '#5a6fd8' },
+                    '&:disabled': {
+                      background: '#ccc',
+                    }
+                  }}
                 >
                   {loading ? 'Đang xử lý...' : (selectedParent ? 'Cập nhật' : 'Thêm mới')}
                 </Button>
@@ -941,96 +1295,135 @@ const ParentManagement = () => {
           <Dialog
             open={openViewDialog}
             onClose={handleCloseViewDialog}
-            maxWidth="sm"
+            maxWidth="md"
             fullWidth
             PaperProps={{
               sx: {
-                borderRadius: 2,
-                minHeight: '50vh'
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                overflow: 'hidden',
+                minHeight: '60vh'
               }
             }}
           >
             <DialogTitle sx={{
-              ...commonStyles.dialogTitle,
-              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
-              textAlign: 'center',
-              py: 1
+              py: 3,
+              px: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Chi tiết phụ huynh
               </Typography>
-              {selectedParentForView && (
-                <Typography sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1.3rem', color: 'black' }}>
-                  Thông tin phụ huynh
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Thông tin chi tiết về phụ huynh và con cái
                 </Typography>
-              )}
+              </Box>
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                p: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ViewIcon sx={{ fontSize: 28, color: 'white' }} />
+              </Box>
             </DialogTitle>
-            <DialogContent sx={{ padding: '8px 16px 16px 16px' }}>
+            <DialogContent sx={{ p: 0 }}>
               {selectedParentForView && (
-                <Box>
+                <Box sx={{ p: 4 }}>
                   {/* Main Information Grid */}
                   <Grid container spacing={3}>
                     {/* Left Column - Personal Info */}
                     <Grid item xs={12} md={6}>
-                      <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed',
+                        height: '100%'
+                      }}>
+                        <Typography variant="h6" gutterBottom sx={{
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2
+                        }}>
+                          <Box sx={{
+                            width: 4,
+                            height: 20,
+                            bgcolor: '#667eea',
+                            borderRadius: 2
+                          }} />
                           Thông tin cá nhân
                         </Typography>
-
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Box sx={{
+                          p: 2,
+                          bgcolor: 'white',
+                          borderRadius: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Họ và tên
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.primary }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500, color: '#667eea' }}>
                               {selectedParentForView.userId?.name}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Email
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
                               {selectedParentForView.userId?.email}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Số điện thoại
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
                               {selectedParentForView.userId?.phone}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Ngày sinh
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
                               {selectedParentForView.userId?.dayOfBirth}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Giới tính
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
                               {getGenderLabel(selectedParentForView.userId?.gender)}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Địa chỉ
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
                               {selectedParentForView.userId?.address}
                             </Typography>
+                            </Box>
                           </Box>
                         </Box>
                       </Paper>
@@ -1038,38 +1431,63 @@ const ParentManagement = () => {
 
                     {/* Right Column - Children Info */}
                     <Grid item xs={12} md={6}>
-                      <Paper sx={{ p: 2.5, borderRadius: 1.5, height: '100%', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed',
+                        height: '100%'
+                      }}>
+                        <Typography variant="h6" gutterBottom sx={{
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2
+                        }}>
+                          <Box sx={{
+                            width: 4,
+                            height: 20,
+                            bgcolor: '#667eea',
+                            borderRadius: 2
+                          }} />
                           Thông tin con cái
                         </Typography>
-
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                           <Box sx={{
-                            p: 1.5,
-                            borderRadius: 1.5,
+                          p: 2,
+                          bgcolor: 'white',
+                          borderRadius: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{
+                              p: 2,
+                              borderRadius: 2,
                             background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                             border: '1px solid #2196f3'
                           }}>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Số lượng con
                             </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1976d2' }}>
                               {selectedParentForView.studentIds ? selectedParentForView.studentIds.length : 0}
                             </Typography>
                           </Box>
 
                           <Box sx={{
-                            p: 1.5,
-                            borderRadius: 1.5,
+                              p: 2,
+                              borderRadius: 2,
                             background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
                             border: '1px solid #9c27b0'
                           }}>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.25 }}>
+                              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                               Trạng thái
                             </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#7b1fa2' }}>
+                              <Typography variant="body1" sx={{ fontWeight: 500, color: '#7b1fa2' }}>
                               {selectedParentForView.studentIds && selectedParentForView.studentIds.length > 0 ? 'Có con đang học' : 'Chưa có con'}
                             </Typography>
+                            </Box>
                           </Box>
                         </Box>
                       </Paper>
@@ -1077,14 +1495,22 @@ const ParentManagement = () => {
 
                     <Grid item xs={12}>
                       {/* Permission Banner */}
-                      <Box sx={{
-                        p: 1.5,
-                        borderRadius: 1.5,
-                        background: `linear-gradient(90deg, ${selectedParentForView.canSeeTeacherInfo ? '#e8f5e8' : '#fff3e0'}, transparent)`,
-                        border: `1px solid ${selectedParentForView.canSeeTeacherInfo ? '#4caf50' : '#ff9800'}`
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed'
                       }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      <Box sx={{
+                          p: 2,
+                          borderRadius: 2,
+                        background: `linear-gradient(90deg, ${selectedParentForView.canSeeTeacherInfo ? '#e8f5e8' : '#fff3e0'}, transparent)`,
+                          border: `1px solid ${selectedParentForView.canSeeTeacherInfo ? '#4caf50' : '#ff9800'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                      }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2c3e50' }}>
                             Quyền xem thông tin giáo viên
                           </Typography>
                           <Chip
@@ -1094,36 +1520,64 @@ const ParentManagement = () => {
                             sx={{ fontWeight: 600 }}
                           />
                         </Box>
-                      </Box>
+                      </Paper>
                     </Grid>
 
                     {/* Full Width - Children List */}
                     {selectedParentForView.studentIds && selectedParentForView.studentIds.length > 0 && (
                       <Grid item xs={12}>
-                        <Paper sx={{ p: 2.5, borderRadius: 1.5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2, color: COLORS.primary, fontWeight: 600, borderBottom: `1px solid ${COLORS.primary}`, pb: 0.5 }}>
+                        <Paper sx={{
+                          p: 3,
+                          borderRadius: 2,
+                          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                          border: '1px solid #e0e6ed'
+                        }}>
+                          <Typography variant="h6" gutterBottom sx={{
+                            color: '#2c3e50',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mb: 2
+                          }}>
+                            <Box sx={{
+                              width: 4,
+                              height: 20,
+                              bgcolor: '#667eea',
+                              borderRadius: 2
+                            }} />
                             Danh sách con
                           </Typography>
-
+                          <Box sx={{
+                            p: 2,
+                            bgcolor: 'white',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                          }}>
                           <Grid container spacing={2}>
                             {selectedParentForView.studentIds.map((student, index) => (
                               <Grid item xs={12} md={4} key={student.id}>
                                 <Box sx={{
-                                  p: 1.5,
-                                  borderRadius: 1.5,
-                                  bgcolor: '#e8f5e8',
-                                  border: '1px solid #4caf50'
+                                    p: 2,
+                                    borderRadius: 2,
+                                    background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                                    border: '2px solid #4caf50',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                                 }}>
                                   <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                                     Con thứ {index + 1}
                                   </Typography>
-                                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#2e7d32' }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
                                     {student.userId?.name || 'Không có tên'}
+                                  </Typography>
+                                    <Typography variant="caption" color="textSecondary">
+                                      ID: {student.id}
                                   </Typography>
                                 </Box>
                               </Grid>
                             ))}
                           </Grid>
+                          </Box>
                         </Paper>
                       </Grid>
                     )}
@@ -1131,18 +1585,18 @@ const ParentManagement = () => {
                 </Box>
               )}
             </DialogContent>
-            <DialogActions sx={{ p: 2.5, pt: 0 }}>
+            <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
               <Button
                 onClick={handleCloseViewDialog}
-                variant="contained"
                 sx={{
                   px: 3,
                   py: 1,
-                  borderRadius: 1.5,
-                  background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
-                  '&:hover': {
-                    background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
-                  }
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  bgcolor: '#667eea',
+                  color: 'white',
+                  '&:hover': { bgcolor: '#5a6fd8' }
                 }}
               >
                 Đóng

@@ -13,6 +13,12 @@ import {
   Chip,
   LinearProgress,
   Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   Class as ClassIcon,
@@ -28,8 +34,9 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import {
   getTeacherScheduleAPI,
-  getTeacherPaymentsAPI,
+  getTeacherPaymentByIdAPI,
   getClassByIdAPI,
+  getStudentsInClassAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -45,7 +52,7 @@ const Dashboard = () => {
   });
   const [myClasses, setMyClasses] = useState([]);
   const [recentPayments, setRecentPayments] = useState([]);
-  const [upcomingClasses, setUpcomingClasses] = useState([]);
+  const [activeClasses, setActiveClasses] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -63,10 +70,10 @@ const Dashboard = () => {
         return;
       }
 
-      // Fetch data in parallel
+      // Fetch data in parallel - use correct API functions
       const [scheduleRes, paymentsRes] = await Promise.all([
         getTeacherScheduleAPI(teacherId),
-        getTeacherPaymentsAPI({ teacherId, limit: 5 }),
+        getTeacherPaymentByIdAPI(teacherId), // Use the correct API function
       ]);
 
       console.log('scheduleRes:', scheduleRes);
@@ -74,15 +81,41 @@ const Dashboard = () => {
 
       const scheduleData = scheduleRes?.data || {};
       const classes = scheduleData.classes || [];
-      const payments = paymentsRes?.data || [];
 
-      // Get detailed class information
+      // Handle payments response - it's a single object, not an array
+      let payments = [];
+      if (paymentsRes && paymentsRes.data) {
+        payments = [paymentsRes.data]; // Convert to array for consistency
+      } else if (paymentsRes && !paymentsRes.data) {
+        payments = [paymentsRes]; // If response is directly the data object
+      }
+
+      // Get detailed class information and student counts
       const detailedClasses = [];
+      let totalStudentsCount = 0;
+
       for (const classItem of classes) {
         try {
           const classRes = await getClassByIdAPI(classItem.id);
           if (classRes?.data) {
-            detailedClasses.push(classRes.data);
+            // Get student count for this class
+            let studentCount = 0;
+            try {
+              const studentsRes = await getStudentsInClassAPI(classItem.id);
+              if (studentsRes?.data?.students) {
+                studentCount = studentsRes.data.students.length;
+              }
+            } catch (studentErr) {
+              console.error(`Error fetching students for class ${classItem.id}:`, studentErr);
+            }
+
+            const classWithStudents = {
+              ...classRes.data,
+              studentCount: studentCount
+            };
+
+            detailedClasses.push(classWithStudents);
+            totalStudentsCount += studentCount;
           }
         } catch (err) {
           console.error(`Error fetching class details for ${classItem.id}:`, err);
@@ -94,14 +127,19 @@ const Dashboard = () => {
             students: classItem.students || [],
             schedule: classItem.schedule,
             room: classItem.room,
+            studentCount: 0
           });
         }
       }
 
+      // Get active classes
+      const active = detailedClasses.filter(c => c.status === 'active').slice(0, 5);
+
       // Calculate statistics
-      const activeClasses = detailedClasses.filter(c => c.status === 'active').length;
-      const totalStudents = detailedClasses.reduce((sum, c) => sum + (c.students?.length || 0), 0);
-      const totalSalary = payments.reduce((sum, p) => sum + ((p.totalLessons || 0) * (p.salaryPerLesson || 0)), 0);
+      const activeClassesCount = detailedClasses.filter(c => c.status === 'active').length;
+
+      // Calculate salary from payment data
+      const totalSalary = payments.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
       const paidSalary = payments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
 
       // Get upcoming classes for today and tomorrow
@@ -117,8 +155,8 @@ const Dashboard = () => {
 
       setStats({
         totalClasses: detailedClasses.length,
-        activeClasses,
-        totalStudents,
+        activeClasses: activeClassesCount,
+        totalStudents: totalStudentsCount,
         totalSalary,
         paidSalary,
         upcomingClasses: upcoming.length,
@@ -126,7 +164,7 @@ const Dashboard = () => {
 
       setMyClasses(detailedClasses);
       setRecentPayments(payments.slice(0, 3));
-      setUpcomingClasses(upcoming);
+      setActiveClasses(active);
     } catch (err) {
       console.error('Error fetching teacher dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
@@ -156,6 +194,24 @@ const Dashboard = () => {
   const formatTime = (timeString) => {
     if (!timeString) return '';
     return timeString.substring(0, 5); // Get HH:MM format
+  };
+
+  const formatSchedule = (schedule) => {
+    if (!schedule) return { dayText: 'Chưa có lịch', timeText: '' };
+
+    const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const days = schedule.dayOfWeeks || [];
+    const timeSlots = schedule.timeSlots || {};
+
+    const dayText = days.length > 0
+      ? days.map(day => dayNames[day] || `Thứ ${day}`).join(', ')
+      : 'Chưa có lịch';
+
+    const timeText = timeSlots.startTime && timeSlots.endTime
+      ? `${formatTime(timeSlots.startTime)} - ${formatTime(timeSlots.endTime)}`
+      : '';
+
+    return { dayText, timeText };
   };
 
   if (loading) {
@@ -260,52 +316,63 @@ const Dashboard = () => {
 
         {/* Content Sections */}
         <Grid container spacing={3}>
-          {/* Upcoming Classes */}
+          {/* Active Classes */}
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary.main, fontWeight: 600 }}>
-                  Lớp học sắp tới
-                </Typography>
-              {upcomingClasses.length > 0 ? (
-                <List>
-                  {upcomingClasses.map((classItem, index) => (
-                    <React.Fragment key={classItem.id}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: COLORS.primary.main }}>
-                            <ClassIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={classItem.name}
-                          secondary={
-                            <Box>
-                              <Typography variant="body2" color="text.secondary">
-                                {formatDate(classItem.schedule?.startDate)} • {formatTime(classItem.schedule?.timeSlots?.startTime)} - {formatTime(classItem.schedule?.timeSlots?.endTime)}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {classItem.students?.length || 0} học viên • Phòng {classItem.room}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                        <Chip
-                          label={classItem.status === 'active' ? 'Đang hoạt động' : classItem.status}
-                          color={classItem.status === 'active' ? 'success' : 'default'}
-                          size="small"
-                        />
-                      </ListItem>
-                      {index < upcomingClasses.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </List>
+                Lớp học đang dạy
+              </Typography>
+              {activeClasses.length > 0 ? (
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600 }}>Tên lớp</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Lịch học</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Phòng</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {activeClasses.map((classItem) => (
+                        <TableRow key={classItem.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight={500}>
+                              {classItem.name}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {formatSchedule(classItem.schedule).dayText}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formatSchedule(classItem.schedule).timeText}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              Phòng {classItem.room}
+                      </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={classItem.status === 'active' ? 'Đang hoạt động' : classItem.status}
+                              color={classItem.status === 'active' ? 'success' : 'default'}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               ) : (
                 <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  Không có lớp học sắp tới
-                </Typography>
+                  Không có lớp học đang dạy
+                      </Typography>
               )}
             </Paper>
-          </Grid>
+            </Grid>
 
           {/* Recent Payments */}
           <Grid item xs={12} md={6}>
@@ -317,31 +384,31 @@ const Dashboard = () => {
                 <List>
                   {recentPayments.map((payment, index) => (
                     <React.Fragment key={payment.id || index}>
-                  <ListItem>
+                      <ListItem>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: COLORS.secondary.main }}>
                             <PaymentIcon />
                           </Avatar>
                         </ListItemAvatar>
-                    <ListItemText
+                        <ListItemText
                           primary={`${payment.classId?.name || 'N/A'} - ${payment.month}/${payment.year}`}
                           secondary={
-                            <Box>
+                            <React.Fragment>
                               <Typography variant="body2" color="text.secondary">
                                 {payment.totalLessons || 0} buổi × {formatCurrency(payment.salaryPerLesson || 0)}/buổi
                               </Typography>
                               <Typography variant="body2" fontWeight="600" color="success.main">
                                 Đã nhận: {formatCurrency(payment.paidAmount || 0)}
                               </Typography>
-                            </Box>
+                            </React.Fragment>
                           }
                         />
                         <Chip
                           label={payment.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
                           color={payment.status === 'paid' ? 'success' : 'warning'}
                           size="small"
-                    />
-                  </ListItem>
+                        />
+                      </ListItem>
                       {index < recentPayments.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}

@@ -202,7 +202,8 @@ const Login = () => {
                     '&.Mui-autofill': {
                       backgroundColor: 'white !important',
                       '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': 'inherit !important',
+                      '-webkit-text-fill-color': '#222 !important',
+                      'color': '#222 !important',
                     },
                     '&.Mui-autofill:hover': {
                       backgroundColor: 'white !important',
@@ -215,7 +216,8 @@ const Login = () => {
                     '&:-webkit-autofill': {
                       backgroundColor: 'white !important',
                       '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': 'inherit !important',
+                      '-webkit-text-fill-color': '#222 !important',
+                      'color': '#222 !important',
                     }
                   }
                 }}
@@ -267,7 +269,8 @@ const Login = () => {
                     '&.Mui-autofill': {
                       backgroundColor: 'white !important',
                       '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': 'inherit !important',
+                      '-webkit-text-fill-color': '#222 !important',
+                      'color': '#222 !important',
                     },
                     '&.Mui-autofill:hover': {
                       backgroundColor: 'white !important',
@@ -280,7 +283,8 @@ const Login = () => {
                     '&:-webkit-autofill': {
                       backgroundColor: 'white !important',
                       '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': 'inherit !important',
+                      '-webkit-text-fill-color': '#222 !important',
+                      'color': '#222 !important',
                     }
                   }
                 }}

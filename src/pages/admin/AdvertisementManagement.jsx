@@ -218,18 +218,96 @@ const AdvertisementManagement = () => {
           </Card>
 
           {/* Create/Edit Dialog */}
-          <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-            <DialogTitle>
+          <Dialog
+            open={openDialog}
+            onClose={handleCloseDialog}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                overflow: 'hidden'
+              }
+            }}
+          >
+            <DialogTitle sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              py: 3,
+              px: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
               {editingAd ? 'Chỉnh sửa quảng cáo' : 'Tạo quảng cáo mới'}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  {editingAd ? 'Cập nhật thông tin quảng cáo' : 'Tạo quảng cáo mới cho hệ thống'}
+                </Typography>
+              </Box>
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                p: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {editingAd ? (
+                  <EditIcon sx={{ fontSize: 28, color: 'white' }} />
+                ) : (
+                  <AddIcon sx={{ fontSize: 28, color: 'white' }} />
+                )}
+              </Box>
             </DialogTitle>
-            <DialogContent>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
+            <DialogContent sx={{ p: 0 }}>
+              <Box sx={{ p: 4 }}>
+                <Paper sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                  border: '1px solid #e0e6ed'
+                }}>
+                  <Typography variant="h6" gutterBottom sx={{
+                    color: '#2c3e50',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 2
+                  }}>
+                    <Box sx={{
+                      width: 4,
+                      height: 20,
+                      bgcolor: '#667eea',
+                      borderRadius: 2
+                    }} />
+                    Thông tin quảng cáo
+                  </Typography>
+                  <Box sx={{
+                    p: 2,
+                    bgcolor: 'white',
+                    borderRadius: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Tiêu đề"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -238,6 +316,14 @@ const AdvertisementManagement = () => {
                     label="Mô tả ngắn"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -248,12 +334,20 @@ const AdvertisementManagement = () => {
                     label="Nội dung quảng cáo"
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <Box
                     sx={{
-                      border: '2px dashed #90caf9',
+                            border: '2px dashed #667eea',
                       borderRadius: 2,
                       height: 220,
                       display: 'flex',
@@ -261,9 +355,12 @@ const AdvertisementManagement = () => {
                       justifyContent: 'center',
                       position: 'relative',
                       cursor: 'pointer',
-                      background: '#f5faff',
-                      transition: 'border-color 0.2s',
-                      '&:hover': { borderColor: '#1976d2' }
+                            background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%)',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              borderColor: '#764ba2',
+                              background: 'linear-gradient(135deg, #e3f2fd 0%, #f5f7fa 100%)'
+                            }
                     }}
                     component="label"
                   >
@@ -285,9 +382,9 @@ const AdvertisementManagement = () => {
                         }}
                       />
                     ) : (
-                      <Box sx={{ textAlign: 'center', color: '#90caf9' }}>
+                            <Box sx={{ textAlign: 'center', color: '#667eea' }}>
                         <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
-                        <Typography variant="body2" color="inherit">
+                              <Typography variant="body2" color="inherit" sx={{ fontWeight: 600 }}>
                           Tải ảnh quảng cáo
                         </Typography>
                         <Typography variant="caption" color="inherit">
@@ -304,6 +401,14 @@ const AdvertisementManagement = () => {
                     label="Kiểu hiển thị"
                     value={formData.displayType}
                     onChange={(e) => setFormData({ ...formData, displayType: e.target.value })}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
                   >
                     <MenuItem value="banner">Banner</MenuItem>
                     <MenuItem value="popup">Popup</MenuItem>
@@ -317,16 +422,56 @@ const AdvertisementManagement = () => {
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                     inputProps={{ min: 1 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
                   />
                 </Grid>
               </Grid>
+                  </Box>
+                </Paper>
+              </Box>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>Hủy</Button>
+            <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+              <Button
+                onClick={handleCloseDialog}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  border: '2px solid #667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    background: '#667eea',
+                    color: 'white',
+                  }
+                }}
+              >
+                Hủy
+              </Button>
               <Button
                 onClick={handleSaveAd}
                 variant="contained"
                 disabled={!formData.title || !formData.description || !formData.content}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  bgcolor: '#667eea',
+                  '&:hover': { bgcolor: '#5a6fd8' },
+                  '&:disabled': {
+                    background: '#ccc',
+                  }
+                }}
               >
                 {editingAd ? 'Cập nhật' : 'Tạo mới'}
               </Button>

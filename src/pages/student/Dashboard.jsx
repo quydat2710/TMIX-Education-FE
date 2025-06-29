@@ -117,7 +117,7 @@ const Dashboard = () => {
           id: classData.id,
           name: classData.name,
           teacher: c.teacher?.name || classData.teacher?.name || 'Chưa phân công',
-          schedule: c.schedule ? `${c.schedule.dayOfWeeks?.join(', ')} - ${c.schedule.timeSlots?.startTime || ''}-${c.schedule.timeSlots?.endTime || ''}` : 'Chưa có lịch',
+          schedule: c.schedule || null,
           status: classData.status || 'active',
           room: classData.room || 'Chưa phân phòng',
           startDate: c.schedule?.startDate || classData.startDate,
@@ -158,6 +158,24 @@ const Dashboard = () => {
   const formatTime = (timeString) => {
     if (!timeString) return '';
     return timeString.substring(0, 5); // Get HH:MM format
+  };
+
+  const formatSchedule = (schedule) => {
+    if (!schedule) return { days: 'Chưa có lịch', time: '' };
+
+    const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const days = schedule.dayOfWeeks || [];
+    const timeSlots = schedule.timeSlots || {};
+
+    const dayText = days.length > 0
+      ? days.map(day => dayNames[day] || `T${day}`).join(', ')
+      : 'Chưa có lịch';
+
+    const timeText = timeSlots.startTime && timeSlots.endTime
+      ? `${formatTime(timeSlots.startTime)} - ${formatTime(timeSlots.endTime)}`
+      : '';
+
+    return { days: dayText, time: timeText };
   };
 
   if (loading) {
@@ -285,7 +303,10 @@ const Dashboard = () => {
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                              {classItem.schedule}
+                              {formatSchedule(classItem.schedule).days}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formatSchedule(classItem.schedule).time}
                               </Typography>
                           </TableCell>
                           <TableCell>

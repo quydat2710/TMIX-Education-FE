@@ -17,6 +17,7 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Paper,
 } from '@mui/material';
 import {
   Assignment as AssignmentIcon,
@@ -151,49 +152,98 @@ const AttendanceModal = ({
         onClose={onClose}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle sx={{
-          borderBottom: '1px solid #e0e0e0',
-          pb: 2,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          py: 3,
+          px: 4,
           display: 'flex',
           alignItems: 'center',
-          gap: 2
+          justifyContent: 'space-between'
         }}>
-          <AssignmentIcon color="primary" />
           <Box>
-            <Typography variant="h6">Điểm danh lớp học</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Điểm danh lớp học
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
               {classData?.name}
             </Typography>
           </Box>
+          <Box sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <AssignmentIcon sx={{ fontSize: 28, color: 'white' }} />
+          </Box>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 0, px: 1 }}>
+        <DialogContent sx={{ p: 0 }}>
           {loading ? (
-            <Box sx={{ py: 4 }}>
+            <Box sx={{ py: 4, px: 4 }}>
               <LinearProgress />
               <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu...</Typography>
             </Box>
           ) : (
-            <>
+            <Box sx={{ p: 4 }}>
               {/* Summary */}
-              <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                <Typography variant="h6" gutterBottom>Tổng quan điểm danh</Typography>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Typography variant="body2">
-                    <strong>Có mặt:</strong> {summary.present} ({summary.rate}%)
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Vắng:</strong> {summary.absent}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Đi muộn:</strong> {summary.late}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Tổng:</strong> {summary.total}
-                  </Typography>
+              <Paper sx={{
+                mb: 3,
+                p: 3,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                border: '1px solid #e0e6ed',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+              }}>
+                <Typography variant="h6" gutterBottom sx={{
+                  color: '#2c3e50',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2
+                }}>
+                  <Box sx={{
+                    width: 4,
+                    height: 20,
+                    bgcolor: '#667eea',
+                    borderRadius: 2
+                  }} />
+                  Tổng quan điểm danh
+                </Typography>
+                <Box sx={{
+                  p: 2,
+                  bgcolor: 'white',
+                  borderRadius: 2,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                }}>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                      <strong style={{ color: '#27ae60' }}>Có mặt:</strong> {summary.present} ({summary.rate}%)
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                      <strong style={{ color: '#e74c3c' }}>Vắng:</strong> {summary.absent}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                      <strong style={{ color: '#f39c12' }}>Đi muộn:</strong> {summary.late}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                      <strong>Tổng:</strong> {summary.total}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
+              </Paper>
 
               <TableContainer>
                 <Table>
@@ -269,24 +319,41 @@ const AttendanceModal = ({
                   </TableBody>
                 </Table>
               </TableContainer>
-            </>
+            </Box>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
+        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
           <Button
             onClick={onClose}
             variant="outlined"
-            size="large"
+            sx={{
+              borderColor: '#667eea',
+              color: '#667eea',
+              '&:hover': {
+                borderColor: '#5a6fd8',
+                bgcolor: 'rgba(102, 126, 234, 0.04)'
+              },
+              px: 3,
+              py: 1,
+              borderRadius: 2
+            }}
           >
             Hủy
           </Button>
           <Button
             onClick={handleSaveAttendance}
+            disabled={!isChanged || loading}
             variant="contained"
             startIcon={<SaveIcon />}
-            size="large"
-            disabled={!isChanged || loading}
+            sx={{
+              bgcolor: '#667eea',
+              '&:hover': { bgcolor: '#5a6fd8' },
+              '&:disabled': { bgcolor: '#ccc' },
+              px: 3,
+              py: 1,
+              borderRadius: 2
+            }}
           >
             Lưu điểm danh
           </Button>

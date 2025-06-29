@@ -105,7 +105,7 @@ export const getPaymentsByStudentAPI = (studentId, params) => axiosInstance.get(
 export const getTeacherPaymentsAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_TEACHER_PAYMENTS, { params });
 export const payTeacherAPI = (id, data) => {
   const formData = new URLSearchParams();
-  formData.append('amount', data.amount);
+  formData.append('amount', String(Number(data.amount)));
   if (data.method) formData.append('method', data.method);
   if (data.note) formData.append('note', data.note);
   return axiosInstance.post(API_CONFIG.ENDPOINTS.PAYMENTS.PAY_TEACHER(id), formData, {

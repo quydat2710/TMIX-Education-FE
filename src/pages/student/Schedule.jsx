@@ -21,16 +21,18 @@ const processSchedules = (schedules) => {
     let currentDate = startDate;
     while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
       // dayjs().day() returns 0 for Sunday, 1 for Monday... 6 for Saturday
-      // API seems to follow the same convention
-      if (dayOfWeeks.includes(currentDate.day())) {
-        lessons.push({
+      const currentDay = currentDate.day();
+
+      if (dayOfWeeks.includes(currentDay)) {
+        const lesson = {
           date: currentDate.format('YYYY-MM-DD'),
           className: classInfo.name,
           time,
           room: classInfo.room,
           teacher: teacher.name,
           type: 'student',
-        });
+        };
+        lessons.push(lesson);
       }
       currentDate = currentDate.add(1, 'day');
     }
@@ -48,7 +50,6 @@ const Schedule = () => {
     if (user?.role === 'student' && user?.studentId) {
       studentId = user.studentId;
     }
-    console.log('Student Schedule - user context:', user, '=> studentId:', studentId);
     if (studentId) {
       fetchSchedule(studentId);
     }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, InputAdornment
+  Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, InputAdornment, Tooltip
 } from '@mui/material';
-import { History as HistoryIcon } from '@mui/icons-material';
+import { History as HistoryIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI } from '../../services/api';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
@@ -40,6 +40,10 @@ const FinancialStatisticsPanel = () => {
   const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState(false);
   const [selectedPaymentForHistory, setSelectedPaymentForHistory] = useState(null);
 
+  // Teacher payment detail modal states
+  const [teacherDetailModalOpen, setTeacherDetailModalOpen] = useState(false);
+  const [selectedTeacherForDetail, setSelectedTeacherForDetail] = useState(null);
+
   const [teacherPaymentDialogOpen, setTeacherPaymentDialogOpen] = useState(false);
   const [selectedTeacherPayment, setSelectedTeacherPayment] = useState(null);
   const [teacherPaymentAmount, setTeacherPaymentAmount] = useState('');
@@ -59,8 +63,8 @@ const FinancialStatisticsPanel = () => {
       const totalPaidAmount = allStudentPayments.reduce((total, p) => total + (p.paidAmount ?? 0), 0);
       const totalRemainingAmount = allStudentPayments.reduce((total, p) => total + (p.remainingAmount ?? 0), 0);
 
-      // Tính tổng lương giáo viên từ dữ liệu hiện tại
-      const totalTeacherSalary = teacherPayments.reduce((total, p) => total + ((p.totalLessons ?? 0) * (p.salaryPerLesson ?? 0)), 0);
+      // Tính tổng lương giáo viên từ dữ liệu mới (totalAmount thay vì totalLessons * salaryPerLesson)
+      const totalTeacherSalary = teacherPayments.reduce((total, p) => total + (p.totalAmount ?? 0), 0);
 
       setTotalStatistics({
         totalStudentFees,
@@ -132,7 +136,7 @@ const FinancialStatisticsPanel = () => {
 
   const handleOpenTeacherPaymentDialog = (payment) => {
     setSelectedTeacherPayment(payment);
-    setTeacherPaymentAmount((payment.totalLessons * payment.salaryPerLesson - (payment.paidAmount || 0)).toString());
+    setTeacherPaymentAmount('');
     setTeacherPaymentMethod('cash');
     setTeacherPaymentNote('');
     setTeacherPaymentError('');
@@ -160,7 +164,7 @@ const FinancialStatisticsPanel = () => {
       setTeacherPaymentError('Số tiền thanh toán không hợp lệ');
       return;
     }
-    const maxAmount = selectedTeacherPayment.totalLessons * selectedTeacherPayment.salaryPerLesson - (selectedTeacherPayment.paidAmount || 0);
+    const maxAmount = (selectedTeacherPayment.totalAmount ?? 0) - (selectedTeacherPayment.paidAmount ?? 0);
     if (amount > maxAmount) {
       setTeacherPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
       return;
@@ -179,7 +183,6 @@ const FinancialStatisticsPanel = () => {
     console.log('Teacher Payment ID:', selectedTeacherPayment.id);
     console.log('Teacher ID:', selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId);
     console.log('Teacher Name:', selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name);
-    console.log('Class:', selectedTeacherPayment.classId?.name);
     console.log('Month/Year:', selectedTeacherPayment.month + '/' + selectedTeacherPayment.year);
     console.log('Payment Data:', paymentData);
     console.log('================================');
@@ -196,6 +199,16 @@ const FinancialStatisticsPanel = () => {
     } finally {
       setTeacherPaymentLoading(false);
     }
+  };
+
+  const handleOpenTeacherDetail = (payment) => {
+    setSelectedTeacherForDetail(payment);
+    setTeacherDetailModalOpen(true);
+  };
+
+  const handleCloseTeacherDetail = () => {
+    setTeacherDetailModalOpen(false);
+    setSelectedTeacherForDetail(null);
   };
 
   // Bộ lọc thời gian
@@ -311,7 +324,6 @@ const FinancialStatisticsPanel = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Giáo viên</TableCell>
-                    <TableCell>Lớp</TableCell>
                     <TableCell align="center">Tháng/Năm</TableCell>
                     <TableCell align="right">Lương/buổi</TableCell>
                     <TableCell align="right">Số buổi dạy</TableCell>
@@ -324,25 +336,43 @@ const FinancialStatisticsPanel = () => {
                 <TableBody>
                   {teacherPayments.map((p) => (
                     <TableRow key={p.id} hover>
-                      <TableCell>{p.teacherId?.userId?.name || p.teacherId?.name || 'Chưa có tên'}</TableCell>
-                      <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {p.teacherId?.userId?.name || p.teacherId?.name || 'Chưa có tên'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {p.teacherId?.userId?.email || '-'}
+                        </Typography>
+                      </TableCell>
                       <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
                       <TableCell align="right">{(p.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
-                      <TableCell align="right">{p.totalLessons || 0}</TableCell>
-                      <TableCell align="right">{((p.totalLessons ?? 0) * (p.salaryPerLesson ?? 0)).toLocaleString()} ₫</TableCell>
+                      <TableCell align="right">
+                        {p.classes && Array.isArray(p.classes)
+                          ? p.classes.reduce((sum, classItem) => sum + (classItem.totalLessons || 0), 0)
+                          : 0
+                        }
+                      </TableCell>
+                      <TableCell align="right">{(p.totalAmount ?? 0).toLocaleString()} ₫</TableCell>
                       <TableCell align="right">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
                       <TableCell align="center">
                         <Chip
-                          label={p.status === 'paid' ? 'Đã thanh toán' : p.status === 'pending' ? 'Chờ thanh toán' : 'Chưa thanh toán'}
-                          color={p.status === 'paid' ? 'success' : p.status === 'pending' ? 'warning' : 'error'}
+                          label={p.status === 'paid' ? 'Đã thanh toán' : p.status === 'partial' ? 'Nhận một phần' : p.status === 'pending' ? 'Chờ thanh toán' : 'Chưa thanh toán'}
+                          color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : p.status === 'pending' ? 'info' : 'error'}
                           size="small"
                         />
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton onClick={() => handleOpenPaymentHistory(p)}>
-                          <HistoryIcon />
-                        </IconButton>
-                        {((p.totalLessons * p.salaryPerLesson) - (p.paidAmount || 0) > 0) && (
+                        <Tooltip title="Xem chi tiết">
+                          <IconButton size="small" color="primary" onClick={() => handleOpenTeacherDetail(p)}>
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Lịch sử thanh toán">
+                          <IconButton size="small" color="info" onClick={() => handleOpenPaymentHistory(p)}>
+                            <HistoryIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {((p.totalAmount ?? 0) - (p.paidAmount ?? 0) > 0) && (
                           <Button
                             variant="contained"
                             color="primary"
@@ -471,7 +501,10 @@ const FinancialStatisticsPanel = () => {
                       <strong>Tháng/Năm:</strong> {selectedTeacherPayment.month}/{selectedTeacherPayment.year}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Số tiền còn lại:</strong> {((selectedTeacherPayment.totalLessons * selectedTeacherPayment.salaryPerLesson - (selectedTeacherPayment.paidAmount || 0)).toLocaleString())} ₫
+                      <strong>Số tiền còn lại:</strong> {((selectedTeacherPayment.totalAmount ?? 0) - (selectedTeacherPayment.paidAmount ?? 0)).toLocaleString()} ₫
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontSize: '0.875rem' }}>
+                      Bạn có thể thanh toán một phần hoặc toàn bộ số tiền còn lại
                     </Typography>
                   </Paper>
                 </Grid>
@@ -481,12 +514,12 @@ const FinancialStatisticsPanel = () => {
                     label="Số tiền thanh toán"
                     type="number"
                     value={teacherPaymentAmount}
+                    onChange={e => setTeacherPaymentAmount(e.target.value)}
+                    placeholder={`Tối đa: ${((selectedTeacherPayment.totalAmount ?? 0) - (selectedTeacherPayment.paidAmount ?? 0)).toLocaleString()} ₫`}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">VNĐ</InputAdornment>,
-                      readOnly: true,
                     }}
-                    disabled
-                    helperText="Chỉ được thanh toán toàn bộ số tiền còn lại một lần duy nhất."
+                    helperText="Nhập số tiền muốn thanh toán (có thể thanh toán từng phần)"
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -531,6 +564,234 @@ const FinancialStatisticsPanel = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Teacher Detail Modal */}
+      {selectedTeacherForDetail && (
+        <Dialog
+          open={teacherDetailModalOpen}
+          onClose={handleCloseTeacherDetail}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              overflow: 'hidden'
+            }
+          }}
+        >
+          <DialogTitle sx={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            py: 3,
+            px: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Chi tiết lương tháng {selectedTeacherForDetail.month}/{selectedTeacherForDetail.year}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Thông tin chi tiết về lương và các lớp đã dạy
+              </Typography>
+            </Box>
+            <Box sx={{
+              bgcolor: 'rgba(255,255,255,0.2)',
+              borderRadius: '50%',
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <VisibilityIcon sx={{ fontSize: 28, color: 'white' }} />
+            </Box>
+          </DialogTitle>
+          <DialogContent sx={{ p: 0 }}>
+            <Box sx={{ p: 4 }}>
+              {/* Thông tin chung */}
+              <Paper sx={{
+                p: 3,
+                mb: 3,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                border: '1px solid #e0e6ed'
+              }}>
+                <Typography variant="h6" gutterBottom sx={{
+                  color: '#2c3e50',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2
+                }}>
+                  <Box sx={{
+                    width: 4,
+                    height: 20,
+                    bgcolor: '#667eea',
+                    borderRadius: 2
+                  }} />
+                  Thông tin chung
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, fontWeight: 600 }}>
+                        Thông tin giáo viên
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Tên:</span>
+                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForDetail.teacherId?.userId?.name || selectedTeacherForDetail.teacherId?.name}
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Email:</span>
+                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForDetail.teacherId?.userId?.email || '-'}
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>SĐT:</span>
+                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForDetail.teacherId?.userId?.phone || '-'}
+                        </span>
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, fontWeight: 600 }}>
+                        Thông tin lương
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Tháng/Năm:</span>
+                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForDetail.month}/{selectedTeacherForDetail.year}
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Lương/buổi:</span>
+                        <span style={{ fontWeight: 600, color: '#27ae60' }}>
+                          {(selectedTeacherForDetail.salaryPerLesson ?? 0).toLocaleString()} ₫
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Tổng lương:</span>
+                        <span style={{ fontWeight: 600, color: '#e74c3c' }}>
+                          {(selectedTeacherForDetail.totalAmount ?? 0).toLocaleString()} ₫
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Đã nhận:</span>
+                        <span style={{ fontWeight: 600, color: '#27ae60' }}>
+                          {(selectedTeacherForDetail.paidAmount ?? 0).toLocaleString()} ₫
+                        </span>
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Chi tiết từng lớp */}
+              {selectedTeacherForDetail.classes && Array.isArray(selectedTeacherForDetail.classes) && (
+                <Paper sx={{
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}>
+                  <Box sx={{
+                    p: 3,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white'
+                  }}>
+                    <Typography variant="h6" sx={{
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: 'white',
+                        borderRadius: 2
+                      }} />
+                      Chi tiết từng lớp
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                      Thông tin chi tiết về số buổi dạy và lương từng lớp
+                    </Typography>
+                  </Box>
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f8f9fa' }}>
+                          <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Tên lớp</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: '#2c3e50' }}>Số buổi</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: '#2c3e50' }}>Lương/buổi</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: '#2c3e50' }}>Tổng lương</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {selectedTeacherForDetail.classes.map((classItem, index) => (
+                          <TableRow
+                            key={index}
+                            hover
+                            sx={{
+                              '&:nth-of-type(odd)': { bgcolor: '#fafbfc' },
+                              '&:hover': { bgcolor: '#f0f4ff' }
+                            }}
+                          >
+                            <TableCell sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                              {classItem.classId?.name || 'N/A'}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                              {classItem.totalLessons || 0}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 500, color: '#27ae60' }}>
+                              {(selectedTeacherForDetail.salaryPerLesson ?? 0).toLocaleString()} ₫
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, color: '#e74c3c' }}>
+                              {((classItem.totalLessons || 0) * (selectedTeacherForDetail.salaryPerLesson ?? 0)).toLocaleString()} ₫
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+            <Button
+              onClick={handleCloseTeacherDetail}
+              variant="contained"
+              sx={{
+                bgcolor: '#667eea',
+                '&:hover': { bgcolor: '#5a6fd8' },
+                px: 3,
+                py: 1,
+                borderRadius: 2
+              }}
+            >
+              Đóng
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };

@@ -118,7 +118,7 @@ const MyClasses = () => {
           console.log('Class attendance for', classData.id, ':', classAttendance);
           console.log('All attendance records:', attendanceList.map(a => ({ classId: a.class?.id, status: a.status })));
 
-          const attendedLessons = classAttendance.filter(a => a.status === 'present').length;
+          const attendedLessons = classAttendance.filter(a => a.status === 'present' || a.status === 'late').length;
           const missedLessons = classAttendance.filter(a => a.status === 'absent').length;
           const totalLessons = classAttendance.length;
           const progress = totalLessons > 0 ? Math.round((attendedLessons / totalLessons) * 100) : 0;
@@ -468,41 +468,113 @@ const MyClasses = () => {
       </Grid>
 
       {/* Dialog xem chi tiết lớp học */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }
+        }}
+      >
             <DialogTitle sx={{
-              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
-              textAlign: 'center'
-            }}>
+          py: 3,
+          px: 4,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
           Chi tiết lớp học
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              {selectedClass?.name}
+            </Typography>
+          </Box>
+          <Box sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <SchoolIcon sx={{ fontSize: 28, color: 'white' }} />
+          </Box>
         </DialogTitle>
-            <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ p: 0 }}>
           {selectedClass && (
+            <Box sx={{ p: 4 }}>
                 <Grid container spacing={3}>
                   {/* Thông tin cơ bản */}
               <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary, fontWeight: 600 }}>
+                  <Paper sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    border: '1px solid #e0e6ed',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{
+                      color: '#2c3e50',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: '#667eea',
+                        borderRadius: 2
+                      }} />
                   Thông tin lớp học
                 </Typography>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
                 <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Tên lớp:</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Tên lớp:
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                           {selectedClass.name}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Giáo viên:</Typography>
-                          <Typography variant="body1">{selectedClass.teacher}</Typography>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Giáo viên:
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                            {selectedClass.teacher}
+                          </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Phòng học:</Typography>
-                        <Typography variant="body1">{selectedClass.room}</Typography>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Phòng học:
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                            {selectedClass.room}
+                          </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Lịch học:</Typography>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Lịch học:
+                          </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClass.schedule?.split(' - ')[0] || 'Chưa có lịch'}
                           </Typography>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -511,13 +583,17 @@ const MyClasses = () => {
                         </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Học phí/buổi:</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.secondary }}>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Học phí/buổi:
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 600, color: 'success.main' }}>
                           {selectedClass.feePerLesson?.toLocaleString()} VNĐ
                         </Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Trạng thái:</Typography>
+                          <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                            Trạng thái:
+                          </Typography>
                         <Chip
                           label={getStatusLabel(selectedClass.status)}
                           color={getStatusColor(selectedClass.status)}
@@ -532,70 +608,146 @@ const MyClasses = () => {
                         />
                       </Grid>
                     </Grid>
+                    </Box>
+                  </Paper>
                   </Grid>
 
                   {/* Thống kê tham gia */}
                   <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary, fontWeight: 600 }}>
+                  <Paper sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    border: '1px solid #e0e6ed',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{
+                      color: '#2c3e50',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: '#667eea',
+                        borderRadius: 2
+                      }} />
                       Thống kê tham gia học tập
                     </Typography>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={3}>
-                        <Card sx={{ textAlign: 'center', bgcolor: 'success.light' }}>
+                          <Card sx={{
+                            textAlign: 'center',
+                            bgcolor: 'success.light',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'success.dark', fontWeight: 600 }}>
                               {selectedClass.attendedLessons}
                             </Typography>
-                            <Typography variant="body2" color="success.dark">
+                              <Typography variant="body2" color="success.dark" sx={{ fontWeight: 500 }}>
                               Buổi đã học
                             </Typography>
                           </CardContent>
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                        <Card sx={{ textAlign: 'center', bgcolor: 'error.light' }}>
+                          <Card sx={{
+                            textAlign: 'center',
+                            bgcolor: 'error.light',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'error.dark', fontWeight: 600 }}>
                               {selectedClass.missedLessons}
                             </Typography>
-                            <Typography variant="body2" color="error.dark">
+                              <Typography variant="body2" color="error.dark" sx={{ fontWeight: 500 }}>
                               Buổi đã nghỉ
                             </Typography>
                           </CardContent>
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                        <Card sx={{ textAlign: 'center', bgcolor: 'info.light' }}>
+                          <Card sx={{
+                            textAlign: 'center',
+                            bgcolor: 'info.light',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'info.dark', fontWeight: 600 }}>
                               {selectedClass.upcomingLessons}
                             </Typography>
-                            <Typography variant="body2" color="info.dark">
+                              <Typography variant="body2" color="info.dark" sx={{ fontWeight: 500 }}>
                               Buổi sắp tới
                             </Typography>
                           </CardContent>
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                        <Card sx={{ textAlign: 'center', bgcolor: 'warning.light' }}>
+                          <Card sx={{
+                            textAlign: 'center',
+                            bgcolor: 'warning.light',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'warning.dark', fontWeight: 600 }}>
                               {calculateAttendanceRate(selectedClass.attendedLessons, selectedClass.totalLessons)}%
                             </Typography>
-                            <Typography variant="body2" color="warning.dark">
+                              <Typography variant="body2" color="warning.dark" sx={{ fontWeight: 500 }}>
                               Tỷ lệ tham gia
                             </Typography>
                           </CardContent>
                         </Card>
                   </Grid>
                 </Grid>
+                    </Box>
+                  </Paper>
               </Grid>
 
                   {/* Tiến độ học tập */}
               <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary, fontWeight: 600 }}>
+                  <Paper sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    border: '1px solid #e0e6ed',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{
+                      color: '#2c3e50',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: '#667eea',
+                        borderRadius: 2
+                      }} />
                   Tiến độ học tập
                 </Typography>
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ width: '100%', mr: 1 }}>
                     <LinearProgress
@@ -604,42 +756,70 @@ const MyClasses = () => {
                       sx={{
                             height: 12,
                             borderRadius: 6,
-                            bgcolor: COLORS.background,
+                              bgcolor: '#f0f0f0',
                         '& .MuiLinearProgress-bar': {
-                              bgcolor: COLORS.primary,
+                                bgcolor: '#667eea',
                         },
                       }}
                     />
                   </Box>
                       <Box sx={{ minWidth: 50 }}>
-                        <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                          <Typography variant="body1" sx={{ fontWeight: 600, color: '#667eea' }}>
                       {`${Math.round(selectedClass.progress)}%`}
                     </Typography>
                   </Box>
                 </Box>
+                    </Box>
+                  </Paper>
               </Grid>
 
                   {/* Lịch sử điểm danh */}
               <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary, fontWeight: 600 }}>
+                  <Paper sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    border: '1px solid #e0e6ed',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{
+                      color: '#2c3e50',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2
+                    }}>
+                      <Box sx={{
+                        width: 4,
+                        height: 20,
+                        bgcolor: '#667eea',
+                        borderRadius: 2
+                      }} />
                       Lịch sử điểm danh
                 </Typography>
-                    <TableContainer component={Paper} variant="outlined">
+                    <Box sx={{
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                      overflow: 'hidden'
+                    }}>
+                      <TableContainer>
                   <Table size="small">
                     <TableHead>
-                          <TableRow sx={{ backgroundColor: COLORS.background }}>
-                            <TableCell sx={{ fontWeight: 600 }}>Ngày</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>Thứ</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>Giờ học</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>Ghi chú</TableCell>
+                            <TableRow sx={{ bgcolor: '#f8f9fa' }}>
+                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Ngày</TableCell>
+                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Thứ</TableCell>
+                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Giờ học</TableCell>
+                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Trạng thái</TableCell>
+                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Ghi chú</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                           {selectedClass.attendanceHistory?.map((attendance) => (
                             <TableRow key={attendance.id} hover>
                               <TableCell>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                   {new Date(attendance.date).toLocaleDateString('vi-VN')}
                                 </Typography>
                               </TableCell>
@@ -677,12 +857,25 @@ const MyClasses = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
+                    </Box>
+                  </Paper>
+                </Grid>
               </Grid>
-            </Grid>
+            </Box>
           )}
         </DialogContent>
-            <DialogActions sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
-              <Button onClick={handleCloseDialog} variant="outlined">
+        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+          <Button
+            onClick={handleCloseDialog}
+            variant="contained"
+            sx={{
+              bgcolor: '#667eea',
+              '&:hover': { bgcolor: '#5a6fd8' },
+              px: 3,
+              py: 1,
+              borderRadius: 2
+            }}
+          >
                 Đóng
           </Button>
         </DialogActions>

@@ -183,31 +183,51 @@ const ClassDetailModal = ({
         onClose={onClose}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle sx={{
-          borderBottom: '1px solid #e0e0e0',
-          pb: 2,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          py: 3,
+          px: 4,
           display: 'flex',
           alignItems: 'center',
-          gap: 2
+          justifyContent: 'space-between'
         }}>
-          <SchoolIcon color="primary" />
           <Box>
-            <Typography variant="h6">Chi tiết lớp học</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Chi tiết lớp học
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
               {selectedClassDetail?.name}
             </Typography>
           </Box>
+          <Box sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <SchoolIcon sx={{ fontSize: 28, color: 'white' }} />
+          </Box>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 0 }}>
+        <DialogContent sx={{ p: 0 }}>
           {loadingDetail ? (
-            <Box sx={{ py: 4 }}>
+            <Box sx={{ py: 4, px: 4 }}>
               <LinearProgress />
               <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải thông tin lớp học...</Typography>
             </Box>
           ) : selectedClassDetail ? (
-            <>
+            <Box sx={{ p: 4 }}>
               <Tabs value={detailTabValue} onChange={handleDetailTabChange} sx={{ mb: 3 }} variant="fullWidth">
                 <Tab label="Thông tin lớp" />
                 <Tab label="Danh sách học sinh" />
@@ -218,41 +238,66 @@ const ClassDetailModal = ({
                 <Grid container spacing={3}>
                   {/* Thông tin cơ bản */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, height: '100%', bgcolor: '#f8f9fa' }}>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <SchoolIcon color="primary" />
+                    <Paper sx={{
+                      p: 3,
+                      height: '100%',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      border: '1px solid #e0e6ed',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="h6" gutterBottom sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                        color: '#2c3e50',
+                        fontWeight: 600
+                      }}>
+                        <Box sx={{
+                          width: 4,
+                          height: 20,
+                          bgcolor: '#667eea',
+                          borderRadius: 2
+                        }} />
                         Thông tin cơ bản
                       </Typography>
+                      <Box sx={{
+                        p: 2,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Tên lớp
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClassDetail.name}
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Khối lớp
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             Khối {selectedClassDetail.grade} - Phần {selectedClassDetail.section}
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Năm học
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClassDetail.year}
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Trạng thái
                           </Typography>
                           <Chip
@@ -260,6 +305,7 @@ const ClassDetailModal = ({
                             color={statusMap[selectedClassDetail.status]?.color || 'default'}
                             size="small"
                           />
+                          </Box>
                         </Box>
                       </Box>
                     </Paper>
@@ -267,14 +313,39 @@ const ClassDetailModal = ({
 
                   {/* Thông tin lịch học */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, height: '100%', bgcolor: '#f8f9fa' }}>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <EventIcon color="primary" />
+                    <Paper sx={{
+                      p: 3,
+                      height: '100%',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      border: '1px solid #e0e6ed',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="h6" gutterBottom sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                        color: '#2c3e50',
+                        fontWeight: 600
+                      }}>
+                        <Box sx={{
+                          width: 4,
+                          height: 20,
+                          bgcolor: '#667eea',
+                          borderRadius: 2
+                        }} />
                         Lịch học
                       </Typography>
+                      <Box sx={{
+                        p: 2,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Ngày học trong tuần
                           </Typography>
                           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -291,24 +362,25 @@ const ClassDetailModal = ({
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Giờ học
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClassDetail.schedule?.timeSlots?.startTime} - {selectedClassDetail.schedule?.timeSlots?.endTime}
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Thời gian khóa học
                           </Typography>
-                          <Typography variant="body2">
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             Từ: {new Date(selectedClassDetail.schedule?.startDate).toLocaleDateString('vi-VN')}
                           </Typography>
-                          <Typography variant="body2">
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             Đến: {new Date(selectedClassDetail.schedule?.endDate).toLocaleDateString('vi-VN')}
                           </Typography>
+                          </Box>
                         </Box>
                       </Box>
                     </Paper>
@@ -316,37 +388,63 @@ const ClassDetailModal = ({
 
                   {/* Thông tin phòng học và học phí */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, height: '100%', bgcolor: '#f8f9fa' }}>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <PeopleIcon color="primary" />
+                    <Paper sx={{
+                      p: 3,
+                      height: '100%',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      border: '1px solid #e0e6ed',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="h6" gutterBottom sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                        color: '#2c3e50',
+                        fontWeight: 600
+                      }}>
+                        <Box sx={{
+                          width: 4,
+                          height: 20,
+                          bgcolor: '#667eea',
+                          borderRadius: 2
+                        }} />
                         Thông tin lớp học
                       </Typography>
+                      <Box sx={{
+                        p: 2,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Phòng học
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClassDetail.room}
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Sĩ số tối đa
                           </Typography>
-                          <Typography variant="body1">
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                             {selectedClassDetail.maxStudents} học sinh
                           </Typography>
                         </Box>
 
                         <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Học phí mỗi buổi
                           </Typography>
                           <Typography variant="h6" color="success.main" fontWeight="bold">
                             {selectedClassDetail.feePerLesson?.toLocaleString('vi-VN')} VNĐ
                           </Typography>
+                          </Box>
                         </Box>
                       </Box>
                     </Paper>
@@ -354,18 +452,40 @@ const ClassDetailModal = ({
 
                   {/* Mô tả */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, height: '100%', bgcolor: '#f8f9fa' }}>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <AssignmentIcon color="primary" />
+                    <Paper sx={{
+                      p: 3,
+                      height: '100%',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      border: '1px solid #e0e6ed',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                      <Typography variant="h6" gutterBottom sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                        color: '#2c3e50',
+                        fontWeight: 600
+                      }}>
+                        <Box sx={{
+                          width: 4,
+                          height: 20,
+                          bgcolor: '#667eea',
+                          borderRadius: 2
+                        }} />
                         Mô tả
                       </Typography>
-                      <Box>
+                      <Box sx={{
+                        p: 2,
+                        bgcolor: 'white',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }}>
                         <Typography variant="body1" sx={{
-                          bgcolor: 'white',
-                          p: 2,
-                          borderRadius: 1,
                           minHeight: 100,
-                          border: '1px solid #e0e0e0'
+                          color: '#2c3e50',
+                          lineHeight: 1.6
                         }}>
                           {selectedClassDetail.description || 'Chưa có mô tả cho lớp học này.'}
                         </Typography>
@@ -399,9 +519,9 @@ const ClassDetailModal = ({
                             <TableRow key={student.id} hover>
                               <TableCell>{index + 1}</TableCell>
                               <TableCell>
-                                <Typography variant="body2" fontWeight="medium">
-                                  {student.name}
-                                </Typography>
+                                  <Typography variant="body2" fontWeight="medium">
+                                    {student.name}
+                                  </Typography>
                               </TableCell>
                               <TableCell>{student.email}</TableCell>
                               <TableCell>{student.phone || '---'}</TableCell>
@@ -423,7 +543,7 @@ const ClassDetailModal = ({
                   )}
                 </Box>
               )}
-            </>
+            </Box>
           ) : (
             <Typography sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
               Không thể tải thông tin lớp học
@@ -431,11 +551,17 @@ const ClassDetailModal = ({
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
+        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
           <Button
             onClick={onClose}
-            variant="outlined"
-            size="large"
+            variant="contained"
+            sx={{
+              bgcolor: '#667eea',
+              '&:hover': { bgcolor: '#5a6fd8' },
+              px: 3,
+              py: 1,
+              borderRadius: 2
+            }}
           >
             Đóng
           </Button>
