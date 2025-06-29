@@ -186,9 +186,9 @@ const AttendanceHistoryModal = ({
                   Thống kê điểm danh theo từng buổi học
                 </Typography>
               </Box>
-              <TableContainer>
-                <Table>
-                  <TableHead>
+          <TableContainer>
+            <Table>
+              <TableHead>
                     <TableRow sx={{ bgcolor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Ngày</TableCell>
                       <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Có mặt</TableCell>
@@ -196,108 +196,108 @@ const AttendanceHistoryModal = ({
                       <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Đi muộn</TableCell>
                       <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Tỷ lệ tham gia</TableCell>
                       <TableCell></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {attendanceHistory.map((attendance, index) => {
-                      const summary = getAttendanceSummary(attendance);
-                      const isExpanded = expandedRows[index];
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {attendanceHistory.map((attendance, index) => {
+                  const summary = getAttendanceSummary(attendance);
+                  const isExpanded = expandedRows[index];
 
-                      return (
-                        <React.Fragment key={index}>
+                  return (
+                    <React.Fragment key={index}>
                           <TableRow
                             hover
                             onClick={() => handleToggleRow(index)}
                             sx={{ cursor: 'pointer' }}
                           >
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
-                                {new Date(attendance.date).toLocaleDateString('vi-VN', {
-                                  weekday: 'long',
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={summary.present}
-                                color="success"
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={summary.absent}
-                                color="error"
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={summary.late}
-                                color="warning"
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={`${summary.rate}%`}
-                                color={summary.rate >= 80 ? 'success' : summary.rate >= 60 ? 'warning' : 'error'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Tooltip title={isExpanded ? "Đóng chi tiết" : "Xem chi tiết"}>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleToggleRow(index)}
-                                >
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="medium">
+                            {new Date(attendance.date).toLocaleDateString('vi-VN', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={summary.present}
+                            color="success"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={summary.absent}
+                            color="error"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={summary.late}
+                            color="warning"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={`${summary.rate}%`}
+                            color={summary.rate >= 80 ? 'success' : summary.rate >= 60 ? 'warning' : 'error'}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title={isExpanded ? "Đóng chi tiết" : "Xem chi tiết"}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleToggleRow(index)}
+                            >
                                   {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                </IconButton>
-                              </Tooltip>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                <Box sx={{ margin: 1 }}>
-                                  <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
-                                    <Typography variant="subtitle2" gutterBottom>
-                                      Chi tiết điểm danh ngày {new Date(attendance.date).toLocaleDateString('vi-VN')}
-                                    </Typography>
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 1 }}>
-                                      {attendance.students?.map((student, studentIndex) => (
-                                        <Box key={studentIndex} sx={{
-                                          p: 1,
-                                          border: '1px solid #e0e0e0',
-                                          borderRadius: 1,
-                                          bgcolor: 'white'
-                                        }}>
-                                          <Typography variant="body2" fontWeight="medium">
-                                            {studentIdNameMap[student.studentId] || student.studentId}
-                                          </Typography>
-                                          <Chip
-                                            label={getStatusLabel(student.status)}
-                                            color={getStatusColor(student.status)}
-                                            size="small"
-                                            sx={{ mt: 0.5 }}
-                                          />
-                                        </Box>
-                                      ))}
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                            <Box sx={{ margin: 1 }}>
+                              <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                  Chi tiết điểm danh ngày {new Date(attendance.date).toLocaleDateString('vi-VN')}
+                                </Typography>
+                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 1 }}>
+                                  {attendance.students?.map((student, studentIndex) => (
+                                    <Box key={studentIndex} sx={{
+                                      p: 1,
+                                      border: '1px solid #e0e0e0',
+                                      borderRadius: 1,
+                                      bgcolor: 'white'
+                                    }}>
+                                      <Typography variant="body2" fontWeight="medium">
+                                        {studentIdNameMap[student.studentId] || student.studentId}
+                                      </Typography>
+                                      <Chip
+                                        label={getStatusLabel(student.status)}
+                                        color={getStatusColor(student.status)}
+                                        size="small"
+                                        sx={{ mt: 0.5 }}
+                                      />
                                     </Box>
-                                  </Paper>
+                                  ))}
                                 </Box>
-                              </Collapse>
-                            </TableCell>
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                              </Paper>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </React.Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
             </Paper>
           </Box>
         ) : (

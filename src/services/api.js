@@ -20,7 +20,13 @@ export const changePasswordAPI = (oldPassword, newPassword) => {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 };
-export const logoutAPI = () => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT);
+export const logoutAPI = (refreshToken) => {
+  const formData = new URLSearchParams();
+  formData.append('refreshToken', refreshToken);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
 export const forgotPasswordAPI = (email) => {
   const formData = new URLSearchParams();
   formData.append('email', email);
@@ -36,10 +42,20 @@ export const verifyCodeAPI = (code, email) => {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 };
-export const resetPasswordAPI = (password, token) => {
+export const resetPasswordAPI = (email, code, password) => {
   const formData = new URLSearchParams();
+  formData.append('email', email);
+  formData.append('code', code);
   formData.append('password', password);
-  return axiosInstance.post(`${API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD}?token=${token}`, formData, {
+
+  console.log('resetPasswordAPI debug:', {
+    email,
+    code,
+    password,
+    formDataString: formData.toString()
+  });
+
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD, formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 };
@@ -136,3 +152,31 @@ export const updateAnnouncementAPI = (id, data) =>
 
 export const deleteAnnouncementAPI = (id) =>
   axiosInstance.delete(API_CONFIG.ENDPOINTS.ANNOUNCEMENTS.DELETE(id));
+
+// Refresh token
+export const refreshTokenAPI = (refreshToken) => {
+  const formData = new URLSearchParams();
+  formData.append('refreshToken', refreshToken);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.REFRESH_TOKEN, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
+
+// Gửi email xác thực
+export const sendVerificationEmailAPI = () =>
+  axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.SEND_VERIFICATION_EMAIL);
+
+// Xác thực email
+export const verifyEmailAPI = (token) =>
+  axiosInstance.post(`${API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL}?token=${token}`);
+
+// Update user (PATCH)
+export const updateUserAPI = (userId, data) => {
+  const formData = new URLSearchParams();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
+  });
+  return axiosInstance.patch(API_CONFIG.ENDPOINTS.USERS.UPDATE(userId), formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};

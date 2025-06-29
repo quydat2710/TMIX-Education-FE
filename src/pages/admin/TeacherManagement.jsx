@@ -414,7 +414,7 @@ const TeacherManagement = () => {
         }}>
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-              {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
+          {selectedTeacher ? 'Chỉnh sửa thông tin giáo viên' : 'Thêm giáo viên mới'}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
               {selectedTeacher ? 'Cập nhật thông tin giáo viên' : 'Thêm giáo viên mới vào hệ thống'}
@@ -437,7 +437,7 @@ const TeacherManagement = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
-            {error && (
+                {error && (
               <Box sx={{
                 p: 2,
                 mb: 3,
@@ -446,10 +446,10 @@ const TeacherManagement = () => {
                 border: '1px solid #f44336'
               }}>
                 <Typography color="error" sx={{ fontWeight: 600, textAlign: 'center' }}>
-                  {error}
-                </Typography>
+                    {error}
+                  </Typography>
               </Box>
-            )}
+                )}
             <Paper sx={{
               p: 3,
               borderRadius: 2,
@@ -479,19 +479,19 @@ const TeacherManagement = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}>
                 <Grid container spacing={3}>
-                  {/* Khi chỉnh sửa chỉ cho phép sửa các trường API yêu cầu */}
-                  {selectedTeacher == null ? (
-                    <React.Fragment>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Họ và tên"
-                            name="name"
-                            value={form.name}
-                            onChange={handleChange}
-                            error={!!formErrors.name}
-                            helperText={formErrors.name}
-                      required
+            {/* Khi chỉnh sửa chỉ cho phép sửa các trường API yêu cầu */}
+            {selectedTeacher == null ? (
+              <React.Fragment>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Họ và tên"
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!formErrors.name}
+                      helperText={formErrors.name}
+                required
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
@@ -500,19 +500,19 @@ const TeacherManagement = () => {
                           },
                         },
                       }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      type="email"
-                            name="email"
-                            value={form.email}
-                            onChange={handleChange}
-                            error={!!formErrors.email}
-                            helperText={formErrors.email}
-                      required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      error={!!formErrors.email}
+                      helperText={formErrors.email}
+                required
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
@@ -521,19 +521,19 @@ const TeacherManagement = () => {
                           },
                         },
                       }}
-                    />
-                  </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Mật khẩu"
-                          name="password"
-                          type="password"
-                          value={form.password || ''}
-                          onChange={handleChange}
-                          required
-                          error={!!formErrors.password}
-                          helperText={formErrors.password}
+              />
+            </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Mật khẩu"
+                    name="password"
+                    type="password"
+                    value={form.password || ''}
+                    onChange={handleChange}
+                    required
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
@@ -542,20 +542,20 @@ const TeacherManagement = () => {
                               },
                             },
                           }}
-                        />
-                      </Grid>
-                    </React.Fragment>
-                  ) : null}
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Số điện thoại"
-                            name="phone"
-                            value={form.phone}
-                            onChange={handleChange}
-                            error={!!formErrors.phone}
-                            helperText={formErrors.phone}
-                            required
+                  />
+                </Grid>
+              </React.Fragment>
+            ) : null}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Số điện thoại"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      error={!!formErrors.phone}
+                      helperText={formErrors.phone}
+                      required
                             sx={{
                               '& .MuiOutlinedInput-root': {
                                 borderRadius: 2,
@@ -564,19 +564,19 @@ const TeacherManagement = () => {
                                 },
                               },
                             }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Ngày sinh"
-                            name="dayOfBirth"
-                            value={form.dayOfBirth}
-                            onChange={handleChange}
-                            placeholder="15/03/1990"
-                            error={!!formErrors.dayOfBirth}
-                            helperText={formErrors.dayOfBirth}
-                    required
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Ngày sinh"
+                      name="dayOfBirth"
+                      value={form.dayOfBirth}
+                      onChange={handleChange}
+                      placeholder="15/03/1990"
+                      error={!!formErrors.dayOfBirth}
+                      helperText={formErrors.dayOfBirth}
+                required
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
@@ -585,159 +585,159 @@ const TeacherManagement = () => {
                         },
                       },
                     }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                          <InputLabel>Giới tính</InputLabel>
-                          <Select
-                            label="Giới tính"
-                            name="gender"
-                            value={form.gender}
-                            onChange={handleChange}
-                            required
-                            sx={{
-                              borderRadius: 2,
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                '&:hover': {
-                                  borderColor: '#667eea',
-                                },
-                              },
-                            }}
-                          >
-                            <MenuItem value="male">Nam</MenuItem>
-                            <MenuItem value="female">Nữ</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Địa chỉ"
-                          name="address"
-                          value={form.address}
-                          onChange={handleChange}
-                          error={!!formErrors.address}
-                          helperText={formErrors.address}
-                          required
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Lương/buổi (nghìn VND)"
-                          type="number"
-                          name="salaryPerLesson"
-                          value={form.salaryPerLesson}
-                          onChange={handleChange}
-                          error={!!formErrors.salaryPerLesson}
-                          helperText={formErrors.salaryPerLesson}
-                          required
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Trạng thái</InputLabel>
-                          <Select
-                            label="Trạng thái"
-                            name="isActive"
-                            value={form.isActive}
-                            onChange={handleChange}
-                            required
-                            sx={{
-                              borderRadius: 2,
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                '&:hover': {
-                                  borderColor: '#667eea',
-                                },
-                              },
-                            }}
-                          >
-                            <MenuItem value={true}>Đang hoạt động</MenuItem>
-                            <MenuItem value={false}>Ngừng hoạt động</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Bằng cấp (phân tách bởi dấu phẩy)"
-                          name="qualifications"
-                          value={form.qualifications}
-                          onChange={handleChange}
-                          placeholder="Bachelor of Education, TESOL"
-                          error={!!formErrors.qualifications}
-                          helperText={formErrors.qualifications}
-                          required
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Chuyên môn (phân tách bởi dấu phẩy)"
-                          name="specialization"
-                          value={form.specialization}
-                          onChange={handleChange}
-                          placeholder="IELTS, TOEFL"
-                          error={!!formErrors.specialization}
-                          helperText={formErrors.specialization}
-                          required
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Mô tả"
-                    multiline
-                          rows={3}
-                          name="description"
-                          value={form.description}
-                          onChange={handleChange}
-                          placeholder="Mô tả về kinh nghiệm giảng dạy..."
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                />
-              </Grid>
+              />
             </Grid>
-          </Box>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                      <InputLabel>Giới tính</InputLabel>
+                      <Select
+                        label="Giới tính"
+                        name="gender"
+                        value={form.gender}
+                        onChange={handleChange}
+                        required
+                            sx={{
+                              borderRadius: 2,
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                '&:hover': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
+                      >
+                        <MenuItem value="male">Nam</MenuItem>
+                        <MenuItem value="female">Nữ</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Địa chỉ"
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                      error={!!formErrors.address}
+                      helperText={formErrors.address}
+                      required
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Lương/buổi (nghìn VND)"
+                      type="number"
+                      name="salaryPerLesson"
+                      value={form.salaryPerLesson}
+                      onChange={handleChange}
+                      error={!!formErrors.salaryPerLesson}
+                      helperText={formErrors.salaryPerLesson}
+                      required
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Trạng thái</InputLabel>
+                      <Select
+                        label="Trạng thái"
+                        name="isActive"
+                        value={form.isActive}
+                        onChange={handleChange}
+                        required
+                            sx={{
+                              borderRadius: 2,
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                '&:hover': {
+                                  borderColor: '#667eea',
+                                },
+                              },
+                            }}
+                      >
+                        <MenuItem value={true}>Đang hoạt động</MenuItem>
+                        <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Bằng cấp (phân tách bởi dấu phẩy)"
+                      name="qualifications"
+                      value={form.qualifications}
+                      onChange={handleChange}
+                      placeholder="Bachelor of Education, TESOL"
+                      error={!!formErrors.qualifications}
+                      helperText={formErrors.qualifications}
+                      required
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Chuyên môn (phân tách bởi dấu phẩy)"
+                      name="specialization"
+                      value={form.specialization}
+                      onChange={handleChange}
+                      placeholder="IELTS, TOEFL"
+                      error={!!formErrors.specialization}
+                      helperText={formErrors.specialization}
+                      required
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Mô tả"
+                multiline
+                      rows={3}
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      placeholder="Mô tả về kinh nghiệm giảng dạy..."
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#667eea',
+                              },
+                            },
+                          }}
+              />
+            </Grid>
+              </Grid>
+            </Box>
         </Paper>
       </Box>
         </DialogContent>
@@ -817,8 +817,8 @@ const TeacherManagement = () => {
         }}>
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-              Chi tiết giáo viên
-            </Typography>
+            Chi tiết giáo viên
+          </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
               Thông tin chi tiết về giáo viên và chuyên môn
             </Typography>
@@ -836,12 +836,12 @@ const TeacherManagement = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
-            {selectedTeacherForView && (
-              <Box>
-                {/* Main Information Grid */}
-                <Grid container spacing={3}>
-                  {/* Left Column - Personal Info */}
-                  <Grid item xs={12} md={6}>
+          {selectedTeacherForView && (
+            <Box>
+              {/* Main Information Grid */}
+              <Grid container spacing={3}>
+                {/* Left Column - Personal Info */}
+                <Grid item xs={12} md={6}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
@@ -864,8 +864,8 @@ const TeacherManagement = () => {
                           bgcolor: '#667eea',
                           borderRadius: 2
                         }} />
-                        Thông tin cá nhân
-                      </Typography>
+                      Thông tin cá nhân
+                    </Typography>
                       <Box sx={{
                         p: 2,
                         bgcolor: 'white',
@@ -873,66 +873,66 @@ const TeacherManagement = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                       }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <Box>
+                      <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Họ và tên
-                            </Typography>
+                          Họ và tên
+                        </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.userId?.name}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Email
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.userId?.email}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Số điện thoại
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.userId?.phone}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Ngày sinh
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {formatDateDDMMYYYY(selectedTeacherForView.userId?.dayOfBirth)}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Giới tính
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.userId?.gender === 'male' ? 'Nam' : 'Nữ'}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Địa chỉ
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.userId?.address}
-                            </Typography>
-                          </Box>
-                        </Box>
+                          {selectedTeacherForView.userId?.name}
+                        </Typography>
                       </Box>
-                    </Paper>
-                  </Grid>
 
-                  {/* Right Column - Professional Info */}
-                  <Grid item xs={12} md={6}>
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Email
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.userId?.email}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Số điện thoại
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.userId?.phone}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Ngày sinh
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {formatDateDDMMYYYY(selectedTeacherForView.userId?.dayOfBirth)}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Giới tính
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.userId?.gender === 'male' ? 'Nam' : 'Nữ'}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Địa chỉ
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.userId?.address}
+                        </Typography>
+                          </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Right Column - Professional Info */}
+                <Grid item xs={12} md={6}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
@@ -955,8 +955,8 @@ const TeacherManagement = () => {
                           bgcolor: '#667eea',
                           borderRadius: 2
                         }} />
-                        Thông tin chuyên môn
-                      </Typography>
+                      Thông tin chuyên môn
+                    </Typography>
                       <Box sx={{
                         p: 2,
                         bgcolor: 'white',
@@ -966,65 +966,65 @@ const TeacherManagement = () => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Lương mỗi buổi
-                            </Typography>
+                          Lương mỗi buổi
+                        </Typography>
                             <Typography variant="h6" sx={{ fontWeight: 700, color: '#27ae60' }}>
-                              {selectedTeacherForView.salaryPerLesson ? `${selectedTeacherForView.salaryPerLesson.toLocaleString()} VNĐ` : 'Chưa có'}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Bằng cấp
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.qualifications && selectedTeacherForView.qualifications.length > 0
-                                ? selectedTeacherForView.qualifications.join(', ')
-                                : 'Chưa có'}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Chuyên môn
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedTeacherForView.specialization && selectedTeacherForView.specialization.length > 0
-                                ? selectedTeacherForView.specialization.join(', ')
-                                : 'Chưa có'}
-                            </Typography>
-                          </Box>
-                        </Box>
+                          {selectedTeacherForView.salaryPerLesson ? `${selectedTeacherForView.salaryPerLesson.toLocaleString()} VNĐ` : 'Chưa có'}
+                        </Typography>
                       </Box>
-                    </Paper>
-                  </Grid>
 
-                  {/* Status Banner */}
-                  <Grid item xs={12}>
+                          <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Bằng cấp
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.qualifications && selectedTeacherForView.qualifications.length > 0
+                            ? selectedTeacherForView.qualifications.join(', ')
+                            : 'Chưa có'}
+                        </Typography>
+                      </Box>
+
+                          <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Chuyên môn
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForView.specialization && selectedTeacherForView.specialization.length > 0
+                            ? selectedTeacherForView.specialization.join(', ')
+                            : 'Chưa có'}
+                        </Typography>
+                          </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Status Banner */}
+                <Grid item xs={12}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 2,
                         background: `linear-gradient(90deg, ${selectedTeacherForView.isActive ? '#e8f5e8' : '#ffebee'}, transparent)`,
                         border: `2px solid ${selectedTeacherForView.isActive ? '#4caf50' : '#f44336'}`,
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                      }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <Typography variant="subtitle1" sx={{ fontWeight: 600, color: selectedTeacherForView.isActive ? '#2e7d32' : '#c62828' }}>
-                              Trạng thái giáo viên
-                          </Typography>
-                          <Chip
-                              label={selectedTeacherForView.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
-                              color={selectedTeacherForView.isActive ? 'success' : 'error'}
-                              size="small"
-                              sx={{ fontWeight: 600 }}
-                          />
-                          </Box>
+                            Trạng thái giáo viên
+                        </Typography>
+                        <Chip
+                            label={selectedTeacherForView.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                            color={selectedTeacherForView.isActive ? 'success' : 'error'}
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                        />
+                        </Box>
                       </Paper>
-                  </Grid>
+                </Grid>
 
-                  {/* Description */}
-                  {selectedTeacherForView.description && (
-                    <Grid item xs={12}>
+                {/* Description */}
+                {selectedTeacherForView.description && (
+                  <Grid item xs={12}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 2,
@@ -1046,8 +1046,8 @@ const TeacherManagement = () => {
                             bgcolor: '#667eea',
                             borderRadius: 2
                           }} />
-                          Mô tả
-                        </Typography>
+                        Mô tả
+                      </Typography>
                         <Box sx={{
                           p: 2,
                           bgcolor: 'white',
@@ -1055,15 +1055,15 @@ const TeacherManagement = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
                           <Typography variant="body1" sx={{ lineHeight: 1.6, color: '#2c3e50' }}>
-                            {selectedTeacherForView.description}
-                          </Typography>
+                        {selectedTeacherForView.description}
+                      </Typography>
                         </Box>
-                      </Paper>
-                    </Grid>
-                  )}
-                </Grid>
-              </Box>
-            )}
+                    </Paper>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>

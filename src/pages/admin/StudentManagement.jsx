@@ -130,7 +130,7 @@ const StudentManagement = () => {
   const handleSubmit = async () => {
     const errors = validateStudent(form, !!selectedStudent);
     if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    setFormErrors(errors);
       return;
     }
 
@@ -138,20 +138,43 @@ const StudentManagement = () => {
     setSubmitting(true);
 
     try {
-      const body = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        dayOfBirth: form.dayOfBirth,
-        gender: form.gender,
-        address: form.address,
-        parentId: form.parentId,
-        classes: classEdits.map(edit => ({
-          classId: edit.classId,
-          status: edit.status,
-          discountPercent: edit.discountPercent || 0
-        }))
-      };
+      let body;
+      if (selectedStudent) {
+        // Update: phải đúng format BE yêu cầu
+        body = {
+          userData: {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            dayOfBirth: form.dayOfBirth,
+            gender: form.gender,
+            address: form.address,
+          },
+          studentData: classEdits.map(edit => ({
+            classId: edit.classId,
+            status: edit.status,
+            discountPercent: edit.discountPercent || 0
+          }))
+        };
+      } else {
+        // Create: giữ nguyên như cũ
+        body = {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          dayOfBirth: form.dayOfBirth,
+          gender: form.gender,
+          address: form.address,
+          parentId: form.parentId,
+          classes: classEdits.map(edit => ({
+            classId: edit.classId,
+            status: edit.status,
+            discountPercent: edit.discountPercent || 0
+          }))
+        };
+      }
+
+      console.log('Student submit body:', body);
 
       if (selectedStudent) {
         // Update existing student

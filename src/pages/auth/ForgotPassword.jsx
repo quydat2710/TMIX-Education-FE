@@ -25,6 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import { forgotPasswordAPI, verifyCodeAPI, resetPasswordAPI } from '../../services/api';
+import { validationRules } from '../../utils/validation';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -50,13 +51,13 @@ const ForgotPassword = () => {
       email: ''
     },
     {
-      email: {
-        required: 'Email là bắt buộc',
-        pattern: {
-          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-          message: 'Email không hợp lệ'
-        }
-      }
+      email: [
+        validationRules.required('Email là bắt buộc'),
+        validationRules.pattern(
+          /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+          'Email không hợp lệ'
+        )
+      ]
     }
   );
 
@@ -111,6 +112,7 @@ const ForgotPassword = () => {
       } else {
         // Nếu không có token trong response, có thể backend đã xác thực thành công
         // và token sẽ được gửi qua URL hoặc email
+        console.log('No token in response, proceeding to reset step with verification code:', verificationCode);
         setCurrentStep('reset');
       }
     } catch (error) {
@@ -135,8 +137,28 @@ const ForgotPassword = () => {
       setError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
+    // Check if password contains at least 1 letter and 1 number
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    if (!hasLetter || !hasNumber) {
+      setError('Mật khẩu phải chứa ít nhất 1 chữ cái và 1 số');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+
+    // Debug logging
+    console.log('Reset password debug:', {
+      email,
+      verificationCode,
+      newPassword,
+      verificationCodeLength: verificationCode?.length
+    });
+
+    if (!verificationCode || !verificationCode.trim()) {
+      setError('Mã xác thực không hợp lệ. Vui lòng quay lại bước xác thực.');
       return;
     }
 
@@ -144,7 +166,7 @@ const ForgotPassword = () => {
     setError('');
 
     try {
-      await resetPasswordAPI(newPassword, resetToken);
+      await resetPasswordAPI(email, verificationCode, newPassword);
       setCurrentStep('success');
     } catch (error) {
       console.error('Reset password failed:', error);
@@ -446,6 +468,7 @@ const ForgotPassword = () => {
               autoFocus
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              helperText="Mật khẩu phải có ít nhất 6 ký tự, bao gồm ít nhất 1 chữ cái và 1 số"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

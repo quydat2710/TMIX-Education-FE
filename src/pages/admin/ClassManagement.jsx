@@ -423,7 +423,7 @@ const ClassManagement = () => {
             }}>
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
+          {selectedClass ? 'Chỉnh sửa thông tin lớp học' : 'Thêm lớp học mới'}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   {selectedClass ? 'Cập nhật thông tin lớp học' : 'Thêm lớp học mới vào hệ thống'}
@@ -443,7 +443,7 @@ const ClassManagement = () => {
                   <AddIcon sx={{ fontSize: 28, color: 'white' }} />
                 )}
               </Box>
-            </DialogTitle>
+        </DialogTitle>
 
             <DialogContent sx={{ p: 0 }}>
               <Box sx={{ p: 4 }}>
@@ -488,52 +488,52 @@ const ClassManagement = () => {
                     borderRadius: 2,
                     boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                   }}>
-                    {selectedClass ? (
-                      // EDIT MODE: Show Tabs
-                      <>
+            {selectedClass ? (
+              // EDIT MODE: Show Tabs
+              <>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-                          <Tabs value={currentTab} onChange={handleTabChange} aria-label="class details tabs" centered>
-                            <Tab label="Thông tin chung" key="tab-general" />
-                            <Tab label="Giáo viên" key="tab-teacher" />
-                            <Tab label="Học sinh" key="tab-student" />
-                          </Tabs>
-                        </Box>
-                        <CustomTabPanel value={currentTab} index={0} key="general-info">
-                          <AddClassForm
-                            key={`edit-form-${selectedClass?.id || 'new'}`}
-                            classData={selectedClass}
-                            onSubmit={handleUpdateClass}
-                            loading={loading}
-                            id="class-form"
-                          />
-                        </CustomTabPanel>
-                        <CustomTabPanel value={currentTab} index={1} key="teacher-management">
-                          <ClassTeacherManagement
-                            key={`teacher-mgmt-${selectedClass?.id}`}
-                            classData={selectedClass}
-                            onUpdate={handleForceRefresh}
-                            onClose={handleCloseDialog}
-                            onSuccessMessage={showSnackbar}
-                          />
-                        </CustomTabPanel>
-                        <CustomTabPanel value={currentTab} index={2} key="student-management">
-                          <ClassStudentManagement
-                            key={`student-mgmt-${selectedClass?.id}`}
-                            classData={selectedClass}
-                            onUpdate={handleForceRefresh}
-                            onClose={handleCloseDialog}
-                          />
-                        </CustomTabPanel>
-                      </>
-                    ) : (
-                      // ADD MODE: Show only the form
-                      <AddClassForm
-                        key="add-form-new"
-                        classData={null}
-                        onSubmit={handleAddClass}
-                        loading={loading}
-                        id="class-form"
-                      />
+                  <Tabs value={currentTab} onChange={handleTabChange} aria-label="class details tabs" centered>
+                    <Tab label="Thông tin chung" key="tab-general" />
+                    <Tab label="Giáo viên" key="tab-teacher" />
+                    <Tab label="Học sinh" key="tab-student" />
+                  </Tabs>
+                </Box>
+                  <CustomTabPanel value={currentTab} index={0} key="general-info">
+                    <AddClassForm
+                      key={`edit-form-${selectedClass?.id || 'new'}`}
+                      classData={selectedClass}
+                      onSubmit={handleUpdateClass}
+                      loading={loading}
+                      id="class-form"
+                    />
+                  </CustomTabPanel>
+                  <CustomTabPanel value={currentTab} index={1} key="teacher-management">
+                    <ClassTeacherManagement
+                      key={`teacher-mgmt-${selectedClass?.id}`}
+                      classData={selectedClass}
+                      onUpdate={handleForceRefresh}
+                      onClose={handleCloseDialog}
+                      onSuccessMessage={showSnackbar}
+                    />
+                  </CustomTabPanel>
+                  <CustomTabPanel value={currentTab} index={2} key="student-management">
+                    <ClassStudentManagement
+                      key={`student-mgmt-${selectedClass?.id}`}
+                      classData={selectedClass}
+                      onUpdate={handleForceRefresh}
+                      onClose={handleCloseDialog}
+                    />
+                  </CustomTabPanel>
+              </>
+            ) : (
+              // ADD MODE: Show only the form
+                <AddClassForm
+                  key="add-form-new"
+                  classData={null}
+                  onSubmit={handleAddClass}
+                  loading={loading}
+                  id="class-form"
+                />
                     )}
                   </Box>
                 </Paper>
@@ -611,8 +611,8 @@ const ClassManagement = () => {
         }}>
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-              Chi tiết lớp học
-            </Typography>
+            Chi tiết lớp học
+          </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
               Thông tin chi tiết về lớp học và học sinh
             </Typography>
@@ -630,11 +630,11 @@ const ClassManagement = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
-            {selectedClassForView && (
+          {selectedClassForView && (
               <Box>
-                <Grid container spacing={3}>
-                  {/* Left Column - Basic Info */}
-                  <Grid item xs={12} md={6}>
+              <Grid container spacing={3}>
+                {/* Left Column - Basic Info */}
+                <Grid item xs={12} md={6}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
@@ -657,8 +657,8 @@ const ClassManagement = () => {
                           bgcolor: '#667eea',
                           borderRadius: 2
                         }} />
-                        Thông tin cơ bản
-                      </Typography>
+                      Thông tin cơ bản
+                    </Typography>
                       <Box sx={{
                         p: 2,
                         bgcolor: 'white',
@@ -666,65 +666,65 @@ const ClassManagement = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                       }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <Box>
+                      <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Tên lớp
-                            </Typography>
+                          Tên lớp
+                        </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedClassForView.name}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Giáo viên phụ trách
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {(() => {
-                                let teacherObj = null;
-                                if (typeof selectedClassForView.teacherId === 'string') {
-                                  teacherObj = getTeacherObj(selectedClassForView.teacherId);
-                                } else if (typeof selectedClassForView.teacherId === 'object' && selectedClassForView.teacherId) {
-                                  teacherObj = selectedClassForView.teacherId;
-                                }
-                                return teacherObj ? `${teacherObj.userId?.name || teacherObj.name} (${teacherObj.userId?.email || ''})` : 'Chưa gán giáo viên';
-                              })()}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Năm học
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedClassForView.year}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Khối
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              Khối {selectedClassForView.grade}
-                            </Typography>
-                          </Box>
-
-                          <Box>
-                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Phòng học
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              {selectedClassForView.room || 'Chưa có'}
-                            </Typography>
-                          </Box>
-                        </Box>
+                          {selectedClassForView.name}
+                        </Typography>
                       </Box>
-                    </Paper>
-                  </Grid>
 
-                  {/* Right Column - Statistics */}
-                  <Grid item xs={12} md={6}>
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Giáo viên phụ trách
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {(() => {
+                            let teacherObj = null;
+                            if (typeof selectedClassForView.teacherId === 'string') {
+                              teacherObj = getTeacherObj(selectedClassForView.teacherId);
+                            } else if (typeof selectedClassForView.teacherId === 'object' && selectedClassForView.teacherId) {
+                              teacherObj = selectedClassForView.teacherId;
+                            }
+                            return teacherObj ? `${teacherObj.userId?.name || teacherObj.name} (${teacherObj.userId?.email || ''})` : 'Chưa gán giáo viên';
+                          })()}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Năm học
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedClassForView.year}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Khối
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          Khối {selectedClassForView.grade}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                            <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                          Phòng học
+                        </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedClassForView.room || 'Chưa có'}
+                        </Typography>
+                          </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Right Column - Statistics */}
+                <Grid item xs={12} md={6}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
@@ -747,8 +747,8 @@ const ClassManagement = () => {
                           bgcolor: '#667eea',
                           borderRadius: 2
                         }} />
-                        Thống kê lớp học
-                      </Typography>
+                      Thống kê lớp học
+                    </Typography>
                       <Box sx={{
                         p: 2,
                         bgcolor: 'white',
@@ -758,64 +758,64 @@ const ClassManagement = () => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Số lượng học sinh
-                            </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                              {classStudentsLoading ? 'Đang tải...' : classStudents.length}/{selectedClassForView.maxStudents || 30}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              Tối đa {selectedClassForView.maxStudents || 30} học sinh
-                            </Typography>
-                          </Box>
+                          Số lượng học sinh
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {classStudentsLoading ? 'Đang tải...' : classStudents.length}/{selectedClassForView.maxStudents || 30}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          Tối đa {selectedClassForView.maxStudents || 30} học sinh
+                        </Typography>
+                      </Box>
 
                           <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Học phí mỗi buổi
-                            </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#7b1fa2' }}>
-                              {selectedClassForView.feePerLesson ? `${selectedClassForView.feePerLesson.toLocaleString('vi-VN')} VNĐ` : 'Chưa cập nhật'}
-                            </Typography>
-                          </Box>
+                          Học phí mỗi buổi
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#7b1fa2' }}>
+                          {selectedClassForView.feePerLesson ? `${selectedClassForView.feePerLesson.toLocaleString('vi-VN')} VNĐ` : 'Chưa cập nhật'}
+                        </Typography>
+                      </Box>
 
                           <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Thời gian học
-                            </Typography>
+                          Thời gian học
+                        </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 500, color: '#2e7d32' }}>
-                              {formatSchedule(selectedClassForView.schedule)}
-                            </Typography>
+                          {formatSchedule(selectedClassForView.schedule)}
+                        </Typography>
                           </Box>
-                        </Box>
                       </Box>
-                    </Paper>
-                  </Grid>
+                    </Box>
+                  </Paper>
+            </Grid>
 
-                  {/* Status Banner */}
-                  <Grid item xs={12}>
+              {/* Status Banner */}
+              <Grid item xs={12}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
-                      background: `linear-gradient(90deg, ${getStatusColor(selectedClassForView.status) === 'success' ? '#e8f5e8' : getStatusColor(selectedClassForView.status) === 'warning' ? '#fff3e0' : '#ffebee'}, transparent)`,
+                    background: `linear-gradient(90deg, ${getStatusColor(selectedClassForView.status) === 'success' ? '#e8f5e8' : getStatusColor(selectedClassForView.status) === 'warning' ? '#fff3e0' : '#ffebee'}, transparent)`,
                       border: `2px solid ${getStatusColor(selectedClassForView.status) === 'success' ? '#4caf50' : getStatusColor(selectedClassForView.status) === 'warning' ? '#ff9800' : '#f44336'}`,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600, color: getStatusColor(selectedClassForView.status) === 'success' ? '#2e7d32' : getStatusColor(selectedClassForView.status) === 'warning' ? '#e65100' : '#c62828' }}>
-                          Trạng thái lớp học
-                        </Typography>
-                        <Chip
-                          label={getStatusLabel(selectedClassForView.status)}
-                          color={getStatusColor(selectedClassForView.status)}
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Box>
+                        Trạng thái lớp học
+                      </Typography>
+                      <Chip
+                        label={getStatusLabel(selectedClassForView.status)}
+                        color={getStatusColor(selectedClassForView.status)}
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </Box>
                     </Paper>
-                  </Grid>
+                </Grid>
 
-                  {/* Full Width - Schedule Details */}
-                  {selectedClassForView.schedule && (
-                    <Grid item xs={12}>
+                {/* Full Width - Schedule Details */}
+                {selectedClassForView.schedule && (
+                  <Grid item xs={12}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 2,
@@ -837,67 +837,67 @@ const ClassManagement = () => {
                             bgcolor: '#667eea',
                             borderRadius: 2
                           }} />
-                          Lịch học chi tiết
-                        </Typography>
+                        Lịch học chi tiết
+                      </Typography>
                         <Box sx={{
                           p: 2,
                           bgcolor: 'white',
                           borderRadius: 2,
                           boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={2.8}>
-                              <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#fff3e0', border: '1px solid #ff9800' }}>
-                                <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                  Ngày bắt đầu
-                                </Typography>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#e65100' }}>
-                                  {selectedClassForView.schedule.startDate ? new Date(selectedClassForView.schedule.startDate).toLocaleDateString('vi-VN') : 'Chưa có'}
-                                </Typography>
-                              </Box>
-                            </Grid>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={2.8}>
+                          <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#fff3e0', border: '1px solid #ff9800' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              Ngày bắt đầu
+                            </Typography>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#e65100' }}>
+                              {selectedClassForView.schedule.startDate ? new Date(selectedClassForView.schedule.startDate).toLocaleDateString('vi-VN') : 'Chưa có'}
+                            </Typography>
+                          </Box>
+            </Grid>
 
-                            <Grid item xs={12} md={2.8}>
-                              <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
-                                <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                  Ngày kết thúc
-                                </Typography>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#2e7d32' }}>
-                                  {selectedClassForView.schedule.endDate ? new Date(selectedClassForView.schedule.endDate).toLocaleDateString('vi-VN') : 'Chưa có'}
-                                </Typography>
-                              </Box>
-                            </Grid>
+                        <Grid item xs={12} md={2.8}>
+                          <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              Ngày kết thúc
+                            </Typography>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#2e7d32' }}>
+                              {selectedClassForView.schedule.endDate ? new Date(selectedClassForView.schedule.endDate).toLocaleDateString('vi-VN') : 'Chưa có'}
+                            </Typography>
+                          </Box>
+            </Grid>
 
-                            <Grid item xs={12} md={3.4}>
-                              <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#e3f2fd', border: '1px solid #2196f3' }}>
-                                <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                  Thời gian
-                                </Typography>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                                  {selectedClassForView.schedule.timeSlots ? `${selectedClassForView.schedule.timeSlots.startTime} - ${selectedClassForView.schedule.timeSlots.endTime}` : 'Chưa có'}
-                                </Typography>
-                              </Box>
-                            </Grid>
+                        <Grid item xs={12} md={3.4}>
+                          <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#e3f2fd', border: '1px solid #2196f3' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              Thời gian
+                            </Typography>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                              {selectedClassForView.schedule.timeSlots ? `${selectedClassForView.schedule.timeSlots.startTime} - ${selectedClassForView.schedule.timeSlots.endTime}` : 'Chưa có'}
+                            </Typography>
+                          </Box>
+            </Grid>
 
-                            <Grid item xs={12} md={3}>
-                              <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#f3e5f5', border: '1px solid #9c27b0' }}>
-                                <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                  Ngày trong tuần
-                                </Typography>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#7b1fa2' }}>
-                                  {selectedClassForView.schedule.dayOfWeeks ? selectedClassForView.schedule.dayOfWeeks.map(day => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][day]).join(', ') : 'Chưa có'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                          </Grid>
+                        <Grid item xs={12} md={3}>
+                          <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1.5, bgcolor: '#f3e5f5', border: '1px solid #9c27b0' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              Ngày trong tuần
+                            </Typography>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#7b1fa2' }}>
+                              {selectedClassForView.schedule.dayOfWeeks ? selectedClassForView.schedule.dayOfWeeks.map(day => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][day]).join(', ') : 'Chưa có'}
+                            </Typography>
+                          </Box>
+            </Grid>
+            </Grid>
                         </Box>
-                      </Paper>
-                    </Grid>
-                  )}
+                    </Paper>
+            </Grid>
+                )}
 
-                  {/* Description */}
-                  {selectedClassForView.description && (
-                    <Grid item xs={12}>
+                {/* Description */}
+                {selectedClassForView.description && (
+            <Grid item xs={12}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 2,
@@ -919,8 +919,8 @@ const ClassManagement = () => {
                             bgcolor: '#667eea',
                             borderRadius: 2
                           }} />
-                          Mô tả lớp học
-                        </Typography>
+                        Mô tả lớp học
+                      </Typography>
                         <Box sx={{
                           p: 2,
                           bgcolor: 'white',
@@ -928,15 +928,15 @@ const ClassManagement = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
                           <Typography variant="body1" sx={{ lineHeight: 1.6, color: '#2c3e50' }}>
-                            {selectedClassForView.description}
-                          </Typography>
+                        {selectedClassForView.description}
+                      </Typography>
                         </Box>
-                      </Paper>
-                    </Grid>
-                  )}
+                    </Paper>
+            </Grid>
+                )}
 
-                  {/* Students List */}
-                  <Grid item xs={12}>
+                {/* Students List */}
+                <Grid item xs={12}>
                     <Paper sx={{
                       p: 3,
                       borderRadius: 2,
@@ -958,62 +958,62 @@ const ClassManagement = () => {
                           bgcolor: '#667eea',
                           borderRadius: 2
                         }} />
-                        Danh sách học sinh ({classStudents.length})
-                      </Typography>
+                      Danh sách học sinh ({classStudents.length})
+                    </Typography>
                       <Box sx={{
                         p: 2,
                         bgcolor: 'white',
                         borderRadius: 2,
                         boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                       }}>
-                        {classStudentsLoading ? (
-                          <Box sx={{ textAlign: 'center', py: 3 }}>
-                            <Typography variant="body2" color="textSecondary">
-                              Đang tải danh sách học sinh...
-                            </Typography>
-                          </Box>
-                        ) : classStudentsError ? (
-                          <Box sx={{ textAlign: 'center', py: 3 }}>
-                            <Typography variant="body2" color="error">
-                              {classStudentsError}
-                            </Typography>
-                          </Box>
-                        ) : classStudents.length === 0 ? (
-                          <Box sx={{ textAlign: 'center', py: 3 }}>
-                            <Typography variant="body2" color="textSecondary">
-                              Chưa có học sinh nào trong lớp này
-                            </Typography>
-                          </Box>
-                        ) : (
-                          <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                            <Grid container spacing={1}>
-                              {classStudents.map((student, index) => (
-                                <Grid item xs={12} sm={6} md={4} key={String(student.id || student._id || `student-${index}`)}>
-                                  <Box sx={{
-                                    p: 1.5,
-                                    borderRadius: 1,
-                                    border: '1px solid #e0e0e0',
-                                    background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
-                                    '&:hover': {
-                                      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-                                      borderColor: '#2196f3'
-                                    }
-                                  }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1976d2' }}>
-                                      {index + 1}. {student.name}
-                                    </Typography>
-                                  </Box>
-                                </Grid>
-                              ))}
-                            </Grid>
-                          </Box>
-                        )}
+                    {classStudentsLoading ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="textSecondary">
+                          Đang tải danh sách học sinh...
+                        </Typography>
                       </Box>
-                    </Paper>
-                  </Grid>
+                    ) : classStudentsError ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="error">
+                          {classStudentsError}
+                        </Typography>
+                      </Box>
+                    ) : classStudents.length === 0 ? (
+                      <Box sx={{ textAlign: 'center', py: 3 }}>
+                        <Typography variant="body2" color="textSecondary">
+                          Chưa có học sinh nào trong lớp này
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                        <Grid container spacing={1}>
+                          {classStudents.map((student, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={String(student.id || student._id || `student-${index}`)}>
+                              <Box sx={{
+                                p: 1.5,
+                                borderRadius: 1,
+                                border: '1px solid #e0e0e0',
+                                background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                                  borderColor: '#2196f3'
+                                }
+                              }}>
+                                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1976d2' }}>
+                                  {index + 1}. {student.name}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Box>
+                    )}
+                      </Box>
+                  </Paper>
                 </Grid>
+          </Grid>
               </Box>
-            )}
+          )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
