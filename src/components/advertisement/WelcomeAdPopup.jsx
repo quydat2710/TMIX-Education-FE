@@ -1,16 +1,10 @@
 import React from 'react';
-import { Dialog, IconButton, Box, Card, CardMedia, CardContent, Typography, Button, CardActions } from '@mui/material';
-import { Close as CloseIcon, ArrowForward } from '@mui/icons-material';
+import { Dialog, IconButton, Box, Card, CardMedia, CardContent, Typography } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
 const WelcomeAdPopup = ({ open, onClose, ad }) => {
   if (!ad) return null;
   const welcomeAd = ad;
-
-  const handleAdClick = () => {
-    // Xử lý khi click vào quảng cáo
-    console.log('Welcome ad clicked for role:', welcomeAd.userRole);
-    onClose();
-  };
 
   return (
     <Dialog
@@ -71,99 +65,58 @@ const WelcomeAdPopup = ({ open, onClose, ad }) => {
           <CloseIcon />
         </IconButton>
 
-        {/* Offer Badge */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -5,
-            left: -5,
-            zIndex: 5,
-            bgcolor: 'secondary.main',
-            color: 'white',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            fontWeight: 'bold',
-            fontSize: '0.875rem',
-            transform: 'rotate(-10deg)',
-            boxShadow: 2
-          }}
-        >
-          {welcomeAd.offer || welcomeAd.priority || ''}
-        </Box>
-
         <Card
           sx={{
             borderRadius: 3,
             overflow: 'hidden',
             boxShadow: 8,
             border: '3px solid',
-            borderColor: 'primary.main'
+            borderColor: 'primary.main',
+            position: 'relative'
           }}
         >
           <CardMedia
             component="img"
-            height="250"
+            height="400"
             image={welcomeAd.imageUrl || welcomeAd.image}
             alt={welcomeAd.title}
             sx={{
-              filter: 'brightness(0.9)',
+              filter: 'brightness(0.8)',
             }}
           />
 
-          <CardContent sx={{ p: 3 }}>
+          {/* Overlay for text */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+              color: 'white',
+              p: 3
+            }}
+          >
             <Typography
               variant="h5"
               component="h2"
               gutterBottom
               fontWeight="bold"
-              color="primary"
+              sx={{ color: 'white' }}
             >
               {welcomeAd.title}
             </Typography>
 
             <Typography
               variant="body1"
-              color="text.secondary"
-              sx={{ mb: 3, lineHeight: 1.6 }}
+              sx={{
+                lineHeight: 1.6,
+                color: 'rgba(255,255,255,0.9)'
+              }}
             >
               {welcomeAd.content || welcomeAd.description}
             </Typography>
-
-            <CardActions sx={{ p: 0, justifyContent: 'space-between' }}>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={handleAdClick}
-                endIcon={<ArrowForward />}
-                sx={{
-                  flex: 1,
-                  mr: 1,
-                  py: 1.5,
-                  fontWeight: 'bold',
-                  background: 'linear-gradient(45deg, #1976d2 0%, #42a5f5 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #1565c0 0%, #1976d2 100%)',
-                    transform: 'translateY(-2px)'
-                  },
-                  transition: 'all 0.3s'
-                }}
-              >
-                {welcomeAd.buttonText || 'Xem chi tiết'}
-              </Button>
-
-              <Button
-                variant="outlined"
-                onClick={onClose}
-                sx={{
-                  minWidth: 100,
-                  py: 1.5
-                }}
-              >
-                Bỏ qua
-              </Button>
-            </CardActions>
-          </CardContent>
+          </Box>
         </Card>
 
         {/* Decorative elements */}

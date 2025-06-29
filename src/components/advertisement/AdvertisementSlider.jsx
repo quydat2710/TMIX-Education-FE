@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Card, CardMedia, IconButton, Fade } from '@mui/material';
+import { Box, Typography, Button, Card, CardMedia, IconButton, Fade, Slide } from '@mui/material';
 import {
   ArrowBackIos,
   ArrowForwardIos
 } from '@mui/icons-material';
 
-const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
+const AdvertisementSlider = ({ autoPlay = true, interval = 8000, ads }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState('left');
 
   const advertisements = ads && ads.length > 0 ? ads : [];
 
@@ -14,6 +15,7 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
   useEffect(() => {
     if (autoPlay && advertisements.length > 1) {
       const timer = setInterval(() => {
+        setSlideDirection('left');
         setCurrentIndex((prevIndex) =>
           prevIndex === advertisements.length - 1 ? 0 : prevIndex + 1
         );
@@ -24,12 +26,14 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
   }, [autoPlay, advertisements.length, interval]);
 
   const handleNext = () => {
+    setSlideDirection('left');
     setCurrentIndex((prevIndex) =>
       prevIndex === advertisements.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const handlePrev = () => {
+    setSlideDirection('right');
     setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? advertisements.length - 1 : prevIndex - 1
     );
@@ -75,14 +79,18 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
             bgcolor: 'grey.100'
           }}
         >
-          <Fade in={true} timeout={500} key={currentIndex}>
+          <Slide direction={slideDirection} in={true} timeout={3000} key={currentIndex}>
             <Card
               sx={{
                 height: '100%',
                 position: 'relative',
                 cursor: 'pointer',
                 borderRadius: 3,
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transition: 'transform 0.6s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.02)'
+                }
               }}
               onClick={() => handleAdClick(currentAd)}
             >
@@ -100,7 +108,8 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                     py: 0.5,
                     borderRadius: 2,
                     fontWeight: 'bold',
-                    fontSize: '0.875rem'
+                    fontSize: '0.875rem',
+                    animation: 'fadeIn 1s ease-in-out'
                   }}
                 >
                   {currentAd.badge || currentAd.priority}
@@ -118,7 +127,8 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  transition: 'transform 0.6s ease-in-out'
                 }}
               />
 
@@ -131,7 +141,8 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                   right: 0,
                   background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                   color: 'white',
-                  p: 3
+                  p: 3,
+                  animation: 'slideUp 1s ease-out'
                 }}
               >
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -140,25 +151,9 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                 <Typography variant="body1" sx={{ mb: 2, opacity: 0.9 }}>
                   {currentAd.content || currentAd.description}
                 </Typography>
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{
-                    bgcolor: 'white',
-                    color: 'primary.main',
-                    fontWeight: 'bold',
-                    '&:hover': {
-                      bgcolor: 'grey.100',
-                      transform: 'translateY(-2px)'
-                    },
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  {currentAd.buttonText || 'Xem chi tiết'}
-                </Button>
               </Box>
             </Card>
-          </Fade>
+          </Slide>
 
           {/* Navigation buttons */}
           {advertisements.length > 1 && (
@@ -170,8 +165,14 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                   left: 16,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  bgcolor: 'rgba(255,255,255,0.8)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                  bgcolor: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,1)',
+                    transform: 'translateY(-50%) scale(1.1)'
+                  },
+                  transition: 'all 0.6s ease-in-out',
+                  zIndex: 3
                 }}
               >
                 <ArrowBackIos />
@@ -184,8 +185,14 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
                   right: 16,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  bgcolor: 'rgba(255,255,255,0.8)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                  bgcolor: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,1)',
+                    transform: 'translateY(-50%) scale(1.1)'
+                  },
+                  transition: 'all 0.6s ease-in-out',
+                  zIndex: 3
                 }}
               >
                 <ArrowForwardIos />
@@ -205,16 +212,20 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
             {advertisements.map((_, index) => (
               <Box
                 key={index}
-                onClick={() => setCurrentIndex(index)}
+                onClick={() => {
+                  setSlideDirection(index > currentIndex ? 'left' : 'right');
+                  setCurrentIndex(index);
+                }}
                 sx={{
-                  width: 12,
+                  width: index === currentIndex ? 24 : 12,
                   height: 12,
-                  borderRadius: '50%',
+                  borderRadius: index === currentIndex ? 6 : '50%',
                   bgcolor: index === currentIndex ? 'primary.main' : 'grey.300',
                   cursor: 'pointer',
-                  transition: 'all 0.3s',
+                  transition: 'all 0.6s ease-in-out',
                   '&:hover': {
-                    bgcolor: index === currentIndex ? 'primary.dark' : 'grey.400'
+                    bgcolor: index === currentIndex ? 'primary.dark' : 'grey.400',
+                    transform: 'scale(1.2)'
                   }
                 }}
               />
@@ -222,6 +233,19 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 4000, ads }) => {
           </Box>
         )}
       </Box>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </Box>
   );
 };

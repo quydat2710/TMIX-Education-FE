@@ -366,7 +366,7 @@ const AdvertisementManagement = () => {
                   >
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpg,image/jpeg,image/webp"
                       hidden
                       onChange={handleFileChange}
                     />
@@ -388,7 +388,7 @@ const AdvertisementManagement = () => {
                           Tải ảnh quảng cáo
                         </Typography>
                         <Typography variant="caption" color="inherit">
-                          (PNG, JPG, JPEG, GIF)
+                          (PNG, JPG, JPEG, WEBP)
                         </Typography>
                       </Box>
                     )}

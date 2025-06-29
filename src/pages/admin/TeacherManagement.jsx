@@ -67,6 +67,7 @@ const TeacherManagement = () => {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    password: '',
     phone: '',
     address: '',
     gender: 'female',
@@ -109,6 +110,7 @@ const TeacherManagement = () => {
     setForm({
       name: '',
       email: '',
+      password: '',
       phone: '',
         address: '',
         gender: 'female',
@@ -131,6 +133,7 @@ const TeacherManagement = () => {
     setForm({
       name: '',
       email: '',
+      password: '',
       phone: '',
       address: '',
       gender: 'female',
@@ -610,7 +613,7 @@ const TeacherManagement = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Địa chỉ"

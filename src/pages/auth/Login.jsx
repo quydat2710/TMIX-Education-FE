@@ -286,6 +286,19 @@ const Login = () => {
                       '-webkit-text-fill-color': '#222 !important',
                       'color': '#222 !important',
                     }
+                  },
+                  // Hide browser's default password visibility icon
+                  '& input[type="password"]::-ms-reveal': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-ms-clear': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-contacts-auto-fill-button': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-credentials-auto-fill-button': {
+                    display: 'none',
                   }
                 }}
               />

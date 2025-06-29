@@ -59,6 +59,7 @@ const StudentManagement = () => {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    password: '',
     dayOfBirth: '',
     phone: '',
     address: '',
@@ -76,6 +77,7 @@ const StudentManagement = () => {
       setForm({
         name: student.userId?.name || '',
         email: student.userId?.email || '',
+        password: student.userId?.password || '',
         dayOfBirth: student.userId?.dayOfBirth || '',
         phone: student.userId?.phone || '',
         address: student.userId?.address || '',
@@ -93,6 +95,7 @@ const StudentManagement = () => {
       setForm({
         name: '',
         email: '',
+        password: '',
         dayOfBirth: '',
         phone: '',
         address: '',
@@ -110,6 +113,7 @@ const StudentManagement = () => {
     setForm({
       name: '',
       email: '',
+      password: '',
       dayOfBirth: '',
       phone: '',
       address: '',
@@ -157,20 +161,15 @@ const StudentManagement = () => {
           }))
         };
       } else {
-        // Create: giữ nguyên như cũ
+        // Create: đúng format API specification
         body = {
-          name: form.name,
           email: form.email,
-          phone: form.phone,
+          password: form.password,
+          name: form.name,
           dayOfBirth: form.dayOfBirth,
-          gender: form.gender,
+          phone: form.phone,
           address: form.address,
-          parentId: form.parentId,
-          classes: classEdits.map(edit => ({
-            classId: edit.classId,
-            status: edit.status,
-            discountPercent: edit.discountPercent || 0
-          }))
+          gender: form.gender
         };
       }
 

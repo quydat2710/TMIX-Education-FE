@@ -497,6 +497,19 @@ const ForgotPassword = () => {
                   },
                   '&.Mui-focused': {
                     backgroundColor: 'white',
+                  },
+                  // Hide browser's default password visibility icon
+                  '& input[type="password"]::-ms-reveal': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-ms-clear': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-contacts-auto-fill-button': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-credentials-auto-fill-button': {
+                    display: 'none',
                   }
                 }
               }}
@@ -540,6 +553,19 @@ const ForgotPassword = () => {
                   },
                   '&.Mui-focused': {
                     backgroundColor: 'white',
+                  },
+                  // Hide browser's default password visibility icon
+                  '& input[type="password"]::-ms-reveal': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-ms-clear': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-contacts-auto-fill-button': {
+                    display: 'none',
+                  },
+                  '& input[type="password"]::-webkit-credentials-auto-fill-button': {
+                    display: 'none',
                   }
                 }
               }}
@@ -626,7 +652,7 @@ const ForgotPassword = () => {
             >
               <School sx={{
                 fontSize: 64,
-                color: 'primary.main',
+                color: 'black',
                 mb: 2,
                 filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
               }} />
@@ -657,10 +683,10 @@ const ForgotPassword = () => {
                 onClick={handleBackToLogin}
                 sx={{
                   textTransform: 'none',
-                  color: 'primary.main',
+                  color: 'black',
                   fontWeight: 500,
                   '&:hover': {
-                    backgroundColor: 'rgba(118, 75, 162, 0.04)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   }
                 }}
               >
