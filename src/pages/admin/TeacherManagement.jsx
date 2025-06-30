@@ -211,6 +211,8 @@ const TeacherManagement = () => {
         // UPDATE
         const body = {
           userData: {
+            name: form.name,
+            email: form.email,
             phone: form.phone,
             dayOfBirth: form.dayOfBirth,
             address: form.address,
@@ -482,27 +484,24 @@ const TeacherManagement = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}>
                 <Grid container spacing={3}>
-            {/* Khi chỉnh sửa chỉ cho phép sửa các trường API yêu cầu */}
-            {selectedTeacher == null ? (
-              <React.Fragment>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Họ và tên"
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      error={!!formErrors.name}
-                      helperText={formErrors.name}
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                error={!!formErrors.name}
+                helperText={formErrors.name}
                 required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#667eea',
-                          },
-                        },
-                      }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -510,44 +509,44 @@ const TeacherManagement = () => {
                 fullWidth
                 label="Email"
                 type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      error={!!formErrors.email}
-                      helperText={formErrors.email}
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                error={!!formErrors.email}
+                helperText={formErrors.email}
                 required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#667eea',
-                          },
-                        },
-                      }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
             </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Mật khẩu"
-                    name="password"
-                    type="password"
-                    value={form.password || ''}
-                    onChange={handleChange}
-                    required
-                    error={!!formErrors.password}
-                    helperText={formErrors.password}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
-                              },
-                            },
-                          }}
-                  />
-                </Grid>
-              </React.Fragment>
+            {selectedTeacher == null ? (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Mật khẩu"
+                  name="password"
+                  type="password"
+                  value={form.password || ''}
+                  onChange={handleChange}
+                  required
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#667eea',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
             ) : null}
             <Grid item xs={12} sm={6}>
               <TextField
