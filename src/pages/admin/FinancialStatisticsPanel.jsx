@@ -181,14 +181,14 @@ const FinancialStatisticsPanel = () => {
     };
     console.log('=== THANH TOÁN LƯƠNG GIÁO VIÊN ===');
     console.log('Teacher Payment ID:', selectedTeacherPayment.id);
-    console.log('Teacher ID:', selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId);
+    console.log('Teacher ID:', selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id);
     console.log('Teacher Name:', selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name);
     console.log('Month/Year:', selectedTeacherPayment.month + '/' + selectedTeacherPayment.year);
     console.log('Payment Data:', paymentData);
     console.log('================================');
 
     try {
-      await payTeacherAPI(selectedTeacherPayment.id, paymentData);
+      await payTeacherAPI(selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id, paymentData);
       setTeacherPaymentSuccess('Thanh toán thành công!');
       await fetchTeacherPayments();
       await fetchTotalStatistics();
@@ -343,6 +343,9 @@ const FinancialStatisticsPanel = () => {
                         <Typography variant="caption" color="text.secondary">
                           {p.teacherId?.userId?.email || '-'}
                         </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          ID: {p.teacherId?.id || p.teacherId?.userId?.id || '-'}
+                        </Typography>
                       </TableCell>
                       <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
                       <TableCell align="right">{(p.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
@@ -495,7 +498,7 @@ const FinancialStatisticsPanel = () => {
                       <strong>Giáo viên:</strong> {selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Lớp:</strong> {selectedTeacherPayment.classId?.name}
+                      <strong>ID:</strong> {selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id || '-'}
                     </Typography>
                     <Typography variant="body2">
                       <strong>Tháng/Năm:</strong> {selectedTeacherPayment.month}/{selectedTeacherPayment.year}
@@ -657,10 +660,16 @@ const FinancialStatisticsPanel = () => {
                           {selectedTeacherForDetail.teacherId?.userId?.email || '-'}
                         </span>
                       </Typography>
-                      <Typography variant="body2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: '#666' }}>SĐT:</span>
                         <span style={{ fontWeight: 500, color: '#2c3e50' }}>
                           {selectedTeacherForDetail.teacherId?.userId?.phone || '-'}
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>ID:</span>
+                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                          {selectedTeacherForDetail.teacherId?.id || selectedTeacherForDetail.teacherId?.userId?.id || '-'}
                         </span>
                       </Typography>
                     </Box>
