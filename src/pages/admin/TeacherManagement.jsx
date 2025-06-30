@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -50,6 +50,8 @@ function formatDateDDMMYYYY(dateString) {
 
 const TeacherManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isActiveFilter, setIsActiveFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -258,11 +260,21 @@ const TeacherManagement = () => {
     }
   };
 
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   // Fetch teachers from API
   const fetchTeachers = async (pageNum = 1) => {
     setLoadingTable(true);
     try {
       const params = { page: pageNum, limit: 10 };
+      if (isActiveFilter !== '') params.isActive = isActiveFilter;
+      if (debouncedSearch) params.name = debouncedSearch;
       const res = await getAllTeachersAPI(params);
       console.log('API getAllTeachersAPI response:', res);
       setTeachers(res.data || []);
@@ -276,10 +288,10 @@ const TeacherManagement = () => {
     }
   };
 
-  // Fetch teachers on component mount and when page changes
+  // Fetch teachers on component mount and when page, filter, or search changes
   useEffect(() => {
     fetchTeachers(page);
-  }, [page]);
+  }, [page, isActiveFilter, debouncedSearch]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -305,19 +317,32 @@ const TeacherManagement = () => {
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
-        <TextField
-          fullWidth
-          placeholder="Tìm kiếm giáo viên..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Tìm kiếm giáo viên..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            select
+            label="Trạng thái"
+            value={isActiveFilter}
+            onChange={e => setIsActiveFilter(e.target.value)}
+            sx={{ minWidth: 180 }}
+          >
+            <MenuItem value="">Tất cả</MenuItem>
+            <MenuItem value={true}>Đang hoạt động</MenuItem>
+            <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+          </TextField>
+        </Box>
       </Paper>
 
       <TableContainer component={Paper}>
@@ -488,11 +513,11 @@ const TeacherManagement = () => {
               <TextField
                 fullWidth
                 label="Họ và tên"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                error={!!formErrors.name}
-                helperText={formErrors.name}
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!formErrors.name}
+                      helperText={formErrors.name}
                 required
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -509,11 +534,11 @@ const TeacherManagement = () => {
                 fullWidth
                 label="Email"
                 type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                error={!!formErrors.email}
-                helperText={formErrors.email}
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      error={!!formErrors.email}
+                      helperText={formErrors.email}
                 required
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -526,17 +551,17 @@ const TeacherManagement = () => {
               />
             </Grid>
             {selectedTeacher == null ? (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Mật khẩu"
-                  name="password"
-                  type="password"
-                  value={form.password || ''}
-                  onChange={handleChange}
-                  required
-                  error={!!formErrors.password}
-                  helperText={formErrors.password}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Mật khẩu"
+                    name="password"
+                    type="password"
+                    value={form.password || ''}
+                    onChange={handleChange}
+                    required
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
@@ -545,8 +570,8 @@ const TeacherManagement = () => {
                       },
                     },
                   }}
-                />
-              </Grid>
+                  />
+                </Grid>
             ) : null}
             <Grid item xs={12} sm={6}>
               <TextField

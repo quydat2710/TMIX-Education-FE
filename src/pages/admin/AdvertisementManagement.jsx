@@ -344,56 +344,6 @@ const AdvertisementManagement = () => {
                           }}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Box
-                    sx={{
-                            border: '2px dashed #667eea',
-                      borderRadius: 2,
-                      height: 220,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                      cursor: 'pointer',
-                            background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%)',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: '#764ba2',
-                              background: 'linear-gradient(135deg, #e3f2fd 0%, #f5f7fa 100%)'
-                            }
-                    }}
-                    component="label"
-                  >
-                    <input
-                      type="file"
-                      accept="image/png,image/jpg,image/jpeg,image/webp"
-                      hidden
-                      onChange={handleFileChange}
-                    />
-                    {formData.image ? (
-                      <img
-                        src={URL.createObjectURL(formData.image)}
-                        alt="preview"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain',
-                          borderRadius: 8
-                        }}
-                      />
-                    ) : (
-                            <Box sx={{ textAlign: 'center', color: '#667eea' }}>
-                        <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
-                              <Typography variant="body2" color="inherit" sx={{ fontWeight: 600 }}>
-                          Tải ảnh quảng cáo
-                        </Typography>
-                        <Typography variant="caption" color="inherit">
-                          (PNG, JPG, JPEG, WEBP)
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -431,6 +381,72 @@ const AdvertisementManagement = () => {
                             },
                           }}
                   />
+                </Grid>
+                <Grid item xs={12}>
+                  <Box
+                    sx={{
+                            border: '2px dashed #667eea',
+                      borderRadius: 0,
+                      minHeight: 300,
+                      minWidth: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      cursor: 'pointer',
+                            background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%)',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              borderColor: '#764ba2',
+                              background: 'linear-gradient(135deg, #e3f2fd 0%, #f5f7fa 100%)'
+                            }
+                    }}
+                    component="label"
+                  >
+                    <input
+                      type="file"
+                      accept="image/png,image/jpg,image/jpeg,image/webp"
+                      hidden
+                      onChange={handleFileChange}
+                    />
+                    {formData.image ? (
+                      <img
+                        src={URL.createObjectURL(formData.image)}
+                        alt="preview"
+                        style={{
+                          maxWidth: '736px',
+                          maxHeight: '552552px',
+                          width: 'auto',
+                          height: 'auto',
+                          objectFit: 'contain',
+                          borderRadius: 0
+                        }}
+                      />
+                    ) : editingAd && editingAd.imageUrl ? (
+                      <img
+                        src={editingAd.imageUrl}
+                        alt="current"
+                        style={{
+                          maxWidth: '736px',
+                          maxHeight: '552552px',
+                          width: 'auto',
+                          height: 'auto',
+                          objectFit: 'contain',
+                          borderRadius: 0
+                        }}
+                      />
+                    ) : (
+                            <Box sx={{ textAlign: 'center', color: '#667eea' }}>
+                        <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
+                              <Typography variant="body2" color="inherit" sx={{ fontWeight: 600 }}>
+                          Tải ảnh quảng cáo
+                        </Typography>
+                        <Typography variant="caption" color="inherit">
+                          (PNG, JPG, JPEG, WEBP)
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Grid>
               </Grid>
                   </Box>

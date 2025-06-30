@@ -228,21 +228,21 @@ const AttendanceModal = ({
                   borderRadius: 2,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
-                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                       <strong style={{ color: '#27ae60' }}>Có mặt:</strong> {summary.present} ({summary.rate}%)
-                    </Typography>
+                  </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                       <strong style={{ color: '#e74c3c' }}>Vắng:</strong> {summary.absent}
-                    </Typography>
+                  </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                       <strong style={{ color: '#f39c12' }}>Đi muộn:</strong> {summary.late}
-                    </Typography>
+                  </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                      <strong>Tổng:</strong> {summary.total}
-                    </Typography>
-                  </Box>
+                    <strong>Tổng:</strong> {summary.total}
+                  </Typography>
                 </Box>
+              </Box>
               </Paper>
 
               <TableContainer>

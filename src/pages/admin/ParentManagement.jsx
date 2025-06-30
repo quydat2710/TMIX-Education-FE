@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -45,7 +45,6 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const ParentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -64,6 +63,7 @@ const ParentManagement = () => {
   const [newChildId, setNewChildId] = useState('');
   const [tabValue, setTabValue] = useState(0);
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [debouncedStudentSearch, setDebouncedStudentSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchingStudents, setSearchingStudents] = useState(false);
   const [form, setForm] = useState({
@@ -76,6 +76,7 @@ const ParentManagement = () => {
     gender: 'male',
     canSeeTeacherInfo: true,
   });
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const handleOpenDialog = (parent = null) => {
     setSelectedParent(parent);
@@ -192,18 +193,25 @@ const ParentManagement = () => {
     setTabValue(newValue);
   };
 
+  // Debounce student search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStudentSearch(studentSearchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [studentSearchQuery]);
+
   const searchStudents = async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
-
     setSearchingStudents(true);
     try {
       const params = {
         page: 1,
         limit: 10,
-        search: query.trim()
+        name: query.trim()
       };
       const res = await getAllStudentsAPI(params);
       setSearchResults(res.data || []);
@@ -215,14 +223,17 @@ const ParentManagement = () => {
     }
   };
 
-  const handleStudentSearchChange = (e) => {
-    const query = e.target.value;
-    setStudentSearchQuery(query);
-    if (query.trim()) {
-      searchStudents(query);
+  useEffect(() => {
+    if (debouncedStudentSearch.trim()) {
+      searchStudents(debouncedStudentSearch);
     } else {
       setSearchResults([]);
     }
+  }, [debouncedStudentSearch]);
+
+  const handleStudentSearchChange = (e) => {
+    const query = e.target.value;
+    setStudentSearchQuery(query);
   };
 
   const handleAddChild = async (studentId, parentId) => {
@@ -315,11 +326,20 @@ const ParentManagement = () => {
     }
   };
 
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   // Fetch parents from API
   const fetchParents = async (pageNum = 1) => {
     setLoadingTable(true);
     try {
       const params = { page: pageNum, limit: 10 };
+      if (debouncedSearch) params.name = debouncedSearch;
       const res = await getAllParentsAPI(params);
       console.log('API getAllParentsAPI response:', res);
       console.log('Parents data:', res.data);
@@ -347,10 +367,10 @@ const ParentManagement = () => {
     return names.join('\n');
   };
 
-  // Fetch parents on component mount and when page changes
+  // Fetch parents on component mount and when page or search changes
   useEffect(() => {
     fetchParents(page);
-  }, [page]);
+  }, [page, debouncedSearch]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -406,21 +426,6 @@ const ParentManagement = () => {
                 ),
               }}
             />
-          </Grid>
-              <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Trạng thái</InputLabel>
-                  <Select
-                    label="Trạng thái"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    sx={commonStyles.filterSelect}
-                  >
-                <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="active">Đang hoạt động</MenuItem>
-                <MenuItem value="inactive">Không hoạt động</MenuItem>
-              </Select>
-            </FormControl>
           </Grid>
         </Grid>
       </Paper>

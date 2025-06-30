@@ -19,6 +19,8 @@ import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage }) => {
   const [allTeachers, setAllTeachers] = useState([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
+  const [searchTeacher, setSearchTeacher] = useState('');
+  const [debouncedSearchTeacher, setDebouncedSearchTeacher] = useState('');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
     open: false,
@@ -36,18 +38,30 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
     currentTeacherObj = classData.teacherId;
   }
 
+  // Debounce search input for teacher
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTeacher(searchTeacher);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTeacher]);
+
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const response = await getAllTeachersAPI({ limit: 1000 }); // Fetch all teachers
+        if (!debouncedSearchTeacher) {
+          setAllTeachers([]);
+          return;
+        }
+        const params = { limit: 20, name: debouncedSearchTeacher };
+        const response = await getAllTeachersAPI(params);
         setAllTeachers(response.data || []);
       } catch (error) {
         console.error('Error fetching teachers:', error);
       }
     };
-
     fetchTeachers();
-  }, []);
+  }, [debouncedSearchTeacher]);
 
   useEffect(() => {
     // Set the initial selected teacher if one is already assigned
@@ -132,25 +146,54 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
               {currentTeacherObj ? 'Thay đổi giáo viên' : 'Gán giáo viên mới'}
             </Typography>
             <FormControl fullWidth sx={{ my: 1 }}>
-              <InputLabel>Chọn giáo viên</InputLabel>
-              <Select
-                value={selectedTeacherId || ''}
-                onChange={(e) => setSelectedTeacherId(e.target.value)}
-                label="Chọn giáo viên"
-              >
-                <MenuItem value="">
-                  <em>Không chọn</em>
-                </MenuItem>
-                {allTeachers.map((teacher) => {
-                  const teacherId = teacher.id || teacher._id;
-                  if (!teacherId) return null;
-                  return (
-                    <MenuItem key={String(teacherId)} value={String(teacherId)}>
-                    {teacher.userId?.name || 'Unnamed Teacher'} ({teacher.userId?.email})
-                  </MenuItem>
-                  );
-                })}
-              </Select>
+              <Box sx={{ mb: 2 }}>
+                {!selectedTeacherId ? (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm giáo viên theo tên..."
+                      value={searchTeacher}
+                      onChange={e => setSearchTeacher(e.target.value)}
+                      style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ccc' }}
+                    />
+                    {debouncedSearchTeacher && (
+                      <Box sx={{ mt: 1, maxHeight: 200, overflowY: 'auto', border: '1px solid #eee', borderRadius: 1, background: '#fff', zIndex: 10 }}>
+                        {allTeachers.length === 0 ? (
+                          <Typography sx={{ p: 2, color: '#888' }}>Không tìm thấy giáo viên phù hợp</Typography>
+                        ) : (
+                          allTeachers.map((teacher) => {
+                            const teacherId = teacher.id || teacher._id;
+                            if (!teacherId) return null;
+                            return (
+                              <Box
+                                key={String(teacherId)}
+                                sx={{ p: 1.5, cursor: 'pointer', '&:hover': { bgcolor: '#f0f4ff' }, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid #f5f5f5' }}
+                                onClick={() => {
+                                  setSelectedTeacherId(String(teacherId));
+                                  setSearchTeacher(teacher.userId?.name || '');
+                                  setAllTeachers([]);
+                                }}
+                              >
+                                <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                                <span style={{ fontWeight: 500 }}>{teacher.userId?.name || 'Unnamed Teacher'}</span>
+                                <span style={{ color: '#888', fontSize: 13, marginLeft: 8 }}>{teacher.userId?.email}</span>
+                              </Box>
+                            );
+                          })
+                        )}
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, bgcolor: '#f5f7fa', borderRadius: 1, border: '1px solid #eee' }}>
+                    <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                    <span style={{ fontWeight: 500 }}>{searchTeacher}</span>
+                    <Button size="small" color="error" onClick={() => { setSelectedTeacherId(''); setSearchTeacher(''); }}>
+                      Xóa
+                    </Button>
+                  </Box>
+                )}
+              </Box>
             </FormControl>
             <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
               {currentTeacherObj && (

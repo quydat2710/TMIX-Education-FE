@@ -60,7 +60,8 @@ const CustomTabPanel = (props) => {
 
 const ClassManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -178,6 +179,8 @@ const ClassManagement = () => {
     setLoadingTable(true);
     try {
       const params = { page: pageNum, limit: 10 };
+      if (yearFilter) params.year = yearFilter;
+      if (gradeFilter) params.grade = gradeFilter;
       const res = await getAllClassesAPI(params);
       console.log('API getAllClassesAPI response:', res);
       console.log('Classes data:', res.data);
@@ -197,10 +200,10 @@ const ClassManagement = () => {
     }
   };
 
-  // Fetch classes on component mount and when page changes
+  // Fetch classes on component mount and when page, year, or grade changes
   useEffect(() => {
     fetchClasses(page);
-  }, [page]);
+  }, [page, yearFilter, gradeFilter]);
 
   // Fetch teachers on mount
   useEffect(() => {
@@ -224,11 +227,25 @@ const ClassManagement = () => {
     if (!schedule) return '-';
 
     const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    const selectedDays = schedule.dayOfWeeks?.map(day => daysOfWeek[day]).join(', ') || '';
+    const dayOrder = [1, 2, 3, 4, 5, 6, 0]; // Order: T2, T3, T4, T5, T6, T7, CN
+
+    // Sort the selected days according to the dayOrder
+    const sortedDays = schedule.dayOfWeeks?.sort((a, b) => {
+      const indexA = dayOrder.indexOf(a);
+      const indexB = dayOrder.indexOf(b);
+      return indexA - indexB;
+    }) || [];
+
+    const selectedDays = sortedDays.map(day => daysOfWeek[day]).join(', ');
     const timeSlot = schedule.timeSlots ?
       `${schedule.timeSlots.startTime} - ${schedule.timeSlots.endTime}` : '';
 
-    return `${selectedDays} | ${timeSlot}`;
+    return (
+      <>
+        <div style={{ fontWeight: 500, color: '#2c3e50' }}>{selectedDays}</div>
+        <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '2px' }}>{timeSlot}</div>
+      </>
+    );
   };
 
   // Helper function to get status label
@@ -282,7 +299,7 @@ const ClassManagement = () => {
 
           <Paper sx={commonStyles.searchContainer}>
         <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm lớp học..."
@@ -298,21 +315,36 @@ const ClassManagement = () => {
               }}
             />
           </Grid>
-              <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Trạng thái</InputLabel>
-                  <Select
-                    label="Trạng thái"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+              <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Năm học"
+              value={yearFilter}
+              onChange={e => setYearFilter(e.target.value)}
                     sx={commonStyles.filterSelect}
                   >
                 <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="active">Đang hoạt động</MenuItem>
-                <MenuItem value="upcoming">Sắp khai giảng</MenuItem>
-                <MenuItem value="closed">Đã đóng</MenuItem>
-              </Select>
-            </FormControl>
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return <MenuItem key={year} value={year}>{year}</MenuItem>;
+              })}
+            </TextField>
+          </Grid>
+              <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Khối"
+              value={gradeFilter}
+              onChange={e => setGradeFilter(e.target.value)}
+              sx={commonStyles.filterSelect}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(grade => (
+                <MenuItem key={grade} value={grade}>{`Khối ${grade}`}</MenuItem>
+              ))}
+            </TextField>
           </Grid>
         </Grid>
       </Paper>
@@ -325,7 +357,7 @@ const ClassManagement = () => {
               <TableCell width="15%">Giáo viên</TableCell>
               <TableCell width="10%">Năm học</TableCell>
               <TableCell width="10%">Học phí mỗi buổi</TableCell>
-              <TableCell width="20%">Thời gian học</TableCell>
+              <TableCell width="20%">Lịch học</TableCell>
               <TableCell width="10%">Phòng học</TableCell>
               <TableCell width="10%">Trạng thái</TableCell>
               <TableCell width="15%" align="center">Thao tác</TableCell>

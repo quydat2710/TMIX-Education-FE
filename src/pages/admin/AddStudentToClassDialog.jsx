@@ -59,7 +59,8 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
     const fetchStudents = async () => {
       setLoadingList(true);
       try {
-        const params = { limit: 1000, search: searchQuery };
+        const params = { limit: 30 };
+        if (searchQuery) params.name = searchQuery;
         const response = await getAllStudentsAPI(params);
         // Filter out students who are already in the class
         const availableStudents = (response.data || []).filter(

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -40,7 +40,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const StudentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -69,6 +69,14 @@ const StudentManagement = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const handleOpenDialog = (student = null) => {
     setSelectedStudent(student);
@@ -231,7 +239,7 @@ const StudentManagement = () => {
       const params = {
         page: page,
         limit: 10,
-        ...(searchQuery && { search: searchQuery })
+        ...(debouncedSearch && { name: debouncedSearch })
       };
 
       const response = await getAllStudentsAPI(params);
@@ -256,8 +264,8 @@ const StudentManagement = () => {
   };
 
   useEffect(() => {
-    fetchStudents(page);
-  }, [page, searchQuery]);
+    fetchStudents();
+  }, [page, debouncedSearch]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -337,34 +345,8 @@ const StudentManagement = () => {
                     <SearchIcon />
                   </InputAdornment>
                 ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Button
-                          variant="contained"
-                          onClick={() => fetchStudents()}
-                          sx={{ minWidth: 'auto', px: 2 }}
-                        >
-                          Tìm
-                        </Button>
-                  </InputAdornment>
-                ),
               }}
             />
-          </Grid>
-              <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Trạng thái</InputLabel>
-                  <Select
-                    label="Trạng thái"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    sx={commonStyles.filterSelect}
-                  >
-                <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="active">Đang học</MenuItem>
-                    <MenuItem value="inactive">Đã nghỉ học</MenuItem>
-              </Select>
-            </FormControl>
           </Grid>
         </Grid>
       </Paper>

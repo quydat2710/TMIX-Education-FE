@@ -53,6 +53,17 @@ const FinancialStatisticsPanel = () => {
   const [teacherPaymentError, setTeacherPaymentError] = useState('');
   const [teacherPaymentSuccess, setTeacherPaymentSuccess] = useState('');
 
+  // Helper: Lấy tháng đầu/cuối quý
+  const getQuarterMonths = (quarter) => {
+    switch (quarter) {
+      case 1: return { startMonth: 1, endMonth: 3 };
+      case 2: return { startMonth: 4, endMonth: 6 };
+      case 3: return { startMonth: 7, endMonth: 9 };
+      case 4: return { startMonth: 10, endMonth: 12 };
+      default: return { startMonth: 1, endMonth: 3 };
+    }
+  };
+
   const fetchTotalStatistics = async () => {
     try {
       // Gọi API để lấy thống kê tổng quan từ tất cả các trang
@@ -80,10 +91,22 @@ const FinancialStatisticsPanel = () => {
   const fetchStudentPayments = async (page = 1) => {
     setLoadingStudent(true);
     try {
-      const res = await getPaymentsAPI({ page, limit: 10 });
-      console.log('Student payments API response:', res.data);
+      let params = { page, limit: 10 };
+      if (periodType === 'month') {
+        params = { ...params, year: selectedYear, month: selectedMonth };
+      } else if (periodType === 'quarter') {
+        const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
+        params = { ...params, year: selectedYear, startMonth, endMonth };
+      } else if (periodType === 'year') {
+        params = { ...params, year: selectedYear };
+      } else if (periodType === 'custom') {
+        const year = new Date(customStart).getFullYear();
+        const startMonth = new Date(customStart).getMonth() + 1;
+        const endMonth = new Date(customEnd).getMonth() + 1;
+        params = { ...params, year, startMonth, endMonth };
+      }
+      const res = await getPaymentsAPI(params);
       setStudentPayments(res.data || []);
-      // Cập nhật thông tin phân trang từ response
       if (res.page && res.limit && res.totalPages && res.totalResults) {
         setStudentPagination({
           page: res.page,
@@ -93,7 +116,6 @@ const FinancialStatisticsPanel = () => {
         });
       }
     } catch (err) {
-      console.error('Error fetching student payments:', err);
       setStudentPayments([]);
     } finally {
       setLoadingStudent(false);
@@ -103,11 +125,23 @@ const FinancialStatisticsPanel = () => {
   const fetchTeacherPayments = async () => {
     setLoadingTeacher(true);
     try {
-      const res = await getTeacherPaymentsAPI();
-      console.log('Teacher payments API response:', res.data);
+      let params = {};
+      if (periodType === 'month') {
+        params = { year: selectedYear, month: selectedMonth };
+      } else if (periodType === 'quarter') {
+        const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
+        params = { year: selectedYear, startMonth, endMonth };
+      } else if (periodType === 'year') {
+        params = { year: selectedYear };
+      } else if (periodType === 'custom') {
+        const year = new Date(customStart).getFullYear();
+        const startMonth = new Date(customStart).getMonth() + 1;
+        const endMonth = new Date(customEnd).getMonth() + 1;
+        params = { year, startMonth, endMonth };
+      }
+      const res = await getTeacherPaymentsAPI(params);
       setTeacherPayments(res.data || []);
     } catch (err) {
-      console.error('Error fetching teacher payments:', err);
       setTeacherPayments([]);
     } finally {
       setLoadingTeacher(false);
@@ -118,7 +152,7 @@ const FinancialStatisticsPanel = () => {
     fetchStudentPayments();
     fetchTeacherPayments();
     fetchTotalStatistics();
-  }, []);
+  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
 
   const handleStudentPageChange = (event, newPage) => {
     fetchStudentPayments(newPage); // API sử dụng page bắt đầu từ 1, giống ParentManagement
@@ -340,12 +374,6 @@ const FinancialStatisticsPanel = () => {
                         <Typography variant="body2" fontWeight="medium">
                           {p.teacherId?.userId?.name || p.teacherId?.name || 'Chưa có tên'}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {p.teacherId?.userId?.email || '-'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          ID: {p.teacherId?.id || p.teacherId?.userId?.id || '-'}
-                        </Typography>
                       </TableCell>
                       <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
                       <TableCell align="right">{(p.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
@@ -497,15 +525,6 @@ const FinancialStatisticsPanel = () => {
                     <Typography variant="body2">
                       <strong>Giáo viên:</strong> {selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name}
                     </Typography>
-                    <Typography variant="body2">
-                      <strong>ID:</strong> {selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id || '-'}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Tháng/Năm:</strong> {selectedTeacherPayment.month}/{selectedTeacherPayment.year}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Số tiền còn lại:</strong> {((selectedTeacherPayment.totalAmount ?? 0) - (selectedTeacherPayment.paidAmount ?? 0)).toLocaleString()} ₫
-                    </Typography>
                     <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontSize: '0.875rem' }}>
                       Bạn có thể thanh toán một phần hoặc toàn bộ số tiền còn lại
                     </Typography>
@@ -655,21 +674,9 @@ const FinancialStatisticsPanel = () => {
                         </span>
                       </Typography>
                       <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>Email:</span>
-                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
-                          {selectedTeacherForDetail.teacherId?.userId?.email || '-'}
-                        </span>
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: '#666' }}>SĐT:</span>
                         <span style={{ fontWeight: 500, color: '#2c3e50' }}>
                           {selectedTeacherForDetail.teacherId?.userId?.phone || '-'}
-                        </span>
-                      </Typography>
-                      <Typography variant="body2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>ID:</span>
-                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
-                          {selectedTeacherForDetail.teacherId?.id || selectedTeacherForDetail.teacherId?.userId?.id || '-'}
                         </span>
                       </Typography>
                     </Box>
