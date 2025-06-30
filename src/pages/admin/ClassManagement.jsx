@@ -77,7 +77,6 @@ const ClassManagement = () => {
   const [classStudents, setClassStudents] = useState([]);
   const [classStudentsLoading, setClassStudentsLoading] = useState(false);
   const [classStudentsError, setClassStudentsError] = useState('');
-  const [allTeachers, setAllTeachers] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleTabChange = (event, newValue) => {
@@ -205,19 +204,6 @@ const ClassManagement = () => {
     fetchClasses(page);
   }, [page, yearFilter, gradeFilter]);
 
-  // Fetch teachers on mount
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const res = await getAllTeachersAPI({ limit: 1000 });
-        setAllTeachers(res.data || []);
-      } catch (err) {
-        setAllTeachers([]);
-      }
-    };
-    fetchTeachers();
-  }, []);
-
   const handlePageChange = (event, value) => {
     setPage(value);
   };
@@ -299,7 +285,7 @@ const ClassManagement = () => {
 
           <Paper sx={commonStyles.searchContainer}>
         <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={7}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm lớp học..."
@@ -315,7 +301,7 @@ const ClassManagement = () => {
               }}
             />
           </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={2.5}>
             <TextField
               select
               fullWidth
@@ -331,7 +317,7 @@ const ClassManagement = () => {
               })}
             </TextField>
           </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={2.5}>
             <TextField
               select
               fullWidth

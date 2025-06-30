@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Select,
-  MenuItem,
   Button,
   FormControl,
-  InputLabel,
   Chip,
   Grid,
   Paper,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import { Person as PersonIcon, School as SchoolIcon } from '@mui/icons-material';
 import { getAllTeachersAPI, assignTeacherAPI, unassignTeacherAPI } from '../../services/api';
@@ -42,7 +41,7 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTeacher(searchTeacher);
-    }, 500);
+    }, 700);
     return () => clearTimeout(handler);
   }, [searchTeacher]);
 
@@ -124,97 +123,80 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
               Giáo viên hiện tại
             </Typography>
             {currentTeacherObj ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PersonIcon color="action" />
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
                   {currentTeacherObj.userId?.name || currentTeacherObj.name || 'Chưa có thông tin'}
                 </Typography>
-                <Chip label={currentTeacherObj.userId?.email || ''} size="small" />
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={async () => {
+                      await handleUnassignTeacher();
+                      setSearchTeacher('');
+                      setSelectedTeacherId('');
+                      setAllTeachers([]);
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Đang xử lý...' : 'Xóa'}
+                  </Button>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+                    {currentTeacherObj.userId?.email || ''}
+                  </Typography>
+                </Box>
               </Box>
             ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="body1" color="textSecondary">
                 Chưa có giáo viên nào được gán cho lớp này.
               </Typography>
-            )}
-          </Paper>
-        </Grid>
-
-        {/* Assign Teacher Form */}
-        <Grid item xs={12}>
-          <Paper elevation={2} sx={{ p: 2, borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: COLORS.primary }}>
-              {currentTeacherObj ? 'Thay đổi giáo viên' : 'Gán giáo viên mới'}
-            </Typography>
-            <FormControl fullWidth sx={{ my: 1 }}>
-              <Box sx={{ mb: 2 }}>
-                {!selectedTeacherId ? (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm giáo viên theo tên..."
-                      value={searchTeacher}
-                      onChange={e => setSearchTeacher(e.target.value)}
-                      style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ccc' }}
-                    />
-                    {debouncedSearchTeacher && (
-                      <Box sx={{ mt: 1, maxHeight: 200, overflowY: 'auto', border: '1px solid #eee', borderRadius: 1, background: '#fff', zIndex: 10 }}>
-                        {allTeachers.length === 0 ? (
-                          <Typography sx={{ p: 2, color: '#888' }}>Không tìm thấy giáo viên phù hợp</Typography>
-                        ) : (
-                          allTeachers.map((teacher) => {
-                            const teacherId = teacher.id || teacher._id;
-                            if (!teacherId) return null;
-                            return (
-                              <Box
-                                key={String(teacherId)}
-                                sx={{ p: 1.5, cursor: 'pointer', '&:hover': { bgcolor: '#f0f4ff' }, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid #f5f5f5' }}
-                                onClick={() => {
-                                  setSelectedTeacherId(String(teacherId));
-                                  setSearchTeacher(teacher.userId?.name || '');
-                                  setAllTeachers([]);
-                                }}
-                              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Autocomplete
+                    options={allTeachers}
+                    getOptionLabel={(option) => option.userId?.name || option.name || ''}
+                    filterOptions={(options) => options}
+                    value={allTeachers.find(t => String(t.id || t._id) === selectedTeacherId) || null}
+                    onChange={(_, value) => {
+                      if (value) {
+                        setSelectedTeacherId(String(value.id || value._id));
+                      } else {
+                        setSelectedTeacherId('');
+                      }
+                    }}
+                    onInputChange={(_, value) => setSearchTeacher(value)}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Tìm kiếm giáo viên theo tên..." variant="outlined" />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                                <span style={{ fontWeight: 500 }}>{teacher.userId?.name || 'Unnamed Teacher'}</span>
-                                <span style={{ color: '#888', fontSize: 13, marginLeft: 8 }}>{teacher.userId?.email}</span>
-                              </Box>
-                            );
-                          })
-                        )}
+                        <span style={{ fontWeight: 500 }}>{option.userId?.name || 'Unnamed Teacher'}</span>
+                        <span style={{ color: '#888', fontSize: 13, marginLeft: 8 }}>{option.userId?.email}</span>
                       </Box>
                     )}
-                  </>
-                ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, bgcolor: '#f5f7fa', borderRadius: 1, border: '1px solid #eee' }}>
-                    <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                    <span style={{ fontWeight: 500 }}>{searchTeacher}</span>
-                    <Button size="small" color="error" onClick={() => { setSelectedTeacherId(''); setSearchTeacher(''); }}>
-                      Xóa
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </FormControl>
-            <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              {currentTeacherObj && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleUnassignTeacher}
-                  disabled={loading}
-                >
-                  {loading ? 'Đang xử lý...' : 'Hủy gán giáo viên'}
-                </Button>
-              )}
+                    isOptionEqualToValue={(option, value) => String(option.id || option._id) === String(value.id || value._id)}
+                    noOptionsText="Không tìm thấy giáo viên phù hợp"
+                    fullWidth
+                    sx={{ background: '#fff', borderRadius: 1 }}
+                  />
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleAssignTeacher}
-                disabled={loading || selectedTeacherId === String(currentTeacherObj?.id || currentTeacherObj?._id)}
+                    disabled={loading || !selectedTeacherId}
+                    sx={{ alignSelf: 'flex-start' }}
               >
-                {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                    {loading ? 'Đang xử lý...' : 'Thêm giáo viên'}
               </Button>
             </Box>
+              </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>

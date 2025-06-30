@@ -74,7 +74,7 @@ const StudentManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 500);
+    }, 700);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -332,7 +332,7 @@ const StudentManagement = () => {
 
           <Paper sx={commonStyles.searchContainer}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm học sinh..."

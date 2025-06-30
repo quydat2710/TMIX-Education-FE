@@ -76,7 +76,7 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
 
     const debounceFetch = setTimeout(() => {
         fetchStudents();
-    }, 500); // Debounce search query
+    }, 700); // Debounce search query
 
     return () => clearTimeout(debounceFetch);
   }, [searchQuery, existingStudentIds]);
@@ -88,7 +88,7 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
 
     if (currentIndex === -1) {
       newSelected.push(studentId);
-      newDiscounts[studentId] = 0; // Default discount 0%
+      newDiscounts[studentId] = '';
     } else {
       newSelected.splice(currentIndex, 1);
       delete newDiscounts[studentId];
@@ -98,10 +98,13 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
   };
 
   const handleDiscountChange = (studentId, discount) => {
-    setStudentDiscounts(prev => ({
-      ...prev,
-      [studentId]: Math.max(0, Math.min(100, parseInt(discount) || 0))
-    }));
+    let value = discount;
+    if (value === '') {
+      setStudentDiscounts(prev => ({ ...prev, [studentId]: '' }));
+      return;
+    }
+    value = Math.max(0, Math.min(100, parseInt(value) || 0));
+    setStudentDiscounts(prev => ({ ...prev, [studentId]: value }));
   };
 
   const handleAddStudents = async () => {
@@ -110,9 +113,9 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
       // Format data according to API requirements
       const studentsData = selectedStudents.map(studentId => ({
         studentId: studentId,
-        discountPercent: studentDiscounts[studentId] || 0
+        discountPercent: studentDiscounts[studentId] === '' || studentDiscounts[studentId] === undefined ? 0 : studentDiscounts[studentId]
       }));
-
+      console.log('Dữ liệu gửi đi khi thêm học sinh vào lớp:', { classId: classData.id, studentsData });
       await enrollStudentAPI(classData.id, studentsData);
       setNotification({ open: true, message: 'Thêm học sinh vào lớp thành công!', severity: 'success' });
       // Reset form
@@ -188,10 +191,10 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
                           type="number"
                           size="small"
                           label="Giảm giá (%)"
-                          value={studentDiscounts[student.id] || 0}
+                          value={studentDiscounts[student.id] === undefined ? '' : studentDiscounts[student.id]}
                           onChange={(e) => handleDiscountChange(student.id, e.target.value)}
                           onClick={(e) => e.stopPropagation()}
-                          sx={{ width: 100, ml: 1 }}
+                          sx={{ width: 120, ml: 1 }}
                           inputProps={{ min: 0, max: 100 }}
                         />
                       )}
@@ -213,7 +216,7 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
             variant="contained"
             disabled={loading || selectedStudents.length === 0 || selectedStudents.length > remainingSlots}
           >
-            {loading ? <CircularProgress size={24} /> : 'Thêm đã chọn'}
+            {loading ? <CircularProgress size={24} /> : 'Thêm học sinh'}
           </Button>
         </DialogActions>
       </Dialog>

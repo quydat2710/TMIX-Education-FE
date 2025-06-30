@@ -237,6 +237,7 @@ const ParentManagement = () => {
   };
 
   const handleAddChild = async (studentId, parentId) => {
+    console.log('Dữ liệu gửi đi khi thêm con:', { studentId, parentId });
     try {
       await addChildAPI(studentId, parentId);
       setStudentSearchQuery(''); // Clear the search input
@@ -248,6 +249,7 @@ const ParentManagement = () => {
   };
 
   const handleRemoveChild = async (studentId, parentId) => {
+    console.log('Dữ liệu gửi đi khi xóa con:', { studentId, parentId });
     try {
       await removeChildAPI(studentId, parentId);
       fetchParents(page); // Refresh parent list
@@ -330,7 +332,7 @@ const ParentManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 500);
+    }, 700);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -411,7 +413,7 @@ const ParentManagement = () => {
 
           <Paper sx={commonStyles.searchContainer}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm phụ huynh..."
@@ -902,9 +904,6 @@ const ParentManagement = () => {
                                       <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                     {student.userId?.name || 'Không có tên'}
                                   </Typography>
-                                  <Typography variant="body2" color="textSecondary">
-                                    ID: {student.id}
-                                  </Typography>
                                 </Box>
                                 <Button
                                   size="small"
@@ -986,7 +985,7 @@ const ParentManagement = () => {
                                       {student.userId?.name || 'Không có tên'}
                                     </Typography>
                                     <Typography variant="caption" color="textSecondary">
-                                      {student.userId?.email} • ID: {student.id}
+                                      Email: {student.userId?.email}
                                     </Typography>
                                   </Box>
                                   <Button
@@ -1576,7 +1575,7 @@ const ParentManagement = () => {
                                     {student.userId?.name || 'Không có tên'}
                                   </Typography>
                                     <Typography variant="caption" color="textSecondary">
-                                      ID: {student.id}
+                                      Email: {student.userId?.email}
                                   </Typography>
                                 </Box>
                               </Grid>

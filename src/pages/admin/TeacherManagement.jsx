@@ -264,7 +264,7 @@ const TeacherManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 500);
+    }, 700);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -317,32 +317,36 @@ const TeacherManagement = () => {
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField
-            fullWidth
-            placeholder="Tìm kiếm giáo viên..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            select
-            label="Trạng thái"
-            value={isActiveFilter}
-            onChange={e => setIsActiveFilter(e.target.value)}
-            sx={{ minWidth: 180 }}
-          >
-            <MenuItem value="">Tất cả</MenuItem>
-            <MenuItem value={true}>Đang hoạt động</MenuItem>
-            <MenuItem value={false}>Ngừng hoạt động</MenuItem>
-          </TextField>
-        </Box>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm giáo viên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              label="Trạng thái"
+              value={isActiveFilter}
+              onChange={e => setIsActiveFilter(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value={true}>Đang hoạt động</MenuItem>
+              <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
       </Paper>
 
       <TableContainer component={Paper}>
