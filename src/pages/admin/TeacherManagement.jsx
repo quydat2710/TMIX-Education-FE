@@ -38,6 +38,7 @@ import { commonStyles } from '../../utils/styles';
 import { createTeacherAPI, getAllTeachersAPI, deleteTeacherAPI, updateTeacherAPI } from '../../services/api';
 import { validateTeacher } from '../../validations/teacherValidation';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 function formatDateDDMMYYYY(dateString) {
   if (!dateString) return '';
@@ -80,6 +81,7 @@ const TeacherManagement = () => {
     description: '',
     isActive: true,
   });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenDialog = (teacher = null) => {
     setSelectedTeacher(teacher);
@@ -160,6 +162,11 @@ const TeacherManagement = () => {
     setOpenViewDialog(false);
   };
 
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleOpenDeleteDialog = (teacher) => {
     setTeacherToDelete(teacher);
     setOpenDeleteDialog(true);
@@ -177,10 +184,15 @@ const TeacherManagement = () => {
     setError('');
     try {
       await deleteTeacherAPI(teacherToDelete.id);
+      setSnackbar({ open: true, message: 'Xóa giáo viên thành công!', severity: 'success' });
       handleCloseDeleteDialog();
       fetchTeachers(page); // Refresh teacher list
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa giáo viên');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi xóa giáo viên',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -228,6 +240,7 @@ const TeacherManagement = () => {
           },
         };
         await updateTeacherAPI(selectedTeacher.id, body);
+        setSnackbar({ open: true, message: 'Cập nhật giáo viên thành công!', severity: 'success' });
       } else {
         // CREATE (gửi đúng body backend yêu cầu)
         const body = {
@@ -249,12 +262,17 @@ const TeacherManagement = () => {
         },
       };
         await createTeacherAPI(body);
+        setSnackbar({ open: true, message: 'Thêm giáo viên thành công!', severity: 'success' });
       }
 
       handleCloseDialog();
       fetchTeachers(page);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi lưu giáo viên',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -319,32 +337,32 @@ const TeacherManagement = () => {
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={8}>
-            <TextField
-              fullWidth
-              placeholder="Tìm kiếm giáo viên..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
+          <TextField
+            fullWidth
+            placeholder="Tìm kiếm giáo viên..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField
-              select
-              label="Trạng thái"
-              value={isActiveFilter}
-              onChange={e => setIsActiveFilter(e.target.value)}
+          <TextField
+            select
+            label="Trạng thái"
+            value={isActiveFilter}
+            onChange={e => setIsActiveFilter(e.target.value)}
               fullWidth
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              <MenuItem value={true}>Đang hoạt động</MenuItem>
-              <MenuItem value={false}>Ngừng hoạt động</MenuItem>
-            </TextField>
+          >
+            <MenuItem value="">Tất cả</MenuItem>
+            <MenuItem value={true}>Đang hoạt động</MenuItem>
+            <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+          </TextField>
           </Grid>
         </Grid>
       </Paper>
@@ -1115,6 +1133,13 @@ const TeacherManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={handleCloseNotification}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
     </Box>
         </Box>
       </Box>

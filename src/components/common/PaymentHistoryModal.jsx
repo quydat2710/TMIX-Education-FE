@@ -269,7 +269,7 @@ const PaymentHistoryModal = ({
                   boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
                   <Grid container spacing={2}>
-                    {paymentData.teacherId ? (
+                                        {paymentData.teacherId ? (
                       <>
                         <Grid item xs={12} md={6}>
                           <Box>
@@ -283,29 +283,28 @@ const PaymentHistoryModal = ({
                               SĐT: {paymentData.teacherId.userId?.phone || '-'}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              Lớp: {paymentData.classId?.name || '-'}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                               Tháng/Năm: {paymentData.month}/{paymentData.year}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, mt: 1 }}>
+                              Trạng thái: <Chip label={getPaymentStatusInfo(paymentData).label} color={getPaymentStatusInfo(paymentData).color} size="small" icon={getPaymentStatusInfo(paymentData).icon} variant="outlined" />
                             </Typography>
                           </Box>
                         </Grid>
                         <Grid item xs={12} md={6}>
                           <Box>
                             <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Số buổi: {paymentData.totalLessons || '-'}
+                              Số buổi: {paymentData.classes && Array.isArray(paymentData.classes)
+                                ? paymentData.classes.reduce((sum, cls) => sum + (cls.totalLessons || 0), 0)
+                                : paymentData.totalLessons || '-'}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                               Lương/buổi: {formatCurrency(paymentData.salaryPerLesson || 0)}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              Tổng lương: {formatCurrency((paymentData.totalLessons || 0) * (paymentData.salaryPerLesson || 0))}
+                              Tổng lương: {formatCurrency(paymentData.totalAmount || 0)}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                               Đã thanh toán: {formatCurrency(paymentData.paidAmount || 0)}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, mt: 1 }}>
-                              Trạng thái: <Chip label={getPaymentStatusInfo(paymentData).label} color={getPaymentStatusInfo(paymentData).color} size="small" icon={getPaymentStatusInfo(paymentData).icon} variant="outlined" />
                             </Typography>
                           </Box>
                         </Grid>

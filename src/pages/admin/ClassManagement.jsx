@@ -78,6 +78,7 @@ const ClassManagement = () => {
   const [classStudentsLoading, setClassStudentsLoading] = useState(false);
   const [classStudentsError, setClassStudentsError] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -117,18 +118,32 @@ const ClassManagement = () => {
     try {
       console.log('Dữ liệu gửi lên API:', data);
       await createClassAPI(data);
+      showSnackbar('Thêm lớp học thành công!', 'success');
       handleCloseDialog();
       setPage(1); // Go back to first page to see the new class
       fetchClasses(1); // Refresh class list from first page
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi thêm lớp học');
+      showSnackbar(err?.response?.data?.message || 'Có lỗi xảy ra khi thêm lớp học', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForceRefresh = async () => {
-    fetchClasses(page); // Luôn reload lại danh sách lớp học để cập nhật thông tin giáo viên
+    const handleForceRefresh = async () => {
+    // Refresh danh sách lớp học
+    await fetchClasses(page);
+
+    // Nếu đang mở dialog chỉnh sửa, refresh dữ liệu của class hiện tại
+    if (selectedClass && openDialog) {
+      try {
+        const updatedClass = await getClassByIdAPI(selectedClass.id);
+        setSelectedClass(updatedClass.data);
+        // Force re-render của component
+        setRefreshKey(prev => prev + 1);
+      } catch (error) {
+        console.error('Error refreshing class data:', error);
+      }
+    }
   };
 
   const fetchClassStudents = async (classId) => {
@@ -163,11 +178,12 @@ const ClassManagement = () => {
       console.log('Calling updateClassAPI with:', selectedClass.id, data);
       await updateClassAPI(selectedClass.id, data);
       console.log('Update successful');
+      showSnackbar('Cập nhật lớp học thành công!', 'success');
       handleCloseDialog();
       fetchClasses(page); // Refresh class list
     } catch (err) {
       console.error('Update error:', err);
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học');
+      showSnackbar(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học', 'error');
     } finally {
       setLoading(false);
     }
@@ -263,6 +279,11 @@ const ClassManagement = () => {
   // Hàm show snackbar
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -527,7 +548,7 @@ const ClassManagement = () => {
                   </CustomTabPanel>
                   <CustomTabPanel value={currentTab} index={1} key="teacher-management">
                     <ClassTeacherManagement
-                      key={`teacher-mgmt-${selectedClass?.id}`}
+                      key={`teacher-mgmt-${selectedClass?.id}-${refreshKey}`}
                       classData={selectedClass}
                       onUpdate={handleForceRefresh}
                       onClose={handleCloseDialog}
@@ -1054,7 +1075,7 @@ const ClassManagement = () => {
       </Dialog>
       <NotificationSnackbar
         open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={handleCloseNotification}
         message={snackbar.message}
         severity={snackbar.severity}
       />

@@ -192,19 +192,22 @@ const Dashboard = () => {
   return (
     <DashboardLayout role="student">
       <Box sx={commonStyles.pageContainer}>
-        <Typography variant="h4" gutterBottom sx={commonStyles.pageTitle}>
-          Dashboard Học sinh
-        </Typography>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Dashboard Học sinh
+            </Typography>
+          </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
 
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
-          Xin chào <strong>{user?.name || 'Học sinh'}</strong>, đây là thông tin học tập của bạn
-                      </Typography>
+          <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+            Xin chào <strong>{user?.name || 'Học sinh'}</strong>, đây là thông tin học tập của bạn
+          </Typography>
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -266,12 +269,12 @@ const Dashboard = () => {
         <Grid container spacing={3}>
           {/* Class List */}
           <Grid item xs={12}>
-            <Paper sx={commonStyles.contentContainer}>
+            <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary.main, fontWeight: 600 }}>
-                  Danh sách lớp học
-                </Typography>
+                Danh sách lớp học
+              </Typography>
               {schedule.length > 0 ? (
-                <TableContainer>
+                <TableContainer sx={commonStyles.tableContainer}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -285,7 +288,7 @@ const Dashboard = () => {
                     </TableHead>
                     <TableBody>
                       {schedule.map((classItem) => (
-                        <TableRow key={classItem.id} hover>
+                        <TableRow key={classItem.id} sx={commonStyles.tableRow}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
                               {classItem.name}
@@ -307,12 +310,12 @@ const Dashboard = () => {
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {formatSchedule(classItem.schedule).time}
-                              </Typography>
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
                               {formatDate(classItem.startDate)}
-                                  </Typography>
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
@@ -334,6 +337,7 @@ const Dashboard = () => {
             </Paper>
           </Grid>
         </Grid>
+        </Box>
       </Box>
     </DashboardLayout>
   );

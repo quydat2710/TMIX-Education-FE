@@ -30,6 +30,7 @@ import {
   Event as EventIcon,
 } from '@mui/icons-material';
 import { COLORS } from '../../utils/colors';
+import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import {
@@ -217,9 +218,11 @@ const Dashboard = () => {
   if (loading) {
     return (
       <DashboardLayout role="teacher">
-        <Box sx={{ py: 4 }}>
-          <LinearProgress />
-          <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
+        <Box sx={commonStyles.pageContainer}>
+          <Box sx={commonStyles.contentContainer}>
+            <LinearProgress />
+            <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
+          </Box>
         </Box>
       </DashboardLayout>
     );
@@ -227,10 +230,13 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout role="teacher">
-      <Box>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: COLORS.primary.main }}>
-          Dashboard Giáo viên
-        </Typography>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Dashboard Giáo viên
+            </Typography>
+          </Box>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -323,7 +329,7 @@ const Dashboard = () => {
                 Lớp học đang dạy
               </Typography>
               {activeClasses.length > 0 ? (
-                <TableContainer>
+                <TableContainer sx={commonStyles.tableContainer}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -335,7 +341,7 @@ const Dashboard = () => {
                     </TableHead>
                     <TableBody>
                       {activeClasses.map((classItem) => (
-                        <TableRow key={classItem.id} hover>
+                        <TableRow key={classItem.id} hover sx={commonStyles.tableRow}>
                           <TableCell>
                             <Typography variant="body2" fontWeight={500}>
                               {classItem.name}
@@ -421,6 +427,7 @@ const Dashboard = () => {
             </Paper>
           </Grid>
         </Grid>
+        </Box>
       </Box>
     </DashboardLayout>
   );

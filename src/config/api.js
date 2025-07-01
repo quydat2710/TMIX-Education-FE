@@ -73,6 +73,7 @@ export const API_CONFIG = {
     PAYMENTS: {
       GET_ALL: '/payments',
       GET_BY_STUDENT: (studentId) => `/payments?studentId=${studentId}`,
+      GET_TOTAL: '/payments/total',
       GET_TEACHER_PAYMENTS: '/teacher-payments',
       PAY_TEACHER: (id) => `/teacher-payments/${id}/pay`,
       GET_TEACHER_PAYMENT_BY_ID: (id) => `/teacher-payments/${id}`,

@@ -15,8 +15,6 @@ import {
   Box,
   LinearProgress,
   TextField,
-  Snackbar,
-  Alert,
   Paper,
 } from '@mui/material';
 import {
@@ -27,6 +25,7 @@ import {
   getTodayAttendanceAPI,
   updateAttendanceAPI
 } from '../../../services/api';
+import NotificationSnackbar from '../../../components/common/NotificationSnackbar';
 
 const ATTENDANCE_STATUS = {
   PRESENT: 'present',
@@ -55,8 +54,38 @@ const AttendanceModal = ({
 
   const handleOpenAttendance = async () => {
     if (!classData?.id) return;
+
+    // Kiểm tra xem lớp có lịch học hôm nay không
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+
+    if (!classData.schedule || !classData.schedule.dayOfWeeks) {
+      setNotification({
+        open: true,
+        message: 'Lớp này chưa có lịch học được thiết lập',
+        severity: 'warning'
+      });
+      onClose();
+      return;
+    }
+
+    // Kiểm tra xem hôm nay có phải là ngày học của lớp không
+    const hasClassToday = classData.schedule.dayOfWeeks.includes(dayOfWeek);
+
+    if (!hasClassToday) {
+      setNotification({
+        open: true,
+        message: `Lớp ${classData.name} không có lịch học vào ${['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][dayOfWeek]}`,
+        severity: 'warning'
+      });
+      onClose();
+      return;
+    }
+
     setLoading(true);
     try {
+      console.log('Calling getTodayAttendanceAPI with classId:', classData.id);
+      console.log('Class data:', classData);
       const res = await getTodayAttendanceAPI(classData.id);
       const attData = res?.data;
 
@@ -361,16 +390,14 @@ const AttendanceModal = ({
       </Dialog>
 
       {/* Notification Snackbar */}
-      <Snackbar
+      <NotificationSnackbar
         open={notification.open}
-        autoHideDuration={6000}
         onClose={() => setNotification({ ...notification, open: false })}
+        message={notification.message}
+        severity={notification.severity}
+        autoHideDuration={6000}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setNotification({ ...notification, open: false })} severity={notification.severity} sx={{ width: '100%' }}>
-          {notification.message}
-        </Alert>
-      </Snackbar>
+      />
     </>
   );
 };

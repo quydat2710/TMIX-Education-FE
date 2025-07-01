@@ -3,27 +3,34 @@ import {
   Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, InputAdornment, Tooltip
 } from '@mui/material';
 import { History as HistoryIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
-import dayjs from 'dayjs';
-import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI } from '../../services/api';
+import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI, getTotalPaymentsAPI } from '../../services/api';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const quarters = [1, 2, 3, 4];
 
 const FinancialStatisticsPanel = () => {
-  const [periodType, setPeriodType] = useState('month');
+  const [periodType, setPeriodType] = useState('year');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedQuarter, setSelectedQuarter] = useState(1);
   const [tab, setTab] = useState(0);
-  const [customStart, setCustomStart] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
-  const [customEnd, setCustomEnd] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
+  const [customStart, setCustomStart] = useState(new Date().toISOString().split('T')[0].substring(0, 8) + '01');
+  const [customEnd, setCustomEnd] = useState(new Date().toISOString().split('T')[0]);
   const [studentPayments, setStudentPayments] = useState([]);
   const [teacherPayments, setTeacherPayments] = useState([]);
   const [loadingStudent, setLoadingStudent] = useState(false);
   const [loadingTeacher, setLoadingTeacher] = useState(false);
+  const [studentPaymentsLoaded, setStudentPaymentsLoaded] = useState(false);
   const [studentPagination, setStudentPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalResults: 0
+  });
+  const [teacherPagination, setTeacherPagination] = useState({
     page: 1,
     limit: 10,
     totalPages: 1,
@@ -50,8 +57,7 @@ const FinancialStatisticsPanel = () => {
   const [teacherPaymentMethod, setTeacherPaymentMethod] = useState('cash');
   const [teacherPaymentNote, setTeacherPaymentNote] = useState('');
   const [teacherPaymentLoading, setTeacherPaymentLoading] = useState(false);
-  const [teacherPaymentError, setTeacherPaymentError] = useState('');
-  const [teacherPaymentSuccess, setTeacherPaymentSuccess] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Helper: Lấy tháng đầu/cuối quý
   const getQuarterMonths = (quarter) => {
@@ -66,15 +72,14 @@ const FinancialStatisticsPanel = () => {
 
   const fetchTotalStatistics = async () => {
     try {
-      // Gọi API để lấy thống kê tổng quan từ tất cả các trang
-      const res = await getPaymentsAPI({ page: 1, limit: 1000 }); // Lấy tất cả dữ liệu
-      const allStudentPayments = res.data || [];
+      // Sử dụng API mới để lấy tổng học phí và đã thu
+      const totalPaymentsRes = await getTotalPaymentsAPI();
+      const { total: totalStudentFees, paid: totalPaidAmount } = totalPaymentsRes.data;
 
-      const totalStudentFees = allStudentPayments.reduce((total, p) => total + (p.finalAmount ?? 0), 0);
-      const totalPaidAmount = allStudentPayments.reduce((total, p) => total + (p.paidAmount ?? 0), 0);
-      const totalRemainingAmount = allStudentPayments.reduce((total, p) => total + (p.remainingAmount ?? 0), 0);
+      // Tính số tiền còn thiếu
+      const totalRemainingAmount = totalStudentFees - totalPaidAmount;
 
-      // Tính tổng lương giáo viên từ dữ liệu mới (totalAmount thay vì totalLessons * salaryPerLesson)
+      // Tính tổng lương giáo viên từ dữ liệu hiện tại
       const totalTeacherSalary = teacherPayments.reduce((total, p) => total + (p.totalAmount ?? 0), 0);
 
       setTotalStatistics({
@@ -85,36 +90,64 @@ const FinancialStatisticsPanel = () => {
       });
     } catch (err) {
       console.error('Error fetching total statistics:', err);
+      // Fallback: sử dụng cách tính cũ nếu API mới lỗi
+      try {
+        const res = await getPaymentsAPI({ page: 1, limit: 1000 });
+        const allStudentPayments = res.data || [];
+
+        const totalStudentFees = allStudentPayments.reduce((total, p) => total + (p.finalAmount ?? 0), 0);
+        const totalPaidAmount = allStudentPayments.reduce((total, p) => total + (p.paidAmount ?? 0), 0);
+        const totalRemainingAmount = allStudentPayments.reduce((total, p) => total + (p.remainingAmount ?? 0), 0);
+
+        const totalTeacherSalary = teacherPayments.reduce((total, p) => total + (p.totalAmount ?? 0), 0);
+
+        setTotalStatistics({
+          totalStudentFees,
+          totalPaidAmount,
+          totalRemainingAmount,
+          totalTeacherSalary
+        });
+      } catch (fallbackErr) {
+        console.error('Error in fallback calculation:', fallbackErr);
+      }
     }
   };
 
   const fetchStudentPayments = async (page = 1) => {
     setLoadingStudent(true);
     try {
-      let params = { page, limit: 10 };
+      let params = {};
       if (periodType === 'month') {
-        params = { ...params, year: selectedYear, month: selectedMonth };
+        params = { year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
-        params = { ...params, year: selectedYear, startMonth, endMonth };
+        params = { year: selectedYear, startMonth, endMonth };
       } else if (periodType === 'year') {
-        params = { ...params, year: selectedYear };
+        params = { year: selectedYear };
       } else if (periodType === 'custom') {
         const year = new Date(customStart).getFullYear();
         const startMonth = new Date(customStart).getMonth() + 1;
         const endMonth = new Date(customEnd).getMonth() + 1;
-        params = { ...params, year, startMonth, endMonth };
+        params = { year, startMonth, endMonth };
       }
       const res = await getPaymentsAPI(params);
-      setStudentPayments(res.data || []);
-      if (res.page && res.limit && res.totalPages && res.totalResults) {
-        setStudentPagination({
-          page: res.page,
-          limit: res.limit,
-          totalPages: res.totalPages,
-          totalResults: res.totalResults
-        });
-      }
+      console.log('Student payments API response:', res);
+      console.log('Student payments response keys:', Object.keys(res));
+
+      const allData = res.data || [];
+      const limit = 10;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedData = allData.slice(startIndex, endIndex);
+
+      setStudentPayments(paginatedData);
+      setStudentPagination({
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(allData.length / limit),
+        totalResults: allData.length
+      });
+      setStudentPaymentsLoaded(true);
     } catch (err) {
       setStudentPayments([]);
     } finally {
@@ -122,7 +155,7 @@ const FinancialStatisticsPanel = () => {
     }
   };
 
-  const fetchTeacherPayments = async () => {
+  const fetchTeacherPayments = async (page = 1) => {
     setLoadingTeacher(true);
     try {
       let params = {};
@@ -140,7 +173,22 @@ const FinancialStatisticsPanel = () => {
         params = { year, startMonth, endMonth };
       }
       const res = await getTeacherPaymentsAPI(params);
-      setTeacherPayments(res.data || []);
+      console.log('Teacher payments API response:', res);
+      console.log('Teacher payments response keys:', Object.keys(res));
+
+      const allData = res.data || [];
+      const limit = 10;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedData = allData.slice(startIndex, endIndex);
+
+      setTeacherPayments(paginatedData);
+      setTeacherPagination({
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(allData.length / limit),
+        totalResults: allData.length
+      });
     } catch (err) {
       setTeacherPayments([]);
     } finally {
@@ -149,13 +197,28 @@ const FinancialStatisticsPanel = () => {
   };
 
   useEffect(() => {
-    fetchStudentPayments();
-    fetchTeacherPayments();
+    // Chỉ fetch teacher payments và total statistics khi filter thay đổi
+    fetchTeacherPayments(1); // Reset về page 1
     fetchTotalStatistics();
+    // Reset student payments loaded flag và pagination khi filter thay đổi
+    setStudentPaymentsLoaded(false);
+    setStudentPagination(prev => ({ ...prev, page: 1 }));
+    setTeacherPagination(prev => ({ ...prev, page: 1 }));
   }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
 
+  // Fetch student payments chỉ khi vào tab chi tiết học sinh
+  useEffect(() => {
+    if (tab === 1 && !studentPaymentsLoaded) {
+      fetchStudentPayments(1); // Reset về page 1
+    }
+  }, [tab, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+
   const handleStudentPageChange = (event, newPage) => {
-    fetchStudentPayments(newPage); // API sử dụng page bắt đầu từ 1, giống ParentManagement
+    fetchStudentPayments(newPage);
+  };
+
+  const handleTeacherPageChange = (event, newPage) => {
+    fetchTeacherPayments(newPage);
   };
 
   const handleOpenPaymentHistory = (payment) => {
@@ -173,8 +236,7 @@ const FinancialStatisticsPanel = () => {
     setTeacherPaymentAmount('');
     setTeacherPaymentMethod('cash');
     setTeacherPaymentNote('');
-    setTeacherPaymentError('');
-    setTeacherPaymentSuccess('');
+    setTeacherPaymentLoading(false);
     setTeacherPaymentDialogOpen(true);
   };
 
@@ -184,52 +246,60 @@ const FinancialStatisticsPanel = () => {
     setTeacherPaymentAmount('');
     setTeacherPaymentMethod('cash');
     setTeacherPaymentNote('');
-    setTeacherPaymentError('');
-    setTeacherPaymentSuccess('');
   };
 
   const handleConfirmTeacherPayment = async () => {
     if (!selectedTeacherPayment || !teacherPaymentAmount) {
-      setTeacherPaymentError('Vui lòng nhập số tiền thanh toán');
+      setSnackbar({
+        open: true,
+        message: 'Vui lòng nhập số tiền thanh toán',
+        severity: 'error'
+      });
       return;
     }
     const amount = parseFloat(teacherPaymentAmount);
     if (isNaN(amount) || amount <= 0) {
-      setTeacherPaymentError('Số tiền thanh toán không hợp lệ');
+      setSnackbar({
+        open: true,
+        message: 'Số tiền thanh toán không hợp lệ',
+        severity: 'error'
+      });
       return;
     }
     const maxAmount = (selectedTeacherPayment.totalAmount ?? 0) - (selectedTeacherPayment.paidAmount ?? 0);
     if (amount > maxAmount) {
-      setTeacherPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
+      setSnackbar({
+        open: true,
+        message: 'Số tiền thanh toán không được vượt quá số tiền còn lại',
+        severity: 'error'
+      });
       return;
     }
     setTeacherPaymentLoading(true);
-    setTeacherPaymentError('');
-    setTeacherPaymentSuccess('');
 
-    // Log data được gửi đi
     const paymentData = {
       amount,
       method: teacherPaymentMethod,
       note: teacherPaymentNote || 'Thanh toán lương giáo viên'
     };
-    console.log('=== THANH TOÁN LƯƠNG GIÁO VIÊN ===');
-    console.log('Teacher Payment ID:', selectedTeacherPayment.id);
-    console.log('Teacher ID:', selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id);
-    console.log('Teacher Name:', selectedTeacherPayment.teacherId?.userId?.name || selectedTeacherPayment.teacherId?.name);
-    console.log('Month/Year:', selectedTeacherPayment.month + '/' + selectedTeacherPayment.year);
-    console.log('Payment Data:', paymentData);
-    console.log('================================');
 
     try {
       await payTeacherAPI(selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id, paymentData);
-      setTeacherPaymentSuccess('Thanh toán thành công!');
+      setSnackbar({
+        open: true,
+        message: 'Thanh toán lương giáo viên thành công!',
+        severity: 'success'
+      });
       await fetchTeacherPayments();
       await fetchTotalStatistics();
       handleCloseTeacherPaymentDialog();
     } catch (error) {
       console.error('Lỗi thanh toán lương giáo viên:', error);
-      setTeacherPaymentError(error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán');
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán lương giáo viên',
+        severity: 'error'
+      });
     } finally {
       setTeacherPaymentLoading(false);
     }
@@ -243,6 +313,11 @@ const FinancialStatisticsPanel = () => {
   const handleCloseTeacherDetail = () => {
     setTeacherDetailModalOpen(false);
     setSelectedTeacherForDetail(null);
+  };
+
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
   // Bộ lọc thời gian
@@ -353,6 +428,7 @@ const FinancialStatisticsPanel = () => {
         </Tabs>
         <Box sx={{ p: 2 }}>
           {tab === 0 && (
+            <>
             <TableContainer>
               <Table>
                 <TableHead>
@@ -420,6 +496,21 @@ const FinancialStatisticsPanel = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            {/* Pagination for Teacher */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Pagination
+                count={teacherPagination.totalPages}
+                page={teacherPagination.page}
+                onChange={handleTeacherPageChange}
+                color="primary"
+              />
+            </Box>
+            <Box sx={{ textAlign: 'center', mt: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Hiển thị {teacherPayments.length} trong tổng số {teacherPagination.totalResults} bản ghi
+              </Typography>
+            </Box>
+            </>
           )}
           {tab === 1 && (
             <>
@@ -506,16 +597,6 @@ const FinancialStatisticsPanel = () => {
         <DialogContent>
           {selectedTeacherPayment && (
             <Box sx={{ mt: 2 }}>
-              {teacherPaymentError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {teacherPaymentError}
-                </Alert>
-              )}
-              {teacherPaymentSuccess && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  {teacherPaymentSuccess}
-                </Alert>
-              )}
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary">
@@ -808,6 +889,13 @@ const FinancialStatisticsPanel = () => {
           </DialogActions>
         </Dialog>
       )}
+
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={handleCloseNotification}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
     </Box>
   );
 };

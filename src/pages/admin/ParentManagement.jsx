@@ -42,6 +42,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { validateParent } from '../../validations/parentValidation';
 import { createParentAPI, getAllParentsAPI, deleteParentAPI, updateParentAPI, addChildAPI, removeChildAPI, getAllStudentsAPI } from '../../services/api';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const ParentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,6 +78,7 @@ const ParentManagement = () => {
     canSeeTeacherInfo: true,
   });
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenDialog = (parent = null) => {
     setSelectedParent(parent);
@@ -149,6 +151,11 @@ const ParentManagement = () => {
     setOpenViewDialog(false);
   };
 
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleOpenDeleteDialog = (parent) => {
     setParentToDelete(parent);
     setOpenDeleteDialog(true);
@@ -166,10 +173,15 @@ const ParentManagement = () => {
     setError('');
     try {
       await deleteParentAPI(parentToDelete.id);
+      setSnackbar({ open: true, message: 'Xóa phụ huynh thành công!', severity: 'success' });
       handleCloseDeleteDialog();
       fetchParents(page); // Refresh parent list
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa phụ huynh');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi xóa phụ huynh',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -240,11 +252,51 @@ const ParentManagement = () => {
     console.log('Dữ liệu gửi đi khi thêm con:', { studentId, parentId });
     try {
       await addChildAPI(studentId, parentId);
+      setSnackbar({ open: true, message: 'Thêm con thành công!', severity: 'success' });
       setStudentSearchQuery(''); // Clear the search input
       setSearchResults([]); // Clear search results
-      fetchParents(page); // Refresh parent list
+
+      // Refresh parent list
+      fetchParents(page);
+
+      // Refresh selected parent data if dialog is open
+      if (selectedParent && selectedParent.id === parentId) {
+        try {
+          const params = { page: 1, limit: 10 };
+          const res = await getAllParentsAPI(params);
+          const updatedParent = res.data?.find(p => p.id === parentId);
+          if (updatedParent) {
+            setSelectedParent(updatedParent);
+            // Update form data with new parent data
+            setForm({
+              name: updatedParent.userId?.name || '',
+              email: updatedParent.userId?.email || '',
+              password: '',
+              dayOfBirth: updatedParent.userId?.dayOfBirth || '',
+              phone: updatedParent.userId?.phone || '',
+              address: updatedParent.userId?.address || '',
+              gender: updatedParent.userId?.gender || 'male',
+              canSeeTeacherInfo: updatedParent.canSeeTeacherInfo !== undefined ? updatedParent.canSeeTeacherInfo : true,
+            });
+            setClassEdits(
+              (updatedParent.classes || []).map(cls => ({
+                classId: cls.classId?._id || cls.classId,
+                className: cls.classId?.name || '',
+                discountPercent: cls.discountPercent || 0,
+                status: cls.status || 'active',
+              }))
+            );
+          }
+        } catch (error) {
+          console.error('Error refreshing parent data:', error);
+        }
+      }
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi thêm con');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi thêm con',
+        severity: 'error'
+      });
     }
   };
 
@@ -252,9 +304,49 @@ const ParentManagement = () => {
     console.log('Dữ liệu gửi đi khi xóa con:', { studentId, parentId });
     try {
       await removeChildAPI(studentId, parentId);
-      fetchParents(page); // Refresh parent list
+      setSnackbar({ open: true, message: 'Xóa con thành công!', severity: 'success' });
+
+      // Refresh parent list
+      fetchParents(page);
+
+      // Refresh selected parent data if dialog is open
+      if (selectedParent && selectedParent.id === parentId) {
+        try {
+          const params = { page: 1, limit: 10 };
+          const res = await getAllParentsAPI(params);
+          const updatedParent = res.data?.find(p => p.id === parentId);
+          if (updatedParent) {
+            setSelectedParent(updatedParent);
+            // Update form data with new parent data
+            setForm({
+              name: updatedParent.userId?.name || '',
+              email: updatedParent.userId?.email || '',
+              password: '',
+              dayOfBirth: updatedParent.userId?.dayOfBirth || '',
+              phone: updatedParent.userId?.phone || '',
+              address: updatedParent.userId?.address || '',
+              gender: updatedParent.userId?.gender || 'male',
+              canSeeTeacherInfo: updatedParent.canSeeTeacherInfo !== undefined ? updatedParent.canSeeTeacherInfo : true,
+            });
+            setClassEdits(
+              (updatedParent.classes || []).map(cls => ({
+                classId: cls.classId?._id || cls.classId,
+                className: cls.classId?.name || '',
+                discountPercent: cls.discountPercent || 0,
+                status: cls.status || 'active',
+              }))
+            );
+          }
+        } catch (error) {
+          console.error('Error refreshing parent data:', error);
+        }
+      }
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa con');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi xóa con',
+        severity: 'error'
+      });
     }
   };
 
@@ -294,6 +386,7 @@ const ParentManagement = () => {
           },
         };
         await updateParentAPI(selectedParent.id, body);
+        setSnackbar({ open: true, message: 'Cập nhật phụ huynh thành công!', severity: 'success' });
       } else {
         // CREATE
         const requestData = {
@@ -311,17 +404,17 @@ const ParentManagement = () => {
           },
         };
         await createParentAPI(requestData);
+        setSnackbar({ open: true, message: 'Thêm phụ huynh thành công!', severity: 'success' });
       }
 
       handleCloseDialog();
       fetchParents(page);
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-        JSON.stringify(err?.response?.data) ||
-        err?.message ||
-        'Có lỗi xảy ra'
-      );
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi lưu phụ huynh',
+        severity: 'error'
+      });
       console.error('API error:', err?.response?.data, err);
     } finally {
       setLoading(false);
@@ -1607,6 +1700,13 @@ const ParentManagement = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          <NotificationSnackbar
+            open={snackbar.open}
+            onClose={handleCloseNotification}
+            message={snackbar.message}
+            severity={snackbar.severity}
+          />
         </Box>
       </Box>
     </DashboardLayout>

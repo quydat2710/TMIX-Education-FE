@@ -133,6 +133,7 @@ export const getAttendanceByIdAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOIN
 // Payment APIs
 export const getPaymentsAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_ALL, { params });
 export const getPaymentsByStudentAPI = (studentId, params) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_BY_STUDENT(studentId), { params });
+export const getTotalPaymentsAPI = () => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_TOTAL);
 export const getTeacherPaymentsAPI = (params) => axiosInstance.get(API_CONFIG.ENDPOINTS.PAYMENTS.GET_TEACHER_PAYMENTS, { params });
 export const payTeacherAPI = (id, data) => {
   const formData = new URLSearchParams();

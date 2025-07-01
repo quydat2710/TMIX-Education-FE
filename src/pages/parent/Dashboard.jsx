@@ -340,19 +340,22 @@ const Dashboard = () => {
   return (
     <DashboardLayout role="parent">
       <Box sx={commonStyles.pageContainer}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-          Dashboard Phụ huynh
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Dashboard Phụ huynh
             </Typography>
+          </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
 
-          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Xin chào {parentData?.userId?.name || parentData?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
-        </Typography>
+          <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+            Xin chào {parentData?.userId?.name || parentData?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
+          </Typography>
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -430,35 +433,26 @@ const Dashboard = () => {
         <Grid container spacing={3}>
           {childrenData.map((child, childIndex) => (
             <Grid item xs={12} key={child.id}>
-              <Paper sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
                     {child.name?.charAt(0)?.toUpperCase() || 'N'}
-                </Avatar>
+                  </Avatar>
                   <Box>
                     <Typography variant="h6" fontWeight="bold">
-                    {child.name || 'N/A'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                      {child.name || 'N/A'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
                       {child.email || 'N/A'}
-                  </Typography>
+                    </Typography>
+                  </Box>
                 </Box>
-                  <Box sx={{ ml: 'auto' }}>
-                    <Button
-                  variant="outlined"
-                            size="small"
-                      onClick={() => navigate(`/parent/children/${child.studentId || child.id}`)}
-                    >
-                      Xem chi tiết
-                    </Button>
-                  </Box>
-                  </Box>
 
                 {/* Child's Classes */}
                 {child.classes && child.classes.length > 0 ? (
-                  <TableContainer>
-                      <Table size="small">
-                        <TableHead>
+                  <TableContainer sx={commonStyles.tableContainer}>
+                    <Table size="small">
+                      <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
@@ -466,11 +460,11 @@ const Dashboard = () => {
                           <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Học phí</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
                         {child.classes.map((classItem, classIndex) => (
-                          <TableRow key={classItem.id || classItem.classId || classIndex} hover>
+                          <TableRow key={classItem.id || classItem.classId || classIndex} sx={commonStyles.tableRow}>
                             <TableCell>
                               <Typography variant="body2" fontWeight="medium">
                                 {classItem.name || classItem.className || 'N/A'}
@@ -495,7 +489,7 @@ const Dashboard = () => {
                               <Typography variant="body2" fontWeight="600">
                                 {formatCurrency(classItem.feePerLesson || classItem.fee || 0)}/buổi
                               </Typography>
-                              </TableCell>
+                            </TableCell>
                             <TableCell>
                               <Chip
                                 label={classItem.status === 'active' ? 'Đang học' : classItem.status || 'N/A'}
@@ -505,13 +499,13 @@ const Dashboard = () => {
                             </TableCell>
                           </TableRow>
                         ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 ) : (
                   <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                     Chưa có lớp học nào
-                    </Typography>
+                  </Typography>
                 )}
 
                 {/* Payment Summary */}
@@ -536,14 +530,14 @@ const Dashboard = () => {
                       </Typography>
                     </Grid>
                   </Grid>
-        </Box>
+                </Box>
               </Paper>
             </Grid>
           ))}
         </Grid>
 
         {childrenData.length === 0 && (
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
               Chưa có con nào được đăng ký
             </Typography>
@@ -552,6 +546,7 @@ const Dashboard = () => {
             </Typography>
           </Paper>
         )}
+        </Box>
       </Box>
     </DashboardLayout>
   );

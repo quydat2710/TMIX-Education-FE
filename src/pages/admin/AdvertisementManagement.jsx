@@ -37,6 +37,7 @@ import {
   updateAnnouncementAPI,
   deleteAnnouncementAPI
 } from '../../services/api';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const AdvertisementManagement = () => {
   const [advertisements, setAdvertisements] = useState([]);
@@ -50,6 +51,7 @@ const AdvertisementManagement = () => {
     displayType: 'banner',
     priority: 1
   });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Lấy danh sách quảng cáo từ API
   useEffect(() => {
@@ -95,6 +97,11 @@ const AdvertisementManagement = () => {
     setEditingAd(null);
   };
 
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleFileChange = (e) => {
     setFormData({ ...formData, image: e.target.files[0] });
   };
@@ -111,13 +118,19 @@ const AdvertisementManagement = () => {
     try {
     if (editingAd) {
         await updateAnnouncementAPI(editingAd.id, data);
+        setSnackbar({ open: true, message: 'Cập nhật quảng cáo thành công!', severity: 'success' });
     } else {
         await createAnnouncementAPI(data);
+        setSnackbar({ open: true, message: 'Tạo quảng cáo thành công!', severity: 'success' });
       }
       fetchAdvertisements();
       handleCloseDialog();
     } catch (err) {
-      alert('Có lỗi khi lưu quảng cáo!');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi khi lưu quảng cáo!',
+        severity: 'error'
+      });
       console.error(err);
     }
   };
@@ -126,9 +139,14 @@ const AdvertisementManagement = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa quảng cáo này?')) {
       try {
         await deleteAnnouncementAPI(id);
+        setSnackbar({ open: true, message: 'Xóa quảng cáo thành công!', severity: 'success' });
         fetchAdvertisements();
       } catch (err) {
-        alert('Có lỗi khi xóa quảng cáo!');
+        setSnackbar({
+          open: true,
+          message: err?.response?.data?.message || 'Có lỗi khi xóa quảng cáo!',
+          severity: 'error'
+        });
         console.error(err);
       }
     }
@@ -493,6 +511,13 @@ const AdvertisementManagement = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          <NotificationSnackbar
+            open={snackbar.open}
+            onClose={handleCloseNotification}
+            message={snackbar.message}
+            severity={snackbar.severity}
+          />
         </Box>
       </Box>
     </DashboardLayout>

@@ -5,6 +5,7 @@ import {
 import { getTeacherPaymentByIdAPI } from '../../services/api';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
+import { commonStyles } from '../../utils/styles';
 import PaymentIcon from '@mui/icons-material/Payment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MoneyOffIcon from '@mui/icons-material/MoneyOff';
@@ -30,14 +31,14 @@ const Salary = () => {
         const res = await getTeacherPaymentByIdAPI(teacherId);
         console.log('API getTeacherPaymentByIdAPI response:', res);
 
-        // Handle the response structure - it's a single object, not an array
-        if (res && res.data) {
-          const paymentData = res.data;
-          // Create an array with the payment data
-          setPayments([paymentData]);
-        } else if (res && !res.data) {
-          // If response is directly the data object
-          setPayments([res]);
+        // Handle the response structure - it's an array of payment objects
+        if (res && res.data && Array.isArray(res.data)) {
+          setPayments(res.data);
+        } else if (res && Array.isArray(res)) {
+          setPayments(res);
+        } else if (res && res.data && !Array.isArray(res.data)) {
+          // If it's a single object, wrap it in an array
+          setPayments([res.data]);
         } else {
           setPayments([]);
         }
@@ -55,6 +56,12 @@ const Salary = () => {
   const totalSalary = payments.reduce((sum, payment) => sum + (payment.totalAmount ?? 0), 0);
   const totalPaid = payments.reduce((sum, payment) => sum + (payment.paidAmount ?? 0), 0);
   const totalUnpaid = totalSalary - totalPaid;
+  const totalLessons = payments.reduce((sum, payment) => {
+    if (payment.classes && Array.isArray(payment.classes)) {
+      return sum + payment.classes.reduce((classSum, classItem) => classSum + (classItem.totalLessons || 0), 0);
+    }
+    return sum;
+  }, 0);
 
   // Log state payments để kiểm tra dữ liệu render
   console.log('Payments state:', payments);
@@ -81,22 +88,33 @@ const Salary = () => {
 
   return (
     <DashboardLayout role="teacher">
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Lương của tôi
-        </Typography>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Lương của tôi
+            </Typography>
+          </Box>
         {/* Stat Cards */}
         <Box sx={{ mb: 4 }}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <StatCard
-                title="Tổng khoản lương"
+                title="Số tháng có lương"
                 value={payments.length}
                 icon={<PaymentIcon sx={{ fontSize: 40 }} />}
                 color="primary"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Tổng số buổi"
+                value={totalLessons}
+                icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+                color="secondary"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.4}>
               <StatCard
                 title="Tổng lương"
                 value={totalSalary.toLocaleString() + ' ₫'}
@@ -104,7 +122,7 @@ const Salary = () => {
                 color="success"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <StatCard
                 title="Đã nhận"
                 value={totalPaid.toLocaleString() + ' ₫'}
@@ -112,7 +130,7 @@ const Salary = () => {
                 color="info"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <StatCard
                 title="Còn lại"
                 value={totalUnpaid.toLocaleString() + ' ₫'}
@@ -128,7 +146,7 @@ const Salary = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer>
+            <TableContainer sx={commonStyles.tableContainer}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -148,12 +166,12 @@ const Salary = () => {
                     </TableRow>
                   ) : (
                     payments.map((payment) => (
-                      <TableRow key={payment.id} hover>
+                      <TableRow key={payment.id} hover sx={commonStyles.tableRow}>
                         <TableCell align="center">{payment.month}/{payment.year}</TableCell>
                         <TableCell align="right">
                           {payment.classes && Array.isArray(payment.classes)
                             ? payment.classes.reduce((sum, classItem) => sum + (classItem.totalLessons || 0), 0)
-                            : payment.totalLessons || 0
+                            : 0
                           }
                         </TableCell>
                         <TableCell align="right">{(payment.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
@@ -161,8 +179,18 @@ const Salary = () => {
                         <TableCell align="right">{(payment.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
                         <TableCell align="center">
                           <Chip
-                            label={payment.status === 'paid' ? 'Đã nhận' : payment.status === 'partial' ? 'Nhận một phần' : payment.status === 'pending' ? 'Chờ nhận' : 'Chưa nhận'}
-                            color={payment.status === 'paid' ? 'success' : payment.status === 'partial' ? 'warning' : payment.status === 'pending' ? 'info' : 'error'}
+                            label={
+                              payment.status === 'paid' ? 'Đã nhận' :
+                              payment.status === 'partial' ? 'Nhận một phần' :
+                              payment.status === 'pending' ? 'Chờ nhận' :
+                              'Chưa nhận'
+                            }
+                            color={
+                              payment.status === 'paid' ? 'success' :
+                              payment.status === 'partial' ? 'warning' :
+                              payment.status === 'pending' ? 'info' :
+                              'error'
+                            }
                             size="small"
                           />
                         </TableCell>
@@ -356,7 +384,7 @@ const Salary = () => {
                         Thông tin chi tiết về số buổi dạy và lương từng lớp
                       </Typography>
                     </Box>
-                    <TableContainer>
+                    <TableContainer sx={commonStyles.tableContainer}>
                       <Table>
                         <TableHead>
                           <TableRow sx={{ bgcolor: '#f8f9fa' }}>
@@ -371,10 +399,7 @@ const Salary = () => {
                             <TableRow
                               key={index}
                               hover
-                              sx={{
-                                '&:nth-of-type(odd)': { bgcolor: '#fafbfc' },
-                                '&:hover': { bgcolor: '#f0f4ff' }
-                              }}
+                              sx={commonStyles.tableRow}
                             >
                               <TableCell sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                 {classItem.classId?.name || 'N/A'}
@@ -423,6 +448,7 @@ const Salary = () => {
           title="Lịch sử thanh toán lương"
           showPaymentDetails={true}
         />
+        </Box>
       </Box>
     </DashboardLayout>
   );

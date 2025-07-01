@@ -103,7 +103,7 @@ const Payments = () => {
                       childId: child.id,
                       invoiceCode: `INV-${payment.month}/${payment.year}-${payment.id.slice(-6)}`,
                       className: className,
-                      month: `Tháng ${payment.month}/${payment.year}`,
+                      month: `${payment.month}/${payment.year}`,
                       originalAmount: payment.totalAmount,
                       finalAmount: payment.finalAmount,
                       dueDate: `${payment.month}/15/${payment.year}`,
@@ -166,8 +166,7 @@ const Payments = () => {
   // Lọc hóa đơn theo tab
   const allInvoices = paymentData;
   const filteredInvoices = allInvoices.filter((invoice) => {
-    const matchesSearch = invoice.invoiceCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.childName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = invoice.childName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          invoice.className.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedTab === 0) return matchesSearch; // Tất cả
@@ -193,7 +192,7 @@ const Payments = () => {
       case 'paid':
         return 'Đã thanh toán';
       case 'partial':
-        return 'Đã thanh toán một phần';
+        return 'Thanh toán một phần';
       case 'pending':
         return 'Chờ thanh toán';
       case 'unpaid':
@@ -290,13 +289,17 @@ const Payments = () => {
 
   return (
     <DashboardLayout role="parent">
-      <Box sx={commonStyles.pageContainer}>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={{ ...commonStyles.pageContainer, paddingLeft: '2%', paddingRight: '2%' }}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
               Quản lý học phí
-      </Typography>
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Xem và quản lý hóa đơn học phí của con bạn
-              </Typography>
+            </Typography>
+          </Box>
+
+          <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+            Xem và quản lý hóa đơn học phí của con bạn
+          </Typography>
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -342,30 +345,31 @@ const Payments = () => {
         </Tabs>
 
         {/* Search */}
-        <Paper sx={{ p: 2, mb: 3 }}>
-                <TextField
-                  fullWidth
-            placeholder="Tìm kiếm theo mã hóa đơn, tên con, hoặc lớp học..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+        <Paper sx={commonStyles.searchContainer}>
+          <TextField
+            fullWidth
+            placeholder="Tìm kiếm theo tên con hoặc tên lớp..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={commonStyles.searchField}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
         </Paper>
 
         {/* Invoices Table */}
-              {loading ? (
-                <LinearProgress />
-              ) : (
-          <TableContainer component={Paper}>
+        {loading ? (
+          <LinearProgress />
+        ) : (
+          <TableContainer component={Paper} sx={commonStyles.tableContainer}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tên con</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
@@ -381,7 +385,7 @@ const Payments = () => {
               </TableHead>
               <TableBody>
                 {filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id} sx={{ '&:hover': { bgcolor: '#fafafa' } }}>
+                  <TableRow key={invoice.id} sx={commonStyles.tableRow}>
                           <TableCell align="center">
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {invoice.childName}
@@ -416,8 +420,8 @@ const Payments = () => {
                         variant="outlined"
                       />
                     </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                    <TableCell align="left">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'left' }}>
                         {invoice.status !== 'paid' ? (
                           <Button
                             variant="contained"
@@ -726,6 +730,7 @@ const Payments = () => {
           title="Lịch sử thanh toán học phí"
           showPaymentDetails={true}
         />
+        </Box>
       </Box>
     </DashboardLayout>
   );

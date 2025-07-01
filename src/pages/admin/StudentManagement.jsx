@@ -37,6 +37,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { createStudentAPI, getAllStudentsAPI, getParentByIdAPI, deleteStudentAPI, updateStudentAPI } from '../../services/api';
 import { validateStudent } from '../../validations/studentValidation';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const StudentManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -224,10 +225,15 @@ const StudentManagement = () => {
     setError('');
     try {
       await deleteStudentAPI(studentToDelete.id);
+      setSnackbar({ open: true, message: 'Xóa học sinh thành công!', severity: 'success' });
       handleCloseDeleteDialog();
       fetchStudents(page); // Refresh student list
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa học sinh');
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi xóa học sinh',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -310,6 +316,11 @@ const StudentManagement = () => {
   const handleCloseViewDialog = () => {
     setSelectedStudentForView(null);
     setOpenViewDialog(false);
+  };
+
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -1102,6 +1113,13 @@ const StudentManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={handleCloseNotification}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
     </Box>
       </Box>
     </DashboardLayout>

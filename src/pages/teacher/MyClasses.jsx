@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -14,8 +14,6 @@ import {
   Tab,
   Tooltip,
   CardActions,
-  Snackbar,
-  Alert,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -40,6 +38,7 @@ import {
 import ClassDetailModal from './components/ClassDetailModal';
 import AttendanceModal from './components/AttendanceModal';
 import AttendanceHistoryModal from './components/AttendanceHistoryModal';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 function formatSchedule(schedule) {
   if (!schedule) return '';
@@ -55,10 +54,12 @@ function formatSchedule(schedule) {
 const MyClasses = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState(0);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [myClasses, setMyClasses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadedTabs, setLoadedTabs] = useState(new Set());
 
   // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -67,43 +68,81 @@ const MyClasses = () => {
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [studentsList, setStudentsList] = useState([]);
 
-  // Fetch danh sách lớp dạy
+  // Debounce search query
   useEffect(() => {
-    const fetchClasses = async () => {
-      if (!user?.teacherId) return;
-      setLoading(true);
-      try {
-        const scheduleRes = await getTeacherScheduleAPI(user.teacherId);
-        const classIds = scheduleRes?.data?.classes?.map(cls => cls.id) || [];
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 700); // 0.7 seconds
 
-        const detailedClasses = [];
-        for (const classId of classIds) {
-          try {
-            const classRes = await getClassByIdAPI(classId);
-            if (classRes?.data) {
-              detailedClasses.push(classRes.data);
-            }
-          } catch (err) {
-            console.error(`Không thể tải thông tin lớp học ${classId}:`, err);
-          }
-        }
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-        setMyClasses(detailedClasses);
-      } catch (err) {
-        setNotification({ open: true, message: 'Không thể tải danh sách lớp dạy', severity: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchClasses();
-  }, [user?.teacherId]);
+  // Fetch danh sách lớp dạy cho tab cụ thể
+  const fetchClassesForTab = async (tabIndex) => {
+    if (!user?.teacherId || loadedTabs.has(tabIndex)) return;
+
+    setLoading(true);
+    try {
+      const scheduleRes = await getTeacherScheduleAPI(user.teacherId);
+      const classes = scheduleRes?.data?.classes || [];
+
+      // Sử dụng dữ liệu từ schedule API thay vì gọi API riêng cho từng lớp
+      const detailedClasses = classes.map(cls => ({
+        id: cls.id,
+        name: cls.name,
+        status: cls.status || 'active',
+        schedule: cls.schedule,
+        room: cls.room,
+        grade: cls.grade,
+        section: cls.section,
+        students: cls.students || []
+      }));
+
+      // Thêm classes mới vào state hiện tại
+      setMyClasses(prevClasses => {
+        const existingIds = new Set(prevClasses.map(cls => cls.id));
+        const newClasses = detailedClasses.filter(cls => !existingIds.has(cls.id));
+        return [...prevClasses, ...newClasses];
+      });
+
+      // Đánh dấu tab đã được load
+      setLoadedTabs(prev => new Set([...prev, tabIndex]));
+    } catch (err) {
+      setNotification({ open: true, message: 'Không thể tải danh sách lớp dạy', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
+    // Fetch classes cho tab mới nếu chưa được load
+    fetchClassesForTab(newValue);
   };
 
-  const handleOpenDetail = (classItem) => {
-    setSelectedClass(classItem);
+  const handleOpenDetail = async (classItem) => {
+    // Load chi tiết lớp nếu cần
+    if (!classItem.students || classItem.students.length === 0) {
+      try {
+        const classRes = await getClassByIdAPI(classItem.id);
+        if (classRes?.data) {
+          // Cập nhật thông tin lớp trong state
+          setMyClasses(prevClasses =>
+            prevClasses.map(cls =>
+              cls.id === classItem.id ? { ...cls, ...classRes.data } : cls
+            )
+          );
+          setSelectedClass({ ...classItem, ...classRes.data });
+        } else {
+          setSelectedClass(classItem);
+        }
+      } catch (err) {
+        console.error(`Không thể tải chi tiết lớp học ${classItem.id}:`, err);
+        setSelectedClass(classItem);
+      }
+    } else {
+      setSelectedClass(classItem);
+    }
     setDetailModalOpen(true);
   };
 
@@ -112,7 +151,7 @@ const MyClasses = () => {
     setSelectedClass(null);
   };
 
-  const handleOpenAttendance = (classItem) => {
+    const handleOpenAttendance = (classItem) => {
     setSelectedClass(classItem);
     setAttendanceModalOpen(true);
   };
@@ -143,7 +182,7 @@ const MyClasses = () => {
   // Filter classes based on search and tab
   const filteredClasses = useMemo(() => {
     let filtered = myClasses.filter(classItem =>
-      classItem.name.toLowerCase().includes(searchQuery.toLowerCase())
+      classItem.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     );
 
     const statusFilters = ['active', 'upcoming', 'closed'];
@@ -152,7 +191,14 @@ const MyClasses = () => {
     }
 
     return filtered;
-  }, [myClasses, searchQuery, selectedTab]);
+  }, [myClasses, debouncedSearchQuery, selectedTab]);
+
+  // Load classes cho tab đầu tiên khi component mount
+  useEffect(() => {
+    if (user?.teacherId && !loadedTabs.has(0)) {
+      fetchClassesForTab(0);
+    }
+  }, [user?.teacherId]);
 
   const statusMap = {
     active: { label: 'Đang dạy', color: 'success' },
@@ -162,10 +208,13 @@ const MyClasses = () => {
 
   return (
     <DashboardLayout>
-      <Box sx={commonStyles.container}>
-        <Typography variant="h4" component="h1" gutterBottom sx={commonStyles.pageTitle}>
-        Lớp học của tôi
-      </Typography>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Lớp học của tôi
+            </Typography>
+          </Box>
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -204,12 +253,13 @@ const MyClasses = () => {
         </Grid>
 
         {/* Search and Tabs */}
-          <Paper sx={{ p: 2, mb: 3 }}>
+          <Paper sx={commonStyles.searchContainer}>
                 <TextField
                   fullWidth
-            placeholder="Tìm kiếm theo tên lớp học..."
+                  placeholder="Tìm kiếm theo tên lớp học..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  sx={commonStyles.searchField}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -256,17 +306,6 @@ const MyClasses = () => {
                 </CardContent>
                 <CardActions>
                   <Button size="small" onClick={() => handleOpenDetail(classItem)}>Xem chi tiết</Button>
-                  {classItem.status === 'active' && (
-                      <Tooltip title="Điểm danh buổi học hôm nay">
-                        <Button
-                          size="small"
-                          startIcon={<AssignmentIcon />}
-                          onClick={() => handleOpenAttendance(classItem)}
-                        >
-                          Điểm danh
-                        </Button>
-                      </Tooltip>
-                  )}
                   {(classItem.status === 'active' || classItem.status === 'closed') && (
                       <Tooltip title="Xem lịch sử điểm danh">
                         <Button
@@ -278,6 +317,34 @@ const MyClasses = () => {
                         </Button>
                       </Tooltip>
                   )}
+                  {classItem.status === 'active' && (() => {
+                    // Kiểm tra xem lớp có lịch học hôm nay không
+                    const today = new Date();
+                    const dayOfWeek = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+
+                    if (!classItem.schedule || !classItem.schedule.dayOfWeeks) {
+                      return null; // Không hiển thị nút nếu không có lịch học
+                    }
+
+                    // Kiểm tra xem hôm nay có phải là ngày học của lớp không
+                    const hasClassToday = classItem.schedule.dayOfWeeks.includes(dayOfWeek);
+
+                    if (!hasClassToday) {
+                      return null; // Không hiển thị nút nếu hôm nay không có lịch học
+                    }
+
+                    return (
+                      <Tooltip title="Điểm danh buổi học hôm nay">
+                        <Button
+                          size="small"
+                          startIcon={<AssignmentIcon />}
+                          onClick={() => handleOpenAttendance(classItem)}
+                        >
+                          Điểm danh
+                        </Button>
+                      </Tooltip>
+                    );
+                  })()}
                 </CardActions>
               </Card>
             </Grid>
@@ -311,16 +378,15 @@ const MyClasses = () => {
         />
 
         {/* Notification Snackbar */}
-        <Snackbar
+        <NotificationSnackbar
           open={notification.open}
-          autoHideDuration={6000}
           onClose={() => setNotification({ ...notification, open: false })}
+          message={notification.message}
+          severity={notification.severity}
+          autoHideDuration={6000}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert onClose={() => setNotification({ ...notification, open: false })} severity={notification.severity} sx={{ width: '100%' }}>
-            {notification.message}
-          </Alert>
-        </Snackbar>
+        />
+        </Box>
       </Box>
     </DashboardLayout>
   );

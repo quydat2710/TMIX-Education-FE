@@ -24,6 +24,7 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { COLORS } from '../../utils/colors';
+import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import {
@@ -32,6 +33,7 @@ import {
   getAllClassesAPI,
   getPaymentsAPI,
   getTeacherPaymentsAPI,
+  getTotalPaymentsAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -42,6 +44,8 @@ const Dashboard = () => {
     totalTeachers: 0,
     totalClasses: 0,
     totalRevenue: 0,
+    totalPaidAmount: 0,
+    totalUnpaidAmount: 0,
     totalExpenses: 0,
     activeClasses: 0,
     pendingPayments: 0,
@@ -57,35 +61,28 @@ const Dashboard = () => {
     setLoading(true);
     setError(''); // Clear any previous errors
     try {
-      // Fetch all data in parallel - remove limits to get all data
       const [
         studentsRes,
         teachersRes,
         classesRes,
         paymentsRes,
         teacherPaymentsRes,
+        totalPaymentsRes,
       ] = await Promise.all([
-        getAllStudentsAPI(), // Remove limit to get all students
-        getAllTeachersAPI(), // Remove limit to get all teachers
-        getAllClassesAPI(), // Remove limit to get all classes
-        getPaymentsAPI({ limit: 1000 }), // Add limit to get more payments
-        getTeacherPaymentsAPI({ limit: 1000 }), // Add limit to get more teacher payments
+        getAllStudentsAPI(),
+        getAllTeachersAPI(),
+        getAllClassesAPI(),
+        getPaymentsAPI({ limit: 1000 }),
+        getTeacherPaymentsAPI({ limit: 1000 }),
+        getTotalPaymentsAPI(),
       ]);
 
-      console.log('API Responses:', {
-        studentsRes,
-        teachersRes,
-        classesRes,
-        paymentsRes,
-        teacherPaymentsRes,
-      });
 
-      // Handle different possible data structures - use totalResults for accurate counts
+
       const students = studentsRes?.data?.students || studentsRes?.data || [];
       const teachers = teachersRes?.data?.teachers || teachersRes?.data || [];
       const classes = classesRes?.data?.classes || classesRes?.data || [];
 
-      // Try different possible structures for payments data
       const payments = paymentsRes?.data?.payments ||
                       paymentsRes?.data ||
                       paymentsRes?.payments ||
@@ -96,66 +93,47 @@ const Dashboard = () => {
                              teacherPaymentsRes?.teacherPayments ||
                              [];
 
-      // Get total counts from API responses
       const totalStudents = studentsRes?.data?.totalResults || studentsRes?.totalResults || students.length || 0;
       const totalTeachers = teachersRes?.data?.totalResults || teachersRes?.totalResults || teachers.length || 0;
       const totalClasses = classesRes?.data?.totalResults || classesRes?.totalResults || classes.length || 0;
 
-      console.log('Processed Data:', {
-        totalStudents,
-        totalTeachers,
-        totalClasses,
-        students: students.length,
-        teachers: teachers.length,
-        classes: classes.length,
-        payments: payments.length,
-        teacherPayments: teacherPayments.length,
-      });
 
-      // Debug payments data structure
-      console.log('Payments data:', payments);
-      console.log('Teacher payments data:', teacherPayments);
 
-      // Calculate statistics with fallback values
-      const totalRevenue = payments.reduce((sum, payment) => {
-        const amount = Number(payment.amount) || Number(payment.paidAmount) || 0;
-        console.log('Payment:', payment, 'Amount:', amount, 'Status:', payment.status);
-        // Count all payments as revenue (including pending ones for total)
-        return sum + amount;
-      }, 0);
+
+
+      const totalPaymentsData = totalPaymentsRes?.data || {};
+      const totalRevenue = totalPaymentsData.total || 0;
+      const totalPaidAmount = totalPaymentsData.paid || 0;
+      const totalUnpaidAmount = totalRevenue - totalPaidAmount; // Tính số tiền chưa thu
+
+
 
       const totalExpenses = teacherPayments.reduce((sum, payment) => {
         const amount = Number(payment.paidAmount) || Number(payment.amount) || 0;
-        console.log('Teacher Payment:', payment, 'Amount:', amount, 'Status:', payment.status);
-        // Count all teacher payments as expenses (including pending ones for total)
         return sum + amount;
       }, 0);
 
       const activeClasses = classes.filter(c => c.status === 'active' || c.isActive).length;
       const pendingPayments = payments.filter(p => p.status === 'pending' || p.status === 'unpaid' || p.status === 'pending').length;
 
-      console.log('Calculated values:', {
-        totalRevenue,
-        totalExpenses,
-        activeClasses,
-        pendingPayments
-      });
+
 
       const calculatedStats = {
         totalStudents,
         totalTeachers,
         totalClasses,
         totalRevenue: totalRevenue || 0,
+        totalPaidAmount: totalPaidAmount || 0,
+        totalUnpaidAmount: totalUnpaidAmount || 0,
         totalExpenses: totalExpenses || 0,
         activeClasses: activeClasses || 0,
         pendingPayments: pendingPayments || 0,
       };
 
-      console.log('Calculated Stats:', calculatedStats);
+
 
       setStats(calculatedStats);
 
-      // Sort payments by date (most recent first) and take first 5
       const sortedPayments = payments.sort((a, b) => {
         const dateA = new Date(a.createdAt || a.date || 0);
         const dateB = new Date(b.createdAt || b.date || 0);
@@ -173,12 +151,13 @@ const Dashboard = () => {
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
-      // Set default values when there's an error
       setStats({
         totalStudents: 0,
         totalTeachers: 0,
         totalClasses: 0,
         totalRevenue: 0,
+        totalPaidAmount: 0,
+        totalUnpaidAmount: 0,
         totalExpenses: 0,
         activeClasses: 0,
         pendingPayments: 0,
@@ -216,25 +195,27 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    console.log('Dashboard is loading...');
     return (
       <DashboardLayout role="admin">
-        <Box sx={{ py: 4 }}>
-          <LinearProgress />
-          <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
+        <Box sx={commonStyles.pageContainer}>
+          <Box sx={commonStyles.contentContainer}>
+            <LinearProgress />
+            <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
+          </Box>
         </Box>
       </DashboardLayout>
     );
   }
 
-  console.log('Dashboard rendered with stats:', stats);
-
   return (
     <DashboardLayout role="admin">
-      <Box>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: COLORS.primary.main }}>
-          Dashboard Quản trị
-        </Typography>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Dashboard Quản trị
+            </Typography>
+          </Box>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -270,7 +251,7 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Doanh thu tháng"
+              title="Tổng doanh thu"
               value={formatCurrency(stats.totalRevenue || 0)}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
               color="warning"
@@ -298,16 +279,16 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Lợi nhuận"
-              value={formatCurrency((stats.totalRevenue || 0) - (stats.totalExpenses || 0))}
+              title="Đã thu"
+              value={formatCurrency(stats.totalPaidAmount || 0)}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              color={(stats.totalRevenue || 0) - (stats.totalExpenses || 0) >= 0 ? "success" : "error"}
+              color="success"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Thanh toán chờ"
-              value={stats.pendingPayments || 0}
+              title="Tổng chưa thu"
+              value={formatCurrency(stats.totalUnpaidAmount || 0)}
               icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="warning"
             />
@@ -323,7 +304,7 @@ const Dashboard = () => {
                 Thanh toán học phí gần đây
               </Typography>
               {recentPayments.length > 0 ? (
-                <TableContainer>
+                <TableContainer sx={commonStyles.tableContainer}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -333,8 +314,8 @@ const Dashboard = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {recentPayments.map((payment, index) => (
-                        <TableRow key={payment.id || index} hover>
+                                              {recentPayments.map((payment, index) => (
+                          <TableRow key={payment.id || index} hover sx={commonStyles.tableRow}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
                               {payment.studentId?.userId?.name || payment.studentId?.name || 'N/A'}
@@ -372,7 +353,7 @@ const Dashboard = () => {
                 Thanh toán lương gần đây
               </Typography>
               {recentTeacherPayments.length > 0 ? (
-                <TableContainer>
+                <TableContainer sx={commonStyles.tableContainer}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -382,8 +363,8 @@ const Dashboard = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {recentTeacherPayments.map((payment, index) => (
-                        <TableRow key={payment.id || index} hover>
+                                              {recentTeacherPayments.map((payment, index) => (
+                          <TableRow key={payment.id || index} hover sx={commonStyles.tableRow}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
                               {payment.teacherId?.userId?.name || payment.teacherId?.name || 'N/A'}
@@ -414,6 +395,7 @@ const Dashboard = () => {
             </Paper>
           </Grid>
         </Grid>
+        </Box>
       </Box>
     </DashboardLayout>
   );

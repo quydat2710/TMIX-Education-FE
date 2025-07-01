@@ -249,31 +249,29 @@ const Children = () => {
   if (loading) {
     return (
       <DashboardLayout>
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-          <LinearProgress />
-          <Typography sx={{ mt: 2, textAlign: 'center' }}>Đang tải thông tin...</Typography>
-        </Container>
+        <Box sx={commonStyles.pageContainer}>
+          <Box sx={commonStyles.contentContainer}>
+            <LinearProgress />
+            <Typography sx={{ mt: 2, textAlign: 'center' }}>Đang tải thông tin...</Typography>
+          </Box>
+        </Box>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{
-            fontWeight: 700,
-            color: 'primary.main',
-            textAlign: 'center',
-            mb: 1
-          }}>
-          Quản lý con cái
-                  </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center' }}>
+      <Box sx={commonStyles.pageContainer}>
+        <Box sx={commonStyles.contentContainer}>
+          <Box sx={commonStyles.pageHeader}>
+            <Typography sx={commonStyles.pageTitle}>
+              Quản lý con cái
+            </Typography>
+          </Box>
+
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
             Theo dõi thông tin học tập và tiến độ của con em
           </Typography>
-        </Box>
 
         {/* Statistics Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -893,7 +891,7 @@ const Children = () => {
                   Thông tin chi tiết giáo viên
                 </Typography>
               </Box>
-      </Box>
+            </Box>
           </DialogTitle>
 
           <DialogContent sx={{ p: 3 }}>
@@ -1026,7 +1024,8 @@ const Children = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Container>
+        </Box>
+      </Box>
     </DashboardLayout>
   );
 };

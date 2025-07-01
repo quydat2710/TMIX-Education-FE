@@ -27,15 +27,45 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
     severity: 'success',
   });
 
-  // Lấy object giáo viên hiện tại từ allTeachers nếu teacherId là string
-  let currentTeacherObj = null;
-  if (typeof classData?.teacherId === 'string' && allTeachers.length > 0) {
-    currentTeacherObj = allTeachers.find(
-      (t) => String(t.id || t._id) === classData.teacherId
-    );
-  } else if (typeof classData?.teacherId === 'object' && classData.teacherId) {
-    currentTeacherObj = classData.teacherId;
-  }
+  const [currentTeacherObj, setCurrentTeacherObj] = useState(null);
+
+  // Cập nhật currentTeacherObj khi classData thay đổi
+  useEffect(() => {
+    const updateCurrentTeacher = async () => {
+      let teacherObj = null;
+
+      if (typeof classData?.teacherId === 'string' && classData.teacherId) {
+        // Nếu teacherId là string, tìm trong allTeachers trước
+        if (allTeachers.length > 0) {
+          teacherObj = allTeachers.find(
+            (t) => String(t.id || t._id) === classData.teacherId
+          );
+        }
+
+        // Nếu không tìm thấy trong allTeachers, fetch từ API
+        if (!teacherObj) {
+          try {
+            const params = { limit: 1000 }; // Lấy tất cả giáo viên để tìm
+            const response = await getAllTeachersAPI(params);
+            const foundTeacher = response.data?.find(
+              (t) => String(t.id || t._id) === classData.teacherId
+            );
+            if (foundTeacher) {
+              teacherObj = foundTeacher;
+            }
+          } catch (error) {
+            console.error('Error fetching teacher data:', error);
+          }
+        }
+      } else if (typeof classData?.teacherId === 'object' && classData.teacherId) {
+        teacherObj = classData.teacherId;
+      }
+
+      setCurrentTeacherObj(teacherObj);
+    };
+
+    updateCurrentTeacher();
+  }, [classData]);
 
   // Debounce search input for teacher
   useEffect(() => {
@@ -81,8 +111,14 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
       await assignTeacherAPI(classData.id, selectedTeacherId);
       if (onSuccessMessage) onSuccessMessage('Gán giáo viên thành công!', 'success');
       setNotification({ open: true, message: 'Gán giáo viên thành công!', severity: 'success' });
+      // Reset form state
+      setSearchTeacher('');
+      setSelectedTeacherId('');
+      setAllTeachers([]);
+      // Clear current teacher object to force refresh
+      setCurrentTeacherObj(null);
+      // Refresh data without closing dialog
       onUpdate();
-      if (onClose) onClose();
     } catch (error) {
       setNotification({ open: true, message: error.response?.data?.message || 'Lỗi khi gán giáo viên.', severity: 'error' });
     } finally {
@@ -96,9 +132,14 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
       await unassignTeacherAPI(classData.id);
       if (onSuccessMessage) onSuccessMessage('Hủy gán giáo viên thành công!', 'success');
       setNotification({ open: true, message: 'Hủy gán giáo viên thành công!', severity: 'success' });
+      // Reset form state
       setSelectedTeacherId('');
+      setSearchTeacher('');
+      setAllTeachers([]);
+      // Clear current teacher object to force refresh
+      setCurrentTeacherObj(null);
+      // Refresh data without closing dialog
       onUpdate();
-      if (onClose) onClose();
     } catch (error) {
       setNotification({ open: true, message: error.response?.data?.message || 'Lỗi khi hủy gán giáo viên.', severity: 'error' });
     } finally {
@@ -134,12 +175,7 @@ const ClassTeacherManagement = ({ classData, onUpdate, onClose, onSuccessMessage
                   <Button
                     variant="outlined"
                     color="error"
-                    onClick={async () => {
-                      await handleUnassignTeacher();
-                      setSearchTeacher('');
-                      setSelectedTeacherId('');
-                      setAllTeachers([]);
-                    }}
+                    onClick={handleUnassignTeacher}
                     disabled={loading}
                   >
                     {loading ? 'Đang xử lý...' : 'Xóa'}
