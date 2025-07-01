@@ -70,6 +70,8 @@ const FinancialStatisticsPanel = () => {
     }
   };
 
+  const [fixedTotalTeacherSalary, setFixedTotalTeacherSalary] = useState(0);
+
   const fetchTotalStatistics = async () => {
     try {
       // Sử dụng API mới để lấy tổng học phí và đã thu
@@ -116,40 +118,33 @@ const FinancialStatisticsPanel = () => {
   const fetchStudentPayments = async (page = 1) => {
     setLoadingStudent(true);
     try {
-      let params = {};
+      let params = { page, limit: 10 };
       if (periodType === 'month') {
-        params = { year: selectedYear, month: selectedMonth };
+        params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
-        params = { year: selectedYear, startMonth, endMonth };
+        params = { ...params, year: selectedYear, startMonth, endMonth };
       } else if (periodType === 'year') {
-        params = { year: selectedYear };
+        params = { ...params, year: selectedYear };
       } else if (periodType === 'custom') {
         const year = new Date(customStart).getFullYear();
         const startMonth = new Date(customStart).getMonth() + 1;
         const endMonth = new Date(customEnd).getMonth() + 1;
-        params = { year, startMonth, endMonth };
+        params = { ...params, year, startMonth, endMonth };
       }
       const res = await getPaymentsAPI(params);
-      console.log('Student payments API response:', res);
-      console.log('Student payments response keys:', Object.keys(res));
-
-      const allData = res.data || [];
-      const limit = 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedData = allData.slice(startIndex, endIndex);
-
-      setStudentPayments(paginatedData);
+      // API trả về: { data, totalPages, totalResults }
+      setStudentPayments(res.data || []);
       setStudentPagination({
         page: page,
-        limit: limit,
-        totalPages: Math.ceil(allData.length / limit),
-        totalResults: allData.length
+        limit: 10,
+        totalPages: res.totalPages || 1,
+        totalResults: res.totalResults || (res.data ? res.data.length : 0)
       });
       setStudentPaymentsLoaded(true);
     } catch (err) {
       setStudentPayments([]);
+      setStudentPagination({ page: 1, limit: 10, totalPages: 1, totalResults: 0 });
     } finally {
       setLoadingStudent(false);
     }
@@ -158,39 +153,32 @@ const FinancialStatisticsPanel = () => {
   const fetchTeacherPayments = async (page = 1) => {
     setLoadingTeacher(true);
     try {
-      let params = {};
+      let params = { page, limit: 10 };
       if (periodType === 'month') {
-        params = { year: selectedYear, month: selectedMonth };
+        params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
-        params = { year: selectedYear, startMonth, endMonth };
+        params = { ...params, year: selectedYear, startMonth, endMonth };
       } else if (periodType === 'year') {
-        params = { year: selectedYear };
+        params = { ...params, year: selectedYear };
       } else if (periodType === 'custom') {
         const year = new Date(customStart).getFullYear();
         const startMonth = new Date(customStart).getMonth() + 1;
         const endMonth = new Date(customEnd).getMonth() + 1;
-        params = { year, startMonth, endMonth };
+        params = { ...params, year, startMonth, endMonth };
       }
       const res = await getTeacherPaymentsAPI(params);
-      console.log('Teacher payments API response:', res);
-      console.log('Teacher payments response keys:', Object.keys(res));
-
-      const allData = res.data || [];
-      const limit = 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedData = allData.slice(startIndex, endIndex);
-
-      setTeacherPayments(paginatedData);
+      // API trả về: { data, totalPages, totalResults }
+      setTeacherPayments(res.data || []);
       setTeacherPagination({
         page: page,
-        limit: limit,
-        totalPages: Math.ceil(allData.length / limit),
-        totalResults: allData.length
+        limit: 10,
+        totalPages: res.totalPages || 1,
+        totalResults: res.totalResults || (res.data ? res.data.length : 0)
       });
     } catch (err) {
       setTeacherPayments([]);
+      setTeacherPagination({ page: 1, limit: 10, totalPages: 1, totalResults: 0 });
     } finally {
       setLoadingTeacher(false);
     }
@@ -212,6 +200,22 @@ const FinancialStatisticsPanel = () => {
       fetchStudentPayments(1); // Reset về page 1
     }
   }, [tab, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+
+  // Lấy tổng lương giáo viên cố định khi mount
+  useEffect(() => {
+    const fetchFixedTotalTeacherSalary = async () => {
+      try {
+        // Lấy tất cả bản ghi, không phân trang (limit lớn)
+        const res = await getTeacherPaymentsAPI({ page: 1, limit: 10000 });
+        const all = res.data || [];
+        const total = all.reduce((sum, p) => sum + (p.totalAmount ?? 0), 0);
+        setFixedTotalTeacherSalary(total);
+      } catch (err) {
+        setFixedTotalTeacherSalary(0);
+      }
+    };
+    fetchFixedTotalTeacherSalary();
+  }, []);
 
   const handleStudentPageChange = (event, newPage) => {
     fetchStudentPayments(newPage);
@@ -390,7 +394,7 @@ const FinancialStatisticsPanel = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>Tổng lương giáo viên</Typography>
-              <Typography variant="h5" color="error.main" fontWeight="bold">{totalStatistics.totalTeacherSalary.toLocaleString()} ₫</Typography>
+              <Typography variant="h5" color="error.main" fontWeight="bold">{fixedTotalTeacherSalary.toLocaleString()} ₫</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -505,11 +509,6 @@ const FinancialStatisticsPanel = () => {
                 color="primary"
               />
             </Box>
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Hiển thị {teacherPayments.length} trong tổng số {teacherPagination.totalResults} bản ghi
-              </Typography>
-            </Box>
             </>
           )}
           {tab === 1 && (
@@ -564,11 +563,6 @@ const FinancialStatisticsPanel = () => {
                   onChange={handleStudentPageChange}
                   color="primary"
                 />
-              </Box>
-              <Box sx={{ textAlign: 'center', mt: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Hiển thị {studentPayments.length} trong tổng số {studentPagination.totalResults} bản ghi
-                </Typography>
               </Box>
             </>
           )}

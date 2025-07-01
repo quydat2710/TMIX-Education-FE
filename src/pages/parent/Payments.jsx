@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -47,6 +47,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import { getPaymentsByStudentAPI, getParentByIdAPI, payTuitionAPI } from '../../services/api';
 
 const Payments = () => {
@@ -70,65 +71,58 @@ const Payments = () => {
   const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState(false);
   const [selectedPaymentForHistory, setSelectedPaymentForHistory] = useState(null);
 
-  useEffect(() => {
-    const fetchPaymentData = async () => {
-      setLoading(true);
-      try {
-        // Lấy thông tin phụ huynh và con cái
-        const parentId = localStorage.getItem('parent_id');
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-        if (parentId) {
-          const parentRes = await getParentByIdAPI(parentId);
-          console.log('Response từ API getParentById:', parentRes);
-
-          if (parentRes && parentRes.studentIds) {
-            setChildren(parentRes.studentIds);
-
-            // Fetch payment data cho từng học sinh
-            const allPayments = [];
-            for (const child of parentRes.studentIds) {
-              try {
-                const paymentRes = await getPaymentsByStudentAPI(child.id);
-                console.log(`Response từ API getPaymentsByStudent cho học sinh ${child.id}:`, paymentRes);
-
-                if (paymentRes && paymentRes.data) {
-                  // Thêm thông tin học sinh vào mỗi payment
-                  const paymentsWithChildInfo = paymentRes.data.map((payment) => {
-                    // Lấy tên lớp từ response (không cần gọi API riêng)
-                    const className = payment.classId?.name || `Lớp ${payment.classId?.id || payment.classId}`;
-
-                    return {
-                      ...payment,
-                      childName: child.userId.name,
-                      childId: child.id,
-                      invoiceCode: `INV-${payment.month}/${payment.year}-${payment.id.slice(-6)}`,
-                      className: className,
-                      month: `${payment.month}/${payment.year}`,
-                      originalAmount: payment.totalAmount,
-                      finalAmount: payment.finalAmount,
-                      dueDate: `${payment.month}/15/${payment.year}`,
-                      createdAt: `${payment.month}/01/${payment.year}`,
-                      description: `Học phí tháng ${payment.month}/${payment.year}`,
-                    };
-                  });
-                  allPayments.push(...paymentsWithChildInfo);
-                }
-              } catch (err) {
-                console.error('Error fetching payments for child:', child.id, err);
+  // Refactor fetchPaymentData để dùng useCallback, tránh closure
+  const fetchPaymentData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const parentId = localStorage.getItem('parent_id');
+      if (parentId) {
+        const parentRes = await getParentByIdAPI(parentId);
+        if (parentRes && parentRes.studentIds) {
+          setChildren(parentRes.studentIds);
+          const allPayments = [];
+          for (const child of parentRes.studentIds) {
+            try {
+              const paymentRes = await getPaymentsByStudentAPI(child.id);
+              if (paymentRes && paymentRes.data) {
+                const paymentsWithChildInfo = paymentRes.data.map((payment) => {
+                  const className = payment.classId?.name || `Lớp ${payment.classId?.id || payment.classId}`;
+                  return {
+                    ...payment,
+                    childName: child.userId.name,
+                    childId: child.id,
+                    invoiceCode: `INV-${payment.month}/${payment.year}-${payment.id.slice(-6)}`,
+                    className: className,
+                    month: `${payment.month}/${payment.year}`,
+                    originalAmount: payment.totalAmount,
+                    finalAmount: payment.finalAmount,
+                    dueDate: `${payment.month}/15/${payment.year}`,
+                    createdAt: `${payment.month}/01/${payment.year}`,
+                    description: `Học phí tháng ${payment.month}/${payment.year}`,
+                  };
+                });
+                allPayments.push(...paymentsWithChildInfo);
               }
+            } catch (err) {
+              console.error('Error fetching payments for child:', child.id, err);
             }
-            setPaymentData(allPayments);
           }
+          setPaymentData(allPayments);
         }
-      } catch (err) {
-        console.error('Error fetching payment data:', err);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchPaymentData();
+    } catch (err) {
+      console.error('Error fetching payment data:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPaymentData();
+  }, [fetchPaymentData]);
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -143,14 +137,11 @@ const Payments = () => {
     let paidInvoices = 0;
 
     paymentData.forEach(invoice => {
-        if (invoice.status === 'paid') {
-          totalPaid += invoice.finalAmount;
-          paidInvoices++;
-        } else {
-          totalUnpaid += invoice.finalAmount;
-          unpaidInvoices++;
-        }
-        totalDiscount += invoice.discountAmount;
+      totalPaid += invoice.paidAmount ?? 0;
+      totalUnpaid += invoice.remainingAmount ?? 0;
+      totalDiscount += invoice.discountAmount ?? 0;
+      if (invoice.status === 'paid') paidInvoices++;
+      else unpaidInvoices++;
     });
 
     return {
@@ -237,51 +228,33 @@ const Payments = () => {
       setPaymentError('Vui lòng nhập số tiền thanh toán');
       return;
     }
-
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
       setPaymentError('Số tiền thanh toán không hợp lệ');
       return;
     }
-
     if (amount > selectedInvoice.remainingAmount) {
       setPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
       return;
     }
-
     setPaymentLoading(true);
     setPaymentError('');
     setPaymentSuccess('');
-
     try {
-      console.log('Dữ liệu gửi đi khi thanh toán:', {
-        paymentId: selectedInvoice.id,
-        amount,
-        method: paymentMethod,
-        note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`,
-      });
-
       const response = await payTuitionAPI({
         paymentId: selectedInvoice.id,
         amount,
         method: paymentMethod,
         note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
       });
-
-      console.log('Response từ API thanh toán:', response);
-      console.log('Response data:', response.data);
-
       setPaymentSuccess('Thanh toán thành công!');
+      setSnackbar({ open: true, message: 'Thanh toán thành công!', severity: 'success' });
       handleClosePaymentDialog();
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-
+      // Refetch dữ liệu thay vì reload trang
+      await fetchPaymentData();
     } catch (error) {
-      console.error('Error response từ API thanh toán:', error);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error response status:', error.response?.status);
       setPaymentError(error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán');
+      setSnackbar({ open: true, message: error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán', severity: 'error' });
     } finally {
       setPaymentLoading(false);
     }
@@ -729,6 +702,13 @@ const Payments = () => {
           paymentData={selectedPaymentForHistory}
           title="Lịch sử thanh toán học phí"
           showPaymentDetails={true}
+        />
+        {/* Notification Snackbar */}
+        <NotificationSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          message={snackbar.message}
+          severity={snackbar.severity}
         />
         </Box>
       </Box>

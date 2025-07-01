@@ -14,7 +14,6 @@ import theme from './theme';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
-import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -62,9 +61,12 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/profile" element={
               !user ? <Navigate to="/" replace /> : (
-                <DashboardLayout>
-                  <Profile />
-                </DashboardLayout>
+                <Navigate to={
+                  user.role === USER_ROLES.ADMIN ? "/admin/profile" :
+                  user.role === USER_ROLES.TEACHER ? "/teacher/profile" :
+                  user.role === USER_ROLES.STUDENT ? "/student/profile" :
+                  user.role === USER_ROLES.PARENT ? "/parent/profile" : "/"
+                } replace />
               )
             } />
 
