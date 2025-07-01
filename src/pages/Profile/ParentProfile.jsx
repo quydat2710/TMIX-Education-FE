@@ -111,7 +111,7 @@ const ParentProfile = () => {
         address: profileData.address,
         gender: profileData.gender,
       };
-      await updateParentAPI(user.id, { userData });
+      await updateParentAPI(user.parentId, { userData });
       updateUser(userData);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {

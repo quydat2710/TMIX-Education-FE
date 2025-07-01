@@ -104,7 +104,7 @@ const StudentProfile = () => {
     if (avatarFile) setProfileData((prev) => ({ ...prev, avatar: avatarPreview }));
     try {
       const updateBody = { email: profileData.email, name: profileData.name, dayOfBirth: profileData.dayOfBirth, phone: profileData.phone, address: profileData.address, gender: profileData.gender };
-      await updateStudentAPI(user.id, { userData: updateBody });
+      await updateStudentAPI(user.studentId, { userData: updateBody });
       updateUser(updateBody);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
