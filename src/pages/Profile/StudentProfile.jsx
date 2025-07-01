@@ -8,6 +8,7 @@ import { changePasswordAPI, uploadAvatarAPI, updateStudentAPI } from '../../serv
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
+import { validateStudent, validateChangePassword } from '../../validations/studentValidation';
 
 const StudentProfile = () => {
   const { user, updateUser } = useAuth();
@@ -32,6 +33,8 @@ const StudentProfile = () => {
   const [avatarError, setAvatarError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
 
   useEffect(() => {
@@ -50,37 +53,15 @@ const StudentProfile = () => {
   }, [user]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
-  const handleAvatarChange = async (e) => {
+  const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) { setAvatarError('Vui lòng chọn file ảnh hợp lệ'); return; }
       if (file.size > 5 * 1024 * 1024) { setAvatarError('Kích thước file không được vượt quá 5MB'); return; }
-      setAvatarLoading(true); setAvatarError(''); setAvatarSuccess('');
-      try {
-        const formData = new FormData();
-        formData.append('image', file);
-        const response = await uploadAvatarAPI(formData);
-        const newAvatarUrl = response.data?.avatar || response.avatar || response.data?.url || response.url || response.data?.imageUrl || response.imageUrl;
-        if (newAvatarUrl) {
-          setAvatarPreview(newAvatarUrl);
-          setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
-          setAvatarFile(null);
-          setAvatarSuccess('Cập nhật avatar thành công!');
-          updateUser({ avatar: newAvatarUrl });
-        } else {
-          setAvatarError('Không nhận được URL avatar từ server');
-        }
-        setTimeout(() => { setAvatarSuccess(''); }, 3000);
-      } catch (err) {
-        let errorMessage = 'Upload avatar thất bại';
-        if (err.response?.data?.message) errorMessage = err.response.data.message;
-        else if (err.response?.data?.error) errorMessage = err.response.data.error;
-        else if (err.response?.status === 400) errorMessage = 'File không hợp lệ';
-        else if (err.response?.status === 413) errorMessage = 'File quá lớn';
-        else if (err.message) errorMessage = err.message;
-        setAvatarError(errorMessage);
-        setTimeout(() => { setAvatarError(''); }, 5000);
-      } finally { setAvatarLoading(false); }
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+      setAvatarError('');
+      setAvatarSuccess('');
     }
   };
   const handleEdit = () => { setIsEditing(true); setSuccess(''); setError(''); };
@@ -99,11 +80,53 @@ const StudentProfile = () => {
       setAvatarPreview(user.avatar || '');
     }
   };
+  const handleSaveAvatar = async () => {
+    if (!avatarFile) return;
+    setAvatarLoading(true); setAvatarError(''); setAvatarSuccess('');
+    try {
+      const formData = new FormData();
+      formData.append('image', avatarFile);
+      const response = await uploadAvatarAPI(formData);
+      const newAvatarUrl = response.data?.avatar || response.avatar || response.data?.url || response.url || response.data?.imageUrl || response.imageUrl;
+      if (newAvatarUrl) {
+        setAvatarPreview(newAvatarUrl);
+        setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
+        setAvatarFile(null);
+        setAvatarSuccess('Cập nhật avatar thành công!');
+        updateUser({ avatar: newAvatarUrl });
+      } else {
+        setAvatarError('Không nhận được URL avatar từ server');
+      }
+      setTimeout(() => { setAvatarSuccess(''); }, 3000);
+    } catch (err) {
+      let errorMessage = 'Upload avatar thất bại';
+      if (err.response?.data?.message) errorMessage = err.response.data.message;
+      else if (err.response?.data?.error) errorMessage = err.response.data.error;
+      else if (err.response?.status === 400) errorMessage = 'File không hợp lệ';
+      else if (err.response?.status === 413) errorMessage = 'File quá lớn';
+      else if (err.message) errorMessage = err.message;
+      setAvatarError(errorMessage);
+      setTimeout(() => { setAvatarError(''); }, 5000);
+    } finally { setAvatarLoading(false); }
+  };
   const handleSave = async () => {
-    setIsEditing(false); setSuccess(''); setError('');
-    if (avatarFile) setProfileData((prev) => ({ ...prev, avatar: avatarPreview }));
+    setSuccess(''); setError('');
+    const errors = validateStudent(profileData, true);
+    console.log('DEBUG validateStudent errors:', errors);
+    console.log('DEBUG profileData:', profileData);
+    setFormErrors(errors);
+    const hasError = Object.values(errors).some(
+      v => (Array.isArray(v) ? v.some(Boolean) : Boolean(v))
+    );
+    if (hasError) {
+      setIsEditing(true);
+      setError('Vui lòng kiểm tra lại các trường thông tin.');
+      return;
+    }
+    setIsEditing(false);
     try {
       const updateBody = { email: profileData.email, name: profileData.name, dayOfBirth: profileData.dayOfBirth, phone: profileData.phone, address: profileData.address, gender: profileData.gender };
+      console.log('DEBUG updateBody gửi lên:', updateBody);
       await updateStudentAPI(user.studentId, { userData: updateBody });
       updateUser(updateBody);
       setSuccess('Cập nhật thông tin thành công!');
@@ -119,9 +142,12 @@ const StudentProfile = () => {
   const handlePasswordChange = (e) => { const { name, value } = e.target; setPasswordData((prev) => ({ ...prev, [name]: value })); };
   const handleToggleShowPassword = (field) => { setShowPassword((prev) => ({ ...prev, [field]: !prev[field] })); };
   const handleChangePassword = async () => {
-    if (!passwordData.current || !passwordData.new || !passwordData.confirm) { setError('Vui lòng nhập đầy đủ thông tin'); return; }
-    if (passwordData.new !== passwordData.confirm) { setError('Mật khẩu mới không khớp'); return; }
-    if (passwordData.new.length < 6) { setError('Mật khẩu mới phải có ít nhất 6 ký tự'); return; }
+    const errors = validateChangePassword({ current: passwordData.current, newPassword: passwordData.new, confirm: passwordData.confirm });
+    setPasswordFormErrors(errors);
+    if (Object.values(errors).some(Boolean)) {
+      setError('Vui lòng kiểm tra lại các trường mật khẩu.');
+      return;
+    }
     setPasswordLoading(true); setError(''); setSuccess('');
     try {
       await changePasswordAPI(passwordData.current, passwordData.new);
@@ -176,6 +202,30 @@ const StudentProfile = () => {
                 </Box>
                 <Typography variant="h6" sx={{ mb: 1 }}>{profileData.name}</Typography>
                 <Typography color="textSecondary" sx={{ mb: 2 }}>{profileData.email}</Typography>
+                {avatarFile && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 1 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={handleSaveAvatar}
+                      disabled={avatarLoading}
+                      startIcon={<SaveIcon />}
+                    >
+                      Lưu avatar
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => { setAvatarFile(null); setAvatarPreview(user.avatar || ''); setAvatarError(''); setAvatarSuccess(''); }}
+                      disabled={avatarLoading}
+                      startIcon={<CancelIcon />}
+                    >
+                      Hủy
+                    </Button>
+                  </Box>
+                )}
                 {avatarLoading && (<Typography variant="caption" color="primary" sx={{ display: 'block', mb: 1 }}>Đang tải lên avatar...</Typography>)}
               </Paper>
             </Grid>
@@ -183,37 +233,37 @@ const StudentProfile = () => {
               <Paper sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Email" value={profileData.email} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, email: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Email" value={profileData.email} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, email: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.email} helperText={formErrors.email} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Họ và tên" value={profileData.name} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, name: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Họ và tên" value={profileData.name} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, name: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.name} helperText={formErrors.name} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Ngày sinh" value={isEditing ? profileData.dayOfBirth : formatDateToDisplay(profileData.dayOfBirth)} disabled={!isEditing} placeholder="dd/mm/yyyy" onChange={handleDayOfBirthChange} sx={commonStyles.formField} inputProps={{ maxLength: 10 }} />
+                    <TextField fullWidth label="Ngày sinh" value={isEditing ? profileData.dayOfBirth : formatDateToDisplay(profileData.dayOfBirth)} disabled={!isEditing} placeholder="dd/mm/yyyy" onChange={handleDayOfBirthChange} sx={commonStyles.formField} inputProps={{ maxLength: 10 }} error={!!formErrors.dayOfBirth} helperText={formErrors.dayOfBirth} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Số điện thoại" value={profileData.phone} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, phone: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Số điện thoại" value={profileData.phone} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, phone: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.phone} helperText={formErrors.phone} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Địa chỉ" value={profileData.address} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Địa chỉ" value={profileData.address} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.address} helperText={formErrors.address} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     {isEditing ? (
-                      <Select fullWidth value={profileData.gender || ''} onChange={e => setProfileData(prev => ({ ...prev, gender: e.target.value }))} displayEmpty sx={commonStyles.formField}>
+                      <Select fullWidth value={profileData.gender || ''} onChange={e => setProfileData(prev => ({ ...prev, gender: e.target.value }))} displayEmpty sx={commonStyles.formField} error={!!formErrors.gender} helperText={formErrors.gender}>
                         <MenuItem value="">Chọn giới tính</MenuItem>
                         <MenuItem value="male">Nam</MenuItem>
                         <MenuItem value="female">Nữ</MenuItem>
                         <MenuItem value="other">Khác</MenuItem>
                       </Select>
                     ) : (
-                      <TextField fullWidth label="Giới tính" value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : profileData.gender === 'other' ? 'Khác' : ''} disabled sx={commonStyles.formField} />
+                      <TextField fullWidth label="Giới tính" value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : profileData.gender === 'other' ? 'Khác' : ''} disabled sx={commonStyles.formField} error={!!formErrors.gender} helperText={formErrors.gender} />
                     )}
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Trạng thái email" value={user?.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'} disabled sx={commonStyles.formField} />
+                    <TextField fullWidth label="Trạng thái email" value={user?.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'} disabled sx={commonStyles.formField} error={!!formErrors.isEmailVerified} helperText={formErrors.isEmailVerified} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Vai trò" value={user?.role === 'student' ? 'Học sinh' : user?.role || ''} disabled sx={commonStyles.formField} />
+                    <TextField fullWidth label="Vai trò" value={user?.role === 'student' ? 'Học sinh' : user?.role || ''} disabled sx={commonStyles.formField} error={!!formErrors.role} helperText={formErrors.role} />
                   </Grid>
                 </Grid>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
@@ -239,9 +289,9 @@ const StudentProfile = () => {
       <Dialog open={showPasswordDialog} onClose={handleClosePasswordDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Đổi mật khẩu</DialogTitle>
         <DialogContent>
-          <TextField margin="normal" label="Mật khẩu hiện tại" name="current" type={showPassword.current ? 'text' : 'password'} value={passwordData.current} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('current')} edge="end">{showPassword.current ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-          <TextField margin="normal" label="Mật khẩu mới" name="new" type={showPassword.new ? 'text' : 'password'} value={passwordData.new} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('new')} edge="end">{showPassword.new ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-          <TextField margin="normal" label="Xác nhận mật khẩu mới" name="confirm" type={showPassword.confirm ? 'text' : 'password'} value={passwordData.confirm} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('confirm')} edge="end">{showPassword.confirm ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+          <TextField margin="normal" label="Mật khẩu hiện tại" name="current" type={showPassword.current ? 'text' : 'password'} value={passwordData.current} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('current')} edge="end">{showPassword.current ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.current} helperText={passwordFormErrors.current} />
+          <TextField margin="normal" label="Mật khẩu mới" name="new" type={showPassword.new ? 'text' : 'password'} value={passwordData.new} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('new')} edge="end">{showPassword.new ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.new} helperText={passwordFormErrors.new} />
+          <TextField margin="normal" label="Xác nhận mật khẩu mới" name="confirm" type={showPassword.confirm ? 'text' : 'password'} value={passwordData.confirm} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('confirm')} edge="end">{showPassword.confirm ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.confirm} helperText={passwordFormErrors.confirm} />
           {error && <Typography color="error.main" sx={{ mt: 1 }}>{error}</Typography>}
           {success && <Typography color="success.main" sx={{ mt: 1 }}>{success}</Typography>}
         </DialogContent>

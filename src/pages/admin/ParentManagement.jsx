@@ -360,9 +360,10 @@ const ParentManagement = () => {
   const handleSubmit = async () => {
     // Validate form before submitting
     const errors = validateParent(form, !!selectedParent);
+    // Chỉ submit khi không có lỗi thực sự
+    const hasError = Object.values(errors).some(Boolean);
     setFormErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
+    if (hasError) {
       return; // Stop if there are validation errors
     }
 

@@ -141,9 +141,12 @@ const StudentManagement = () => {
   };
 
   const handleSubmit = async () => {
-    const errors = validateStudent(form, !!selectedStudent);
-    if (Object.keys(errors).length > 0) {
-    setFormErrors(errors);
+    const errors = validateStudent(form, !!selectedStudent, classEdits);
+    // Kiểm tra lỗi tổng thể và lỗi discountPercent từng lớp
+    const hasFieldError = Object.keys(errors).some(key => key !== 'classEdits' && errors[key]);
+    const hasClassEditError = Array.isArray(errors.classEdits) && errors.classEdits.some(e => e && e.discountPercent);
+    if (hasFieldError || hasClassEditError) {
+      setFormErrors(errors);
       return;
     }
 
@@ -709,14 +712,16 @@ const StudentManagement = () => {
                         onChange={e => handleClassEditChange(idx, 'discountPercent', e.target.value)}
                         fullWidth
                         inputProps={{ min: 0, max: 100 }}
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    borderRadius: 2,
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                      borderColor: '#667eea',
-                                    },
-                                  },
-                                }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        error={!!(formErrors.classEdits && formErrors.classEdits[idx] && formErrors.classEdits[idx].discountPercent)}
+                        helperText={formErrors.classEdits && formErrors.classEdits[idx] && formErrors.classEdits[idx].discountPercent}
                       />
                     </Grid>
                     <Grid item xs={6} sm={4}>

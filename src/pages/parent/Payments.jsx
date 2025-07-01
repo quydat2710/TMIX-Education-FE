@@ -233,7 +233,8 @@ const Payments = () => {
       setPaymentError('Số tiền thanh toán không hợp lệ');
       return;
     }
-    if (amount > selectedInvoice.remainingAmount) {
+    const maxAmount = selectedInvoice.remainingAmount;
+    if (amount > maxAmount) {
       setPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
       return;
     }
@@ -476,16 +477,7 @@ const Payments = () => {
           <DialogContent sx={{ p: 0 }}>
             {selectedInvoice && (
               <Box sx={{ p: 4 }}>
-                {paymentError && (
-                  <Alert severity="error" sx={{ mb: 3 }}>
-                    {paymentError}
-                  </Alert>
-                )}
-                {paymentSuccess && (
-                  <Alert severity="success" sx={{ mb: 3 }}>
-                    {paymentSuccess}
-                  </Alert>
-                )}
+
 
                 {/* Invoice Information */}
                 <Paper sx={{
@@ -554,6 +546,18 @@ const Payments = () => {
               </Grid>
                   </Box>
                 </Paper>
+
+                {/* Hiển thị lỗi ở giữa hóa đơn và form thanh toán */}
+                {paymentError && (
+                  <Alert severity="error" sx={{ mb: 3, textAlign: 'center' }}>
+                    {paymentError}
+                  </Alert>
+                )}
+                {paymentSuccess && (
+                  <Alert severity="success" sx={{ mb: 3 }}>
+                    {paymentSuccess}
+                  </Alert>
+                )}
 
                 {/* Payment Form */}
                 <Paper sx={{

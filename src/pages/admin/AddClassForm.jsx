@@ -155,6 +155,13 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       let submitData;
       if (classData) {
         // EDIT MODE: chỉ gửi đúng body update class
+        // Sắp xếp ngày học trong tuần theo thứ tự Thứ 2 -> Chủ nhật
+        const sortedDays = [...form.schedule.dayOfWeeks].map(day => parseInt(day)).sort((a, b) => {
+          // Thứ 2-7: 1-6, Chủ nhật: 0 (cuối cùng)
+          if (a === 0) return 1;
+          if (b === 0) return -1;
+          return a - b;
+        });
         submitData = {
           status: form.status,
           feePerLesson: parseInt(form.feePerLesson),
@@ -164,7 +171,7 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
           schedule: {
             startDate: formatDate(form.schedule.startDate),
             endDate: formatDate(form.schedule.endDate),
-            dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+            dayOfWeeks: sortedDays,
             timeSlots: {
               startTime: form.schedule.timeSlots.startTime,
               endTime: form.schedule.timeSlots.endTime
@@ -173,6 +180,12 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         };
       } else {
         // CREATE MODE: giữ nguyên như cũ
+        // Sắp xếp ngày học trong tuần theo thứ tự Thứ 2 -> Chủ nhật
+        const sortedDays = [...form.schedule.dayOfWeeks].map(day => parseInt(day)).sort((a, b) => {
+          if (a === 0) return 1;
+          if (b === 0) return -1;
+          return a - b;
+        });
         submitData = {
         grade: form.grade,
         section: form.section,
@@ -186,7 +199,7 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         schedule: {
           startDate: formatDate(form.schedule.startDate),
           endDate: formatDate(form.schedule.endDate),
-          dayOfWeeks: form.schedule.dayOfWeeks.map(day => parseInt(day)),
+          dayOfWeeks: sortedDays,
           timeSlots: {
             startTime: form.schedule.timeSlots.startTime,
             endTime: form.schedule.timeSlots.endTime

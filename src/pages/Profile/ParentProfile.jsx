@@ -8,6 +8,7 @@ import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, updateParentAPI } fr
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
+import { validateParent, validateChangePassword } from '../../validations/parentValidation';
 
 const ParentProfile = () => {
   const { user, updateUser } = useAuth();
@@ -32,6 +33,8 @@ const ParentProfile = () => {
   const [avatarError, setAvatarError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
 
   useEffect(() => {
@@ -100,7 +103,17 @@ const ParentProfile = () => {
     }
   };
   const handleSave = async () => {
-    setIsEditing(false); setSuccess(''); setError('');
+    setSuccess(''); setError('');
+    // Validate trước khi lưu
+    const errors = validateParent(profileData);
+    setFormErrors(errors);
+    const hasError = Object.values(errors).some(Boolean);
+    if (hasError) {
+      setIsEditing(true);
+      setError('Vui lòng kiểm tra lại các trường thông tin.');
+      return;
+    }
+    setIsEditing(false);
     if (avatarFile) setProfileData((prev) => ({ ...prev, avatar: avatarPreview }));
     try {
       const userData = {
@@ -126,9 +139,12 @@ const ParentProfile = () => {
   const handlePasswordChange = (e) => { const { name, value } = e.target; setPasswordData((prev) => ({ ...prev, [name]: value })); };
   const handleToggleShowPassword = (field) => { setShowPassword((prev) => ({ ...prev, [field]: !prev[field] })); };
   const handleChangePassword = async () => {
-    if (!passwordData.current || !passwordData.new || !passwordData.confirm) { setError('Vui lòng nhập đầy đủ thông tin'); return; }
-    if (passwordData.new !== passwordData.confirm) { setError('Mật khẩu mới không khớp'); return; }
-    if (passwordData.new.length < 6) { setError('Mật khẩu mới phải có ít nhất 6 ký tự'); return; }
+    const errors = validateChangePassword({ current: passwordData.current, newPassword: passwordData.new, confirm: passwordData.confirm });
+    setPasswordFormErrors(errors);
+    if (Object.values(errors).some(Boolean)) {
+      setError('Vui lòng kiểm tra lại các trường mật khẩu.');
+      return;
+    }
     setPasswordLoading(true); setError(''); setSuccess('');
     try {
       await changePasswordAPI(passwordData.current, passwordData.new);
@@ -190,37 +206,37 @@ const ParentProfile = () => {
               <Paper sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Email" value={profileData.email} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, email: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Email" value={profileData.email} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, email: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.email} helperText={formErrors.email} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Họ và tên" value={profileData.name} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, name: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Họ và tên" value={profileData.name} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, name: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.name} helperText={formErrors.name} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Ngày sinh" value={isEditing ? profileData.dayOfBirth : formatDateToDisplay(profileData.dayOfBirth)} disabled={!isEditing} placeholder="dd/mm/yyyy" onChange={handleDayOfBirthChange} sx={commonStyles.formField} inputProps={{ maxLength: 10 }} />
+                    <TextField fullWidth label="Ngày sinh" value={isEditing ? profileData.dayOfBirth : formatDateToDisplay(profileData.dayOfBirth)} disabled={!isEditing} placeholder="dd/mm/yyyy" onChange={handleDayOfBirthChange} sx={commonStyles.formField} inputProps={{ maxLength: 10 }} error={!!formErrors.dayOfBirth} helperText={formErrors.dayOfBirth} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Số điện thoại" value={profileData.phone} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, phone: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Số điện thoại" value={profileData.phone} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, phone: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.phone} helperText={formErrors.phone} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Địa chỉ" value={profileData.address} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))} sx={commonStyles.formField} />
+                    <TextField fullWidth label="Địa chỉ" value={profileData.address} disabled={!isEditing} onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))} sx={commonStyles.formField} error={!!formErrors.address} helperText={formErrors.address} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     {isEditing ? (
-                      <Select fullWidth value={profileData.gender || ''} onChange={e => setProfileData(prev => ({ ...prev, gender: e.target.value }))} displayEmpty sx={commonStyles.formField}>
+                      <Select fullWidth value={profileData.gender || ''} onChange={e => setProfileData(prev => ({ ...prev, gender: e.target.value }))} displayEmpty sx={commonStyles.formField} error={!!formErrors.gender} helperText={formErrors.gender}>
                         <MenuItem value="">Chọn giới tính</MenuItem>
                         <MenuItem value="male">Nam</MenuItem>
                         <MenuItem value="female">Nữ</MenuItem>
                         <MenuItem value="other">Khác</MenuItem>
                       </Select>
                     ) : (
-                      <TextField fullWidth label="Giới tính" value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : profileData.gender === 'other' ? 'Khác' : ''} disabled sx={commonStyles.formField} />
+                      <TextField fullWidth label="Giới tính" value={profileData.gender === 'male' ? 'Nam' : profileData.gender === 'female' ? 'Nữ' : profileData.gender === 'other' ? 'Khác' : ''} disabled sx={commonStyles.formField} error={!!formErrors.gender} helperText={formErrors.gender} />
                     )}
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Trạng thái email" value={user?.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'} disabled sx={commonStyles.formField} />
+                    <TextField fullWidth label="Trạng thái email" value={user?.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'} disabled sx={commonStyles.formField} error={!!formErrors.isEmailVerified} helperText={formErrors.isEmailVerified} />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Vai trò" value={user?.role === 'parent' ? 'Phụ huynh' : user?.role || ''} disabled sx={commonStyles.formField} />
+                    <TextField fullWidth label="Vai trò" value={user?.role === 'parent' ? 'Phụ huynh' : user?.role || ''} disabled sx={commonStyles.formField} error={!!formErrors.role} helperText={formErrors.role} />
                   </Grid>
                 </Grid>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
@@ -246,9 +262,9 @@ const ParentProfile = () => {
       <Dialog open={showPasswordDialog} onClose={handleClosePasswordDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Đổi mật khẩu</DialogTitle>
         <DialogContent>
-          <TextField margin="normal" label="Mật khẩu hiện tại" name="current" type={showPassword.current ? 'text' : 'password'} value={passwordData.current} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('current')} edge="end">{showPassword.current ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-          <TextField margin="normal" label="Mật khẩu mới" name="new" type={showPassword.new ? 'text' : 'password'} value={passwordData.new} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('new')} edge="end">{showPassword.new ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-          <TextField margin="normal" label="Xác nhận mật khẩu mới" name="confirm" type={showPassword.confirm ? 'text' : 'password'} value={passwordData.confirm} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('confirm')} edge="end">{showPassword.confirm ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+          <TextField margin="normal" label="Mật khẩu hiện tại" name="current" type={showPassword.current ? 'text' : 'password'} value={passwordData.current} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('current')} edge="end">{showPassword.current ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.current} helperText={passwordFormErrors.current} />
+          <TextField margin="normal" label="Mật khẩu mới" name="new" type={showPassword.new ? 'text' : 'password'} value={passwordData.new} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('new')} edge="end">{showPassword.new ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.newPassword} helperText={passwordFormErrors.newPassword} />
+          <TextField margin="normal" label="Xác nhận mật khẩu mới" name="confirm" type={showPassword.confirm ? 'text' : 'password'} value={passwordData.confirm} onChange={handlePasswordChange} fullWidth InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => handleToggleShowPassword('confirm')} edge="end">{showPassword.confirm ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} error={!!passwordFormErrors.confirm} helperText={passwordFormErrors.confirm} />
           {error && <Typography color="error.main" sx={{ mt: 1 }}>{error}</Typography>}
           {success && <Typography color="success.main" sx={{ mt: 1 }}>{success}</Typography>}
         </DialogContent>

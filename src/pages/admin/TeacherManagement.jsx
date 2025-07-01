@@ -200,6 +200,16 @@ const TeacherManagement = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'dayOfBirth') {
+      let val = value.replace(/[^0-9/]/g, '');
+      if (val.length === 2 && form.dayOfBirth.length === 1) val += '/';
+      if (val.length === 5 && form.dayOfBirth.length === 4) val += '/';
+      setForm((prev) => ({ ...prev, [name]: val }));
+      if (formErrors.dayOfBirth) {
+        setFormErrors((prev) => ({ ...prev, dayOfBirth: '' }));
+      }
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
 
     // Clear error for this field when user starts typing
@@ -211,9 +221,10 @@ const TeacherManagement = () => {
   const handleSubmit = async () => {
     // Validate form before submitting
     const errors = validateTeacher(form, !!selectedTeacher);
+    // Chỉ submit khi không có lỗi thực sự
+    const hasError = Object.values(errors).some(Boolean);
     setFormErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
+    if (hasError) {
       return; // Stop if there are validation errors
     }
 
@@ -244,23 +255,23 @@ const TeacherManagement = () => {
       } else {
         // CREATE (gửi đúng body backend yêu cầu)
         const body = {
-        userData: {
-          name: form.name,
-          email: form.email,
+          userData: {
+            name: form.name,
+            email: form.email,
             password: form.password,
-          phone: form.phone,
+            phone: form.phone,
             dayOfBirth: form.dayOfBirth,
-          address: form.address,
-          gender: form.gender,
-        },
-        teacherData: {
-          salaryPerLesson: Number(form.salaryPerLesson),
-          qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
-          specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
-          description: form.description,
-          isActive: form.isActive,
-        },
-      };
+            address: form.address,
+            gender: form.gender,
+          },
+          teacherData: {
+            salaryPerLesson: Number(form.salaryPerLesson),
+            qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
+            specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
+            description: form.description,
+            isActive: form.isActive,
+          },
+        };
         await createTeacherAPI(body);
         setSnackbar({ open: true, message: 'Thêm giáo viên thành công!', severity: 'success' });
       }
@@ -682,7 +693,7 @@ const TeacherManagement = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Lương/buổi (nghìn VND)"
+                      label="Lương/buổi (VND)"
                       type="number"
                       name="salaryPerLesson"
                       value={form.salaryPerLesson}
@@ -768,13 +779,15 @@ const TeacherManagement = () => {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="Mô tả"
-                multiline
+                      label="Mô tả *"
+                      multiline
                       rows={3}
                       name="description"
                       value={form.description}
                       onChange={handleChange}
                       placeholder="Mô tả về kinh nghiệm giảng dạy..."
+                      error={!!formErrors.description}
+                      helperText={formErrors.description}
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
@@ -783,8 +796,8 @@ const TeacherManagement = () => {
                               },
                             },
                           }}
-              />
-            </Grid>
+                    />
+                  </Grid>
               </Grid>
             </Box>
         </Paper>

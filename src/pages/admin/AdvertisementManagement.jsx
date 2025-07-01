@@ -38,6 +38,7 @@ import {
   deleteAnnouncementAPI
 } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
+import { validateAdvertisement } from '../../validations/advertisementValidation';
 
 const AdvertisementManagement = () => {
   const [advertisements, setAdvertisements] = useState([]);
@@ -52,6 +53,7 @@ const AdvertisementManagement = () => {
     priority: 1
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [formErrors, setFormErrors] = useState({});
 
   // Lấy danh sách quảng cáo từ API
   useEffect(() => {
@@ -107,6 +109,18 @@ const AdvertisementManagement = () => {
   };
 
   const handleSaveAd = async () => {
+    // Validate trước khi submit
+    const errors = validateAdvertisement({
+      title: formData.title,
+      shortDescription: formData.description,
+      content: formData.content,
+      priority: formData.priority,
+      imageName: formData.image ? formData.image.name : (editingAd?.imageUrl ? editingAd.imageUrl.split('/').pop() : ''),
+    });
+    setFormErrors(errors);
+    const hasError = Object.values(errors).some(Boolean);
+    if (hasError) return;
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
@@ -116,10 +130,10 @@ const AdvertisementManagement = () => {
     if (formData.image) data.append('image', formData.image);
 
     try {
-    if (editingAd) {
+      if (editingAd) {
         await updateAnnouncementAPI(editingAd.id, data);
         setSnackbar({ open: true, message: 'Cập nhật quảng cáo thành công!', severity: 'success' });
-    } else {
+      } else {
         await createAnnouncementAPI(data);
         setSnackbar({ open: true, message: 'Tạo quảng cáo thành công!', severity: 'success' });
       }
@@ -315,7 +329,7 @@ const AdvertisementManagement = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Tiêu đề"
+                    label="Tiêu đề *"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                           sx={{
@@ -326,12 +340,14 @@ const AdvertisementManagement = () => {
                               },
                             },
                           }}
+                    error={!!formErrors.title}
+                    helperText={formErrors.title}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Mô tả ngắn"
+                    label="Mô tả ngắn *"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           sx={{
@@ -342,6 +358,8 @@ const AdvertisementManagement = () => {
                               },
                             },
                           }}
+                    error={!!formErrors.shortDescription}
+                    helperText={formErrors.shortDescription}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -349,7 +367,7 @@ const AdvertisementManagement = () => {
                     fullWidth
                     multiline
                     minRows={4}
-                    label="Nội dung quảng cáo"
+                    label="Nội dung *"
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                           sx={{
@@ -360,6 +378,8 @@ const AdvertisementManagement = () => {
                               },
                             },
                           }}
+                    error={!!formErrors.content}
+                    helperText={formErrors.content}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -377,6 +397,8 @@ const AdvertisementManagement = () => {
                               },
                             },
                           }}
+                    error={!!formErrors.displayType}
+                    helperText={formErrors.displayType}
                   >
                     <MenuItem value="banner">Banner</MenuItem>
                     <MenuItem value="popup">Popup</MenuItem>
@@ -386,7 +408,7 @@ const AdvertisementManagement = () => {
                   <TextField
                     fullWidth
                     type="number"
-                    label="Độ ưu tiên"
+                    label="Độ ưu tiên *"
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                     inputProps={{ min: 1 }}
@@ -398,6 +420,8 @@ const AdvertisementManagement = () => {
                               },
                             },
                           }}
+                    error={!!formErrors.priority}
+                    helperText={formErrors.priority}
                   />
                 </Grid>
                 <Grid item xs={12}>
