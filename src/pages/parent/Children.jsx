@@ -70,7 +70,6 @@ const Children = () => {
   const [classDetails, setClassDetails] = useState({});
   const [attendanceData, setAttendanceData] = useState({});
   const [detailLoading, setDetailLoading] = useState(false);
-  const [teacherDetails, setTeacherDetails] = useState({});
 
   // Teacher detail dialog states
   const [teacherDialogOpen, setTeacherDialogOpen] = useState(false);
@@ -161,32 +160,6 @@ const Children = () => {
         });
         setClassDetails(classDetailsMap);
 
-        const teacherPromises = classResults
-          .filter(result => result.classData?.teacherId)
-          .map(async (result) => {
-            try {
-              const teacherRes = await getTeacherByIdAPI(result.classData.teacherId);
-              return {
-                classId: result.classId,
-                teacherData: teacherRes?.data || teacherRes
-              };
-            } catch (err) {
-              return {
-                classId: result.classId,
-                teacherData: null
-              };
-            }
-          });
-
-        if (teacherPromises.length > 0) {
-          const teacherResults = await Promise.all(teacherPromises);
-          const teacherDetailsMap = {};
-          teacherResults.forEach(result => {
-            teacherDetailsMap[String(result.classId)] = result.teacherData;
-          });
-          setTeacherDetails(teacherDetailsMap);
-        }
-
         try {
           const attendanceRes = await getStudentAttendanceAPI(childData.studentId || childData.id);
           setAttendanceData(attendanceRes?.data || {});
@@ -207,12 +180,20 @@ const Children = () => {
     setSelectedChild(null);
     setClassDetails({});
     setAttendanceData({});
-    setTeacherDetails({});
   };
 
-  const handleOpenTeacherDialog = (teacherData) => {
-    setSelectedTeacher(teacherData);
-    setTeacherDialogOpen(true);
+  const handleOpenTeacherDialog = async (teacherData) => {
+    try {
+      // Gọi API để lấy thông tin chi tiết giáo viên
+      const teacherRes = await getTeacherByIdAPI(teacherData.id);
+      setSelectedTeacher(teacherRes?.data || teacherRes);
+      setTeacherDialogOpen(true);
+    } catch (err) {
+      console.error('Error loading teacher details:', err);
+      // Fallback to basic teacher data if API fails
+      setSelectedTeacher(teacherData);
+      setTeacherDialogOpen(true);
+    }
   };
 
   const handleCloseTeacherDialog = () => {
@@ -532,9 +513,6 @@ const Children = () => {
                   {selectedChild.classes.map((cls, index) => {
                     const classDetail = classDetails[cls.classId];
                     const classData = classDetail?.classData;
-                    const teacherData = teacherDetails[cls.classId]
-                      || teacherDetails[cls.classId?.toString()]
-                      || Object.values(teacherDetails).find(t => t && t.classes && t.classes.includes(cls.classId));
 
                     let classAttendance = { total: 0, present: 0, absent: 0, late: 0, rate: 0, details: [] };
                     if (attendanceData && attendanceData.detailedAttendance) {
@@ -611,15 +589,12 @@ const Children = () => {
                                     <Paper sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
                                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                          {teacherData ?
-                                            (teacherData.userId?.name || teacherData.name || 'N/A') :
-                                            'Chưa có giáo viên'
-                                          }
+                                          {classData?.teacherName || 'Chưa có giáo viên'}
                                         </Typography>
-                                        {teacherData && parentPermissions.canViewTeacherDetails && (
+                                        {classData?.teacherId && parentPermissions.canViewTeacherDetails && (
                                           <IconButton
                                             size="small"
-                                            onClick={() => handleOpenTeacherDialog(teacherData)}
+                                            onClick={() => handleOpenTeacherDialog({ id: classData.teacherId, name: classData.teacherName })}
                                             sx={{
                                               color: 'primary.main',
                                               '&:hover': { backgroundColor: 'primary.light' }
