@@ -25,6 +25,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
 import { loginValidationSchema } from '../../validations/loginValidation';
+import { getDashboardPath } from '../../utils/helpers';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -85,11 +86,17 @@ const Login = () => {
     }
 
     try {
-      await login({
+      const result = await login({
         email: values.email,
         password: values.password
       });
-      navigate(from, { replace: true });
+      // Điều hướng đến dashboard theo role
+      const userRole = result?.user?.role;
+      if (userRole) {
+        navigate(getDashboardPath(userRole), { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       console.error('Login failed:', error);
     } finally {

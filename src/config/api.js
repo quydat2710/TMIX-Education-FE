@@ -11,6 +11,8 @@ export const API_CONFIG = {
       FORGOT_PASSWORD: '/auth/forgot-password',
       VERIFY_CODE: '/auth/verify-code',
       RESET_PASSWORD: '/auth/reset-password',
+      VERIFY_EMAIL: '/auth/verify-email',
+      SEND_VERIFICATION_EMAIL: '/auth/send-verification-email',
     },
     // User endpoints
     USERS: {

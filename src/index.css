@@ -111,3 +111,9 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: inherit !important;
   background-color: white !important;
 }
+
+.slick-prev:before,
+.slick-next:before {
+  display: none !important;
+  content: '' !important;
+}

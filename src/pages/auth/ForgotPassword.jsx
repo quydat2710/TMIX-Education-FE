@@ -25,7 +25,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import { forgotPasswordAPI, verifyCodeAPI, resetPasswordAPI } from '../../services/api';
-import { validationRules } from '../../utils/validation';
+import { validateForgotPassword, validateOtpCode } from '../../validations/forgotPasswordValidation';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ const ForgotPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetToken, setResetToken] = useState('');
+  const [formErrors, setFormErrors] = useState({});
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const {
     values,
@@ -66,8 +69,9 @@ const ForgotPassword = () => {
     setIsSubmitting(true);
     setError('');
 
-    const isValid = validate();
-    if (!isValid) {
+    const errors = validateForgotPassword({ email: values.email });
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
       setIsSubmitting(false);
       return;
     }
@@ -90,8 +94,10 @@ const ForgotPassword = () => {
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
-    if (!verificationCode.trim()) {
-      setError('Vui lòng nhập mã xác thực');
+    const otpError = validateOtpCode(verificationCode);
+    setFormErrors({ verificationCode: otpError });
+    if (otpError) {
+      setError(otpError);
       return;
     }
 
@@ -129,36 +135,15 @@ const ForgotPassword = () => {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!newPassword.trim()) {
-      setError('Vui lòng nhập mật khẩu mới');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
-      return;
-    }
-    // Check if password contains at least 1 letter and 1 number
-    const hasLetter = /[a-zA-Z]/.test(newPassword);
-    const hasNumber = /\d/.test(newPassword);
-    if (!hasLetter || !hasNumber) {
-      setError('Mật khẩu phải chứa ít nhất 1 chữ cái và 1 số');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
-      return;
-    }
-
-    // Debug logging
-    console.log('Reset password debug:', {
+    const errors = validateForgotPassword({
       email,
-      verificationCode,
-      newPassword,
-      verificationCodeLength: verificationCode?.length
+      password: newPassword,
+      confirmPassword,
+      otpCode: verificationCode
     });
-
-    if (!verificationCode || !verificationCode.trim()) {
-      setError('Mã xác thực không hợp lệ. Vui lòng quay lại bước xác thực.');
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setError(Object.values(errors)[0]);
       return;
     }
 
@@ -199,6 +184,17 @@ const ForgotPassword = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const showError = (msg) => {
+    setError(msg);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+    setError('');
+    setFormErrors({});
   };
 
   if (currentStep === 'success') {
@@ -297,8 +293,8 @@ const ForgotPassword = () => {
               value={values.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              error={!!errors.email}
-              helperText={errors.email}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -387,6 +383,8 @@ const ForgotPassword = () => {
               autoFocus
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
+              error={!!formErrors.verificationCode}
+              helperText={formErrors.verificationCode}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
@@ -468,7 +466,8 @@ const ForgotPassword = () => {
               autoFocus
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              helperText="Mật khẩu phải có ít nhất 6 ký tự, bao gồm ít nhất 1 chữ cái và 1 số"
+              error={!!formErrors.password}
+              helperText={formErrors.password}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -525,6 +524,8 @@ const ForgotPassword = () => {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              error={!!formErrors.confirmPassword}
+              helperText={formErrors.confirmPassword}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -669,9 +670,12 @@ const ForgotPassword = () => {
             </Box>
 
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
+              <NotificationSnackbar
+                open={snackbarOpen}
+                onClose={handleSnackbarClose}
+                message={error}
+                severity="error"
+              />
             )}
 
             {renderStepContent()}

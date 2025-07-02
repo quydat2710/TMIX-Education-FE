@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
@@ -36,6 +36,7 @@ const AdminProfile = () => {
   const [formErrors, setFormErrors] = useState({});
   const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
+  const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   useEffect(() => {
     if (user) {
@@ -169,6 +170,14 @@ const AdminProfile = () => {
     const value = e.target.value;
     if (value && value.includes('-')) { const [yyyy, mm, dd] = value.split('-'); setProfileData(prev => ({ ...prev, dayOfBirth: `${dd}/${mm}/${yyyy}` })); } else { setProfileData(prev => ({ ...prev, dayOfBirth: value })); }
   };
+  const handleSendVerificationEmail = async () => {
+    try {
+      await sendVerificationEmailAPI();
+      setEmailVerifySnackbar({ open: true, message: 'Đã gửi email xác thực. Vui lòng kiểm tra hộp thư!', severity: 'success' });
+    } catch (err) {
+      setEmailVerifySnackbar({ open: true, message: 'Gửi email xác thực thất bại!', severity: 'error' });
+    }
+  };
   return (
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
@@ -243,6 +252,9 @@ const AdminProfile = () => {
                   {!isEditing ? (
                     <>
                       <Button variant="outlined" onClick={handleOpenPasswordDialog} startIcon={<LockIcon />}>Đổi mật khẩu</Button>
+                      {!user?.isEmailVerified && (
+                        <Button variant="outlined" color="primary" onClick={handleSendVerificationEmail}>Xác thực email</Button>
+                      )}
                       <Button variant="contained" onClick={handleEdit} startIcon={<EditIcon />}>Chỉnh sửa</Button>
                     </>
                   ) : (
@@ -259,6 +271,7 @@ const AdminProfile = () => {
       </Box>
       <NotificationSnackbar open={!!avatarSuccess || !!avatarError} onClose={() => { setAvatarSuccess(''); setAvatarError(''); }} message={avatarSuccess || avatarError} severity={avatarSuccess ? 'success' : 'error'} />
       <NotificationSnackbar open={!!success || !!error} onClose={() => { setSuccess(''); setError(''); }} message={success || error} severity={success ? 'success' : 'error'} />
+      <NotificationSnackbar open={emailVerifySnackbar.open} onClose={() => setEmailVerifySnackbar({ ...emailVerifySnackbar, open: false })} message={emailVerifySnackbar.message} severity={emailVerifySnackbar.severity} />
       <Dialog open={showPasswordDialog} onClose={handleClosePasswordDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Đổi mật khẩu</DialogTitle>
         <DialogContent>
