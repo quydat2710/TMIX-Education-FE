@@ -33,7 +33,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
   getTeacherScheduleAPI,
   getClassByIdAPI,
-  getStudentsInClassAPI,
 } from '../../services/api';
 import ClassDetailModal from './components/ClassDetailModal';
 import AttendanceModal from './components/AttendanceModal';
@@ -66,7 +65,6 @@ const MyClasses = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
-  const [studentsList, setStudentsList] = useState([]);
 
   // Debounce search query
   useEffect(() => {
@@ -163,15 +161,7 @@ const MyClasses = () => {
 
   const handleOpenHistory = async (classItem) => {
     setSelectedClass(classItem);
-    // Lấy danh sách học sinh của lớp
-    try {
-      const res = await getStudentsInClassAPI(classItem.id, { limit: 100, page: 1 });
-      setStudentsList(res?.data?.students || []);
-      setHistoryModalOpen(true); // Chỉ mở modal sau khi đã có studentsList
-    } catch (err) {
-      setStudentsList([]);
-      setHistoryModalOpen(true); // Vẫn mở modal nếu lỗi, nhưng studentsList rỗng
-    }
+    setHistoryModalOpen(true);
   };
 
   const handleCloseHistory = () => {
@@ -374,7 +364,6 @@ const MyClasses = () => {
           open={historyModalOpen}
           onClose={handleCloseHistory}
           classData={selectedClass}
-          studentsList={studentsList}
         />
 
         {/* Notification Snackbar */}

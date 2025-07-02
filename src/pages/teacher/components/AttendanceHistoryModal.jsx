@@ -32,20 +32,11 @@ import {
 const AttendanceHistoryModal = ({
   open,
   onClose,
-  classData,
-  studentsList = []
+  classData
 }) => {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
-
-  const studentIdNameMap = React.useMemo(() => {
-    const map = {};
-    studentsList.forEach(s => {
-      map[s.id || s.studentId] = s.name || s.fullName || s.studentName || '';
-    });
-    return map;
-  }, [studentsList]);
 
   useEffect(() => {
     if (open && classData) {
@@ -276,7 +267,7 @@ const AttendanceHistoryModal = ({
                                       bgcolor: 'white'
                                     }}>
                                       <Typography variant="body2" fontWeight="medium">
-                                        {studentIdNameMap[student.studentId] || student.studentId}
+                                        {student.name}
                                       </Typography>
                                       <Chip
                                         label={getStatusLabel(student.status)}

@@ -629,7 +629,7 @@ const FinancialStatisticsPanel = () => {
                     sx={{ mt: 2 }}
                   >
                     <MenuItem value="cash">Tiền mặt</MenuItem>
-                    <MenuItem value="bank">Chuyển khoản</MenuItem>
+                    <MenuItem value="bank_transfer">Chuyển khoản</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid item xs={12}>

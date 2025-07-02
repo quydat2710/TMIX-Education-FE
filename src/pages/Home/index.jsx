@@ -14,7 +14,6 @@ import {
 import { commonStyles } from '../../utils/styles';
 import HomeHeader from './HomeHeader';
 import Footer from './Footer';
-import Advertisement from '../../components/advertisement/Advertisement';
 import AdvertisementSlider from '../../components/advertisement/AdvertisementSlider';
 import WelcomeAdPopup from '../../components/advertisement/WelcomeAdPopup';
 import { useAuth } from '../../contexts/AuthContext';

@@ -8,6 +8,22 @@ const instance = axios.create({
     }
 });
 
+// Biến để tránh gọi refresh token nhiều lần
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
 // Add a request interceptor
 instance.interceptors.request.use(
     (config) => {
@@ -35,13 +51,95 @@ instance.interceptors.response.use(
     (response) => {
         return response.data;
     },
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
         if (error.response) {
             // Xử lý lỗi từ server
-            if (error.response.status === 401) {
-                // Token hết hạn hoặc không hợp lệ
+            if (error.response.status === 401 && !originalRequest._retry) {
+                if (isRefreshing) {
+                    // Nếu đang refresh, thêm request vào queue
+                    return new Promise((resolve, reject) => {
+                        failedQueue.push({ resolve, reject });
+                    }).then(token => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return instance(originalRequest);
+                    }).catch(err => {
+                        return Promise.reject(err);
+                    });
+                }
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                const refreshToken = localStorage.getItem('refresh_token');
+
+                if (!refreshToken) {
+                    // Không có refresh token, logout user
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('userData');
+                    localStorage.removeItem('parent_id');
+                    window.location.href = '/login';
+                    return Promise.reject(error);
+                }
+
+                try {
+                    // Gọi API refresh token
+                    const response = await axios.post(
+                        'https://eng-center-management.onrender.com/api/v1/auth/refresh-token',
+                        new URLSearchParams({ refreshToken }),
+                        {
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                        }
+                    );
+
+                    let newAccessToken = null;
+                    let newRefreshToken = null;
+
+                    // Xử lý response theo cấu trúc khác nhau
+                    if (response.data?.tokens?.access?.token) {
+                        newAccessToken = response.data.tokens.access.token;
+                        newRefreshToken = response.data.tokens.refresh?.token;
+                    } else if (response.data?.access_token) {
+                        newAccessToken = response.data.access_token;
+                        newRefreshToken = response.data.refresh_token;
+                    }
+
+                    if (newAccessToken) {
+                        localStorage.setItem('access_token', newAccessToken);
+                        if (newRefreshToken) {
+                            localStorage.setItem('refresh_token', newRefreshToken);
+                        }
+
+                        // Cập nhật header cho request gốc
+                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+                        // Xử lý queue
+                        processQueue(null, newAccessToken);
+
+                        // Thực hiện lại request gốc
+                        return instance(originalRequest);
+                    } else {
+                        throw new Error('Invalid refresh token response');
+                    }
+                } catch (refreshError) {
+                    console.error('Refresh token failed:', refreshError);
+
+                    // Xử lý queue với lỗi
+                    processQueue(refreshError, null);
+
+                    // Logout user
                 localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('userData');
+                    localStorage.removeItem('parent_id');
                 window.location.href = '/login';
+
+                    return Promise.reject(refreshError);
+                } finally {
+                    isRefreshing = false;
+                }
             }
             return Promise.reject(error.response.data);
         }

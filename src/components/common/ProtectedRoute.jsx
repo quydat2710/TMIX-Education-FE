@@ -4,7 +4,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ROLE_PERMISSIONS } from '../../constants/userRoles';
 import { Box, CircularProgress } from '@mui/material';
 
-const ProtectedRoute = ({ children, requiredPermissions = [], allowedRoles = [] }) => {
+const ProtectedRoute = ({
+  children,
+  requiredPermissions = [],
+  allowedRoles = [],
+  requiredRole = null
+}) => {
   const { user, isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
@@ -25,8 +30,9 @@ const ProtectedRoute = ({ children, requiredPermissions = [], allowedRoles = [] 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check role-based access
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+  // Check role-based access (support both requiredRole and allowedRoles)
+  const rolesToCheck = requiredRole ? [requiredRole] : allowedRoles;
+  if (rolesToCheck.length > 0 && !rolesToCheck.includes(user?.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

@@ -32,17 +32,8 @@ import {
 import {
   getClassByIdAPI,
   getStudentsInClassAPI,
-  getTodayAttendanceAPI,
-  getAttendanceListAPI,
-  updateAttendanceAPI
 } from '../../../services/api';
 import AttendanceModal from './AttendanceModal';
-
-const ATTENDANCE_STATUS = {
-  PRESENT: 'present',
-  ABSENT: 'absent',
-  LATE: 'late',
-};
 
 const ClassDetailModal = ({
   open,
@@ -51,9 +42,6 @@ const ClassDetailModal = ({
 }) => {
   const [selectedClassDetail, setSelectedClassDetail] = useState(null);
   const [studentsDetail, setStudentsDetail] = useState([]);
-  const [attendanceDetail, setAttendanceDetail] = useState({});
-  const [attendanceNoteDetail, setAttendanceNoteDetail] = useState({});
-  const [attendanceIdDetail, setAttendanceIdDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [detailTabValue, setDetailTabValue] = useState(0);
@@ -78,16 +66,6 @@ const ClassDetailModal = ({
       setLoadingStudents(true);
       const allStudents = await fetchAllStudentsInClass(classData.id);
       setStudentsDetail(allStudents);
-
-      // Lấy điểm danh hôm nay
-      const attendanceRes = await getTodayAttendanceAPI(classData.id);
-      const attData = attendanceRes?.data;
-      setAttendanceIdDetail(attData?._id || attData?.id || null);
-
-      const studentIds = allStudents.map(s => String(s.id));
-      const { cleanAttendance, cleanNotes } = validateAndCleanAttendanceData(attData, studentIds);
-      setAttendanceDetail(cleanAttendance);
-      setAttendanceNoteDetail(cleanNotes);
     } catch (err) {
       console.error('Error loading class details:', err);
     } finally {
@@ -120,31 +98,6 @@ const ClassDetailModal = ({
     }
 
     return allStudents;
-  };
-
-  const validateAndCleanAttendanceData = (attendanceData, studentIds) => {
-    const cleanAttendance = {};
-    const cleanNotes = {};
-
-    if (attendanceData?.students && Array.isArray(attendanceData.students)) {
-      attendanceData.students.forEach(student => {
-        const studentId = String(student.studentId || student.id);
-        if (studentIds.includes(studentId)) {
-          cleanAttendance[studentId] = student.status || ATTENDANCE_STATUS.ABSENT;
-          cleanNotes[studentId] = student.note || '';
-        }
-      });
-    }
-
-    // Đảm bảo tất cả học sinh đều có trạng thái mặc định
-    studentIds.forEach(studentId => {
-      if (!cleanAttendance[studentId]) {
-        cleanAttendance[studentId] = ATTENDANCE_STATUS.ABSENT;
-        cleanNotes[studentId] = '';
-      }
-    });
-
-    return { cleanAttendance, cleanNotes };
   };
 
   const handleDetailTabChange = (event, newValue) => {

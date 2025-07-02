@@ -220,7 +220,9 @@ const AdvertisementManagement = () => {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          {ad.displayType === 'banner' ? 'Banner' : 'Popup'}
+                          {ad.displayType === 'banner' ? 'Banner' :
+                           ad.displayType === 'popup' ? 'Popup' :
+                           ad.displayType === 'notification' ? 'Notification' : 'Banner'}
                         </TableCell>
                         <TableCell>
                           {ad.priority}
@@ -402,6 +404,7 @@ const AdvertisementManagement = () => {
                   >
                     <MenuItem value="banner">Banner</MenuItem>
                     <MenuItem value="popup">Popup</MenuItem>
+                    <MenuItem value="notification">Notification</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={6}>

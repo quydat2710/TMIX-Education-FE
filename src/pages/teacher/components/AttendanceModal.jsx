@@ -92,8 +92,8 @@ const AttendanceModal = ({
       setAttendanceId(attData?.attendanceId);
 
       const studentsList = (attData?.students || []).map(s => ({
-        id: typeof s.studentId === 'object' ? s.studentId.id : s.studentId,
-        name: typeof s.studentId === 'object' ? s.studentId.name : '',
+        id: s.studentId,
+        name: s.name,
         status: s.status,
         note: s.note || ''
       }));
@@ -148,10 +148,12 @@ const AttendanceModal = ({
     try {
       const studentsBody = students.map(student => ({
         studentId: student.id,
+        name: student.name,
         status: attendance[student.id] || ATTENDANCE_STATUS.ABSENT,
-        note: attendanceNote[student.id] || ''
+        note: attendanceNote[student.id] || '',
+        checkedAt: new Date().toISOString()
       }));
-      await updateAttendanceAPI(attendanceId, { students: studentsBody });
+      await updateAttendanceAPI(attendanceId, studentsBody);
       setNotification({ open: true, message: 'Lưu điểm danh thành công', severity: 'success' });
       setIsChanged(false);
       onClose();
