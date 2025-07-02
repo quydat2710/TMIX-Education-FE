@@ -492,8 +492,20 @@ const Dashboard = () => {
                             </TableCell>
                             <TableCell>
                               <Chip
-                                label={classItem.status === 'active' ? 'Đang học' : classItem.status || 'N/A'}
-                                color={classItem.status === 'active' ? 'success' : 'default'}
+                                label={
+                                  classItem.status === 'active'
+                                    ? 'Đang học'
+                                    : classItem.status === 'completed'
+                                    ? 'Đã hoàn thành'
+                                    : classItem.status || 'N/A'
+                                }
+                                color={
+                                  classItem.status === 'active'
+                                    ? 'success'
+                                    : classItem.status === 'completed'
+                                    ? 'default'
+                                    : 'default'
+                                }
                                 size="small"
                               />
                             </TableCell>

@@ -740,7 +740,7 @@ const StudentManagement = () => {
                           onChange={e => handleClassEditChange(idx, 'status', e.target.value)}
                         >
                           <MenuItem value="active">Đang học</MenuItem>
-                          <MenuItem value="inactive">Đã nghỉ</MenuItem>
+                          <MenuItem value="completed">Đã hoàn thành</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>

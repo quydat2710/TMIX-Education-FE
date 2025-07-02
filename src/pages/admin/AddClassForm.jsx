@@ -76,6 +76,19 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
           }
         }
       });
+      // Luôn hiển thị khung giờ hiện tại kể cả không khớp
+      const start = classData.schedule?.timeSlots?.startTime;
+      const end = classData.schedule?.timeSlots?.endTime;
+      if (start && end) {
+        const foundSlot = timeSlotOptions.find(slot => slot.startTime === start && slot.endTime === end);
+        if (foundSlot) {
+          setSelectedTimeSlot(foundSlot.value);
+        } else {
+          setSelectedTimeSlot(`${start}-${end}`);
+        }
+      } else {
+        setSelectedTimeSlot('');
+      }
     }
   }, [classData]);
 
@@ -311,6 +324,15 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
                   {slot.label}
                 </MenuItem>
               ))}
+              {/* Nếu selectedTimeSlot không nằm trong options thì vẫn hiển thị */}
+              {selectedTimeSlot && !timeSlotOptions.some(slot => slot.value === selectedTimeSlot) && (
+                <MenuItem key={selectedTimeSlot} value={selectedTimeSlot}>
+                  {(() => {
+                    const [start, end] = selectedTimeSlot.split('-');
+                    return `${start} - ${end}`;
+                  })()}
+                </MenuItem>
+              )}
             </Select>
           </FormControl>
         </Grid>

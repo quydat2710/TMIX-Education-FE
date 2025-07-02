@@ -92,7 +92,6 @@ export const AuthProvider = ({ children }) => {
     if (token && userData) {
       try {
         let user = JSON.parse(userData);
-
         // Nếu là parent và thiếu permissions thì bổ sung mặc định
         if (user.role === 'parent' && !user.permissions) {
           user.permissions = [
@@ -113,8 +112,58 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('userData');
       }
+      dispatch({ type: 'SET_LOADING', payload: false });
+    } else if (!token && refreshToken && userData) {
+      // Nếu thiếu access_token nhưng có refresh_token và userData, tự động refresh
+      (async () => {
+        try {
+          let user = JSON.parse(userData);
+          const response = await refreshTokenAPI(refreshToken);
+          let newAccessToken = null;
+          let newRefreshToken = null;
+          if (response?.tokens?.access?.token) {
+            newAccessToken = response.tokens.access.token;
+            newRefreshToken = response.tokens.refresh?.token;
+          } else if (response?.data?.tokens?.access?.token) {
+            newAccessToken = response.data.tokens.access.token;
+            newRefreshToken = response.data.tokens.refresh?.token;
+          } else if (response?.access?.token) {
+            newAccessToken = response.access.token;
+            newRefreshToken = response.refresh?.token;
+          } else if (response?.data?.access?.token) {
+            newAccessToken = response.data.access.token;
+            newRefreshToken = response.data.refresh?.token;
+          } else if (response?.access_token) {
+            newAccessToken = response.access_token;
+            newRefreshToken = response.refresh_token;
+          } else if (response?.data?.access_token) {
+            newAccessToken = response.data.access_token;
+            newRefreshToken = response.data.refresh_token;
+          }
+          if (newAccessToken) {
+            localStorage.setItem('access_token', newAccessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('refresh_token', newRefreshToken);
+            }
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user, accessToken: newAccessToken, refreshToken: newRefreshToken || refreshToken }
+            });
+          } else {
+            throw new Error('Invalid refresh token response');
+          }
+        } catch (error) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('userData');
+          dispatch({ type: 'LOGOUT' });
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      })();
+    } else {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-    dispatch({ type: 'SET_LOADING', payload: false });
   }, []);
 
   // Luôn đồng bộ user/token vào localStorage khi thay đổi
@@ -259,6 +308,12 @@ export const AuthProvider = ({ children }) => {
       } else if (response?.data?.tokens?.access?.token) {
         newAccessToken = response.data.tokens.access.token;
         newRefreshToken = response.data.tokens.refresh?.token;
+      } else if (response?.access?.token) {
+        newAccessToken = response.access.token;
+        newRefreshToken = response.refresh?.token;
+      } else if (response?.data?.access?.token) {
+        newAccessToken = response.data.access.token;
+        newRefreshToken = response.data.refresh?.token;
       } else if (response?.access_token) {
         newAccessToken = response.access_token;
         newRefreshToken = response.refresh_token;

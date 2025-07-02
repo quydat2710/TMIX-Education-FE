@@ -86,8 +86,8 @@ instance.interceptors.response.use(
 
                 try {
                     // Gọi API refresh token
-                    const response = await axios.post(
-                        'https://eng-center-management.onrender.com/api/v1/auth/refresh-token',
+                    const response = await instance.post(
+                        '/auth/refresh-tokens',
                         new URLSearchParams({ refreshToken }),
                         {
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }

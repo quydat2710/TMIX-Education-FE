@@ -1668,9 +1668,6 @@ const ParentManagement = () => {
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
                                     {student.userId?.name || 'Không có tên'}
                                   </Typography>
-                                    <Typography variant="caption" color="textSecondary">
-                                      Email: {student.userId?.email}
-                                  </Typography>
                                 </Box>
                               </Grid>
                             ))}

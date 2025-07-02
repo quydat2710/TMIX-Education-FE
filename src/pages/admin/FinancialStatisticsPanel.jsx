@@ -201,6 +201,14 @@ const FinancialStatisticsPanel = () => {
     }
   }, [tab, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
 
+  // Khi filter thay đổi, nếu đang ở tab chi tiết học sinh thì luôn fetch lại dữ liệu
+  useEffect(() => {
+    if (tab === 1) {
+      fetchStudentPayments(1);
+      setStudentPagination(prev => ({ ...prev, page: 1 }));
+    }
+  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+
   // Lấy tổng lương giáo viên cố định khi mount
   useEffect(() => {
     const fetchFixedTotalTeacherSalary = async () => {
@@ -288,7 +296,11 @@ const FinancialStatisticsPanel = () => {
     };
 
     try {
-      await payTeacherAPI(selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id, paymentData);
+      await payTeacherAPI(
+        selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id,
+        paymentData,
+        { month: selectedTeacherPayment.month, year: selectedTeacherPayment.year }
+      );
       setSnackbar({
         open: true,
         message: 'Thanh toán lương giáo viên thành công!',
@@ -371,6 +383,11 @@ const FinancialStatisticsPanel = () => {
                   onChange={e => setCustomStart(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
+                  sx={{
+                    input: { color: 'text.primary', background: 'background.paper' },
+                    '.MuiInputBase-root': { bgcolor: 'background.paper' },
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={3}>
@@ -381,6 +398,11 @@ const FinancialStatisticsPanel = () => {
                   onChange={e => setCustomEnd(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
+                  sx={{
+                    input: { color: 'text.primary', background: 'background.paper' },
+                    '.MuiInputBase-root': { bgcolor: 'background.paper' },
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
+                  }}
                 />
               </Grid>
             </>
@@ -584,13 +606,45 @@ const FinancialStatisticsPanel = () => {
         onClose={handleCloseTeacherPaymentDialog}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>
-          Thanh toán lương giáo viên
+        <DialogTitle sx={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          py: 3,
+          px: 4,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Thanh toán lương giáo viên
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Xác nhận thanh toán lương cho giáo viên tháng {selectedTeacherPayment?.month}/{selectedTeacherPayment?.year}
+            </Typography>
+          </Box>
+          <Box sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <VisibilityIcon sx={{ fontSize: 28, color: 'white' }} />
+          </Box>
         </DialogTitle>
-        <DialogContent>
-          {selectedTeacherPayment && (
-            <Box sx={{ mt: 2 }}>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 4 }}>
+            {selectedTeacherPayment && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary">
@@ -644,11 +698,28 @@ const FinancialStatisticsPanel = () => {
                   />
                 </Grid>
               </Grid>
-            </Box>
-          )}
+            )}
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseTeacherPaymentDialog} disabled={teacherPaymentLoading}>
+        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+          <Button
+            onClick={handleCloseTeacherPaymentDialog}
+            disabled={teacherPaymentLoading}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              border: '2px solid #667eea',
+              color: '#667eea',
+              bgcolor: 'white',
+              '&:hover': {
+                background: '#667eea',
+                color: 'white',
+              }
+            }}
+          >
             Hủy
           </Button>
           <Button
@@ -656,6 +727,21 @@ const FinancialStatisticsPanel = () => {
             variant="contained"
             color="primary"
             disabled={teacherPaymentLoading || !teacherPaymentAmount}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              boxShadow: '0 2px 8px rgba(102,126,234,0.15)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #764ba2 100%)',
+              },
+              '&:disabled': {
+                background: '#ccc',
+              }
+            }}
           >
             {teacherPaymentLoading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
           </Button>
