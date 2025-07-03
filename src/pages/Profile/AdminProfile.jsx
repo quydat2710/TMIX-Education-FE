@@ -9,7 +9,7 @@ import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { validateEmail, validatePhone, validateDayOfBirth, validateAddress, validateGender, validateName, validateChangePassword } from '../../validations/commonValidation';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const AdminProfile = () => {
   const { user, updateUser, refreshToken } = useAuth();
@@ -39,6 +39,8 @@ const AdminProfile = () => {
   const fileInputRef = useRef();
   const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
   const location = useLocation();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -56,20 +58,32 @@ const AdminProfile = () => {
   }, [user]);
 
   useEffect(() => {
-    const reloadUserInfo = async () => {
-      if (user?.id) {
+    // Luôn lấy dữ liệu từ context khi vào trang
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    // Chỉ gọi API get a user khi xác thực email (location.state?.reload)
+    let isMounted = true;
+    const fetchUser = async () => {
+      if (location.state?.reload && user?.id) {
+        setLoading(true);
         try {
           const res = await getUserByIdAPI(user.id);
           const userData = res?.data?.data || res?.data || res;
-          updateUser(userData);
+          if (isMounted) {
+            updateUser(userData);
+            setLoading(false);
+            navigate(location.pathname, { replace: true, state: {} });
+          }
         } catch (e) {
-          // fallback: không làm gì
+          if (isMounted) setLoading(false);
         }
       }
     };
-    reloadUserInfo();
-    // eslint-disable-next-line
-  }, [user?.id, updateUser]);
+    fetchUser();
+    return () => { isMounted = false; };
+  }, [location.state?.reload, user?.id, updateUser, navigate, location.pathname]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {
@@ -88,7 +102,7 @@ const AdminProfile = () => {
           setProfileData(prev => ({ ...prev, avatar: newAvatarUrl }));
           setAvatarFile(null);
           setAvatarSuccess('Cập nhật avatar thành công!');
-          updateUser({ avatar: newAvatarUrl });
+          updateUser({ ...user, avatar: newAvatarUrl });
         } else {
           setAvatarError('Không nhận được URL avatar từ server');
         }
@@ -144,7 +158,7 @@ const AdminProfile = () => {
     try {
       const updateBody = { email: profileData.email, name: profileData.name, dayOfBirth: profileData.dayOfBirth, phone: profileData.phone, address: profileData.address, gender: profileData.gender };
       await updateUserAPI(user.id, updateBody);
-      updateUser(updateBody);
+      updateUser({ ...user, ...updateBody });
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
       let errorMessage = 'Cập nhật thông tin thất bại';
@@ -196,6 +210,17 @@ const AdminProfile = () => {
       setEmailVerifySnackbar({ open: true, message: 'Gửi email xác thực thất bại!', severity: 'error' });
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="admin">
+        <Box sx={{ py: 4 }}>
+          <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu cá nhân...</Typography>
+        </Box>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
