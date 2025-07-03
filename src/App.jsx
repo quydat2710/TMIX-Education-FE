@@ -14,6 +14,7 @@ import theme from './theme';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyEmail from './pages/auth/VerifyEmail';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -59,6 +60,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/verify-email" element={<VerifyEmail />} />
             <Route path="/profile" element={
               !user ? <Navigate to="/" replace /> : (
                 <Navigate to={
