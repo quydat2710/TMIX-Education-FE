@@ -2,9 +2,18 @@ import React from 'react';
 import { Dialog, IconButton, Box, Card, CardMedia, CardContent, Typography } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
-const WelcomeAdPopup = ({ open, onClose, ad }) => {
-  if (!ad) return null;
-  const welcomeAd = ad;
+const WelcomeAdPopup = ({ open, onClose, ads }) => {
+  if (!ads || !Array.isArray(ads) || ads.length === 0) return null;
+  // Chọn quảng cáo có priority nhỏ nhất, nếu cùng priority thì lấy createdAt sớm nhất
+  const welcomeAd = [...ads].sort((a, b) => {
+    if ((a.priority ?? 0) !== (b.priority ?? 0)) {
+      return (a.priority ?? 0) - (b.priority ?? 0);
+    }
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return dateA - dateB;
+  })[0];
+  if (!welcomeAd) return null;
 
   return (
     <Dialog

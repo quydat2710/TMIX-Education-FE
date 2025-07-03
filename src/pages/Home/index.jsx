@@ -91,11 +91,11 @@ const Home = () => {
     }}>
       {/* Quảng cáo popup động */}
       {popupAds.length > 0 && (
-      <WelcomeAdPopup
-        open={showWelcomeAd}
-        onClose={handleCloseWelcomeAd}
-          ad={popupAds[0]} // hoặc random nếu muốn
-      />
+        <WelcomeAdPopup
+          open={showWelcomeAd}
+          onClose={handleCloseWelcomeAd}
+          ads={popupAds}
+        />
       )}
       <HomeHeader sx={{
         bgcolor: 'rgba(255, 255, 255, 0.95)',

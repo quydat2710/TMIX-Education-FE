@@ -8,7 +8,7 @@ const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const quarters = [1, 2, 3, 4];
 
 const StudentStatisticsPanel = () => {
-  const [periodType, setPeriodType] = useState('month');
+  const [periodType, setPeriodType] = useState('year');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedQuarter, setSelectedQuarter] = useState(1);
@@ -53,56 +53,103 @@ const StudentStatisticsPanel = () => {
     setLoading(true);
     setError('');
     try {
-      let params = {};
-      let res;
-      if (periodType === 'month') {
-        params = { year: selectedYear, months: selectedMonth };
-        res = await getMonthlyStudentChangeAPI(params);
-      } else if (periodType === 'quarter') {
-        // Xác định tháng bắt đầu và kết thúc của quý
-        const quarterMonths = {
-          1: { startDate: 1, endDate: 3 },
-          2: { startDate: 4, endDate: 6 },
-          3: { startDate: 7, endDate: 9 },
-          4: { startDate: 10, endDate: 12 },
-        };
-        const { startDate, endDate } = quarterMonths[selectedQuarter];
-        params = { year: selectedYear, startDate, endDate };
-        res = await getMonthlyStudentChangeAPI(params);
-      } else if (periodType === 'year') {
-        params = { year: selectedYear };
-        res = await getMonthlyStudentChangeAPI(params);
-      } else if (periodType === 'custom') {
-        // Lấy năm, tháng bắt đầu và tháng kết thúc
-        const year = new Date(customStart).getFullYear();
-        const startDate = new Date(customStart).getMonth() + 1;
-        const endDate = new Date(customEnd).getMonth() + 1;
-        params = { year, startDate, endDate };
-        res = await getMonthlyStudentChangeAPI(params);
-      }
-      console.log('Monthly student change API response:', res.data);
-
-      // Transform API data to chart format
-      const transformedData = res.data?.monthlyData?.map(item => ({
+      const params = { year: selectedYear };
+      const res = await getMonthlyStudentChangeAPI(params);
+      console.log('API response:', res.data);
+      const apiData = res.data || {};
+      console.log('apiData.increase:', apiData.increase);
+      // Tạo mảng dữ liệu tháng từ dữ liệu tăng/giảm
+      const months = [];
+      (apiData.increase || []).forEach(item => {
+        console.log('Increase item:', item);
+        months.push({
+          year: item.year,
         month: item.month,
-        monthName: item.monthName,
-        students: item.newEnrollments, // Using newEnrollments as total students for this month
-        newStudents: item.newEnrollments || 0,
-        leftStudents: item.completions || 0,
-        netChange: item.netChange || 0
-      })) || [];
-
-      setMonthlyData(transformedData);
-
-      // Set summary data
-      if (res.data?.summary) {
-        setSummaryData({
-          totalNewEnrollments: res.data.summary.totalNewEnrollments || 0,
-          totalCompletions: res.data.summary.totalCompletions || 0,
-          netChange: res.data.summary.netChange || 0,
-          period: res.data.summary.period || { startDate: '', endDate: '' }
+          monthName: `Th${item.month}`,
+          newStudents: item.count,
+          leftStudents: 0,
+          netChange: item.count,
+          students: item.count
         });
+      });
+      console.log('apiData.decrease:', apiData.decrease);
+      (apiData.decrease || []).forEach(item => {
+        console.log('Decrease item:', item);
+        const idx = months.findIndex(m => m.year === item.year && m.month === item.month);
+        if (idx !== -1) {
+          months[idx].leftStudents = item.count;
+          months[idx].netChange = (months[idx].newStudents || 0) - item.count;
+        } else {
+          months.push({
+            year: item.year,
+            month: item.month,
+            monthName: `Th${item.month}`,
+            newStudents: 0,
+            leftStudents: item.count,
+            netChange: -item.count,
+            students: 0
+          });
+        }
+      });
+      // Sắp xếp theo tháng tăng dần
+      months.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month);
+      console.log('Processed months:', months);
+      // Đảm bảo đủ 12 tháng
+      const now = new Date();
+      const isCurrentYear = selectedYear === now.getFullYear();
+      const currentMonth = isCurrentYear ? now.getMonth() + 1 : 12;
+      const fullMonths = Array.from({ length: 12 }, (_, i) => {
+        const monthNum = i + 1;
+        const found = months.find(m => m.month === monthNum && m.year === selectedYear);
+        if (monthNum > currentMonth) {
+          // Tháng tương lai: để 0 hết
+          return {
+            year: selectedYear,
+            month: monthNum,
+            monthName: `Th${monthNum}`,
+            newStudents: 0,
+            leftStudents: 0,
+            netChange: 0,
+            students: 0
+          };
+        }
+        return found || {
+          year: selectedYear,
+          month: monthNum,
+          monthName: `Th${monthNum}`,
+          newStudents: 0,
+          leftStudents: 0,
+          netChange: 0,
+          students: 0
+        };
+      });
+      // Tính tổng học sinh thực tế từng tháng (chỉ đến tháng hiện tại)
+      for (let i = 0; i < 12; i++) {
+        if (i === 0) {
+          fullMonths[i].students = fullMonths[i].newStudents;
+        } else {
+          fullMonths[i].students = fullMonths[i - 1].students + fullMonths[i].newStudents - fullMonths[i].leftStudents;
+        }
+        // Nếu là tháng tương lai thì giữ nguyên 0
+        if (i + 1 > currentMonth) {
+          fullMonths[i].students = 0;
+          fullMonths[i].newStudents = 0;
+          fullMonths[i].leftStudents = 0;
+          fullMonths[i].netChange = 0;
+        }
       }
+      setMonthlyData(fullMonths);
+      // Set summary
+        setSummaryData({
+        totalNewEnrollments: apiData.summary?.totalIncrease || 0,
+        totalCompletions: apiData.summary?.totalDecrease || 0,
+        netChange: apiData.summary?.netChange || 0,
+        period: apiData.summary?.period || { startDate: '', endDate: '' }
+        });
+      // Log state sau khi set
+      setTimeout(() => {
+        console.log('monthlyData state:', fullMonths);
+      }, 1000);
     } catch (err) {
       console.error('Error fetching monthly data:', err);
       setError('Không thể tải dữ liệu thống kê');
@@ -124,59 +171,11 @@ const StudentStatisticsPanel = () => {
 
       <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={3}>
-            <TextField select fullWidth label="Loại thời gian" value={periodType} onChange={e => setPeriodType(e.target.value)}>
-              <MenuItem value="month">Tháng</MenuItem>
-              <MenuItem value="quarter">Quý</MenuItem>
-              <MenuItem value="year">Năm</MenuItem>
-              <MenuItem value="custom">Tùy chỉnh</MenuItem>
-            </TextField>
-          </Grid>
-          {(periodType === 'month' || periodType === 'quarter' || periodType === 'year') && (
             <Grid item xs={12} sm={3}>
               <TextField select fullWidth label="Năm" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}>
                 {years.map(year => <MenuItem key={year} value={year}>{year}</MenuItem>)}
               </TextField>
             </Grid>
-          )}
-          {periodType === 'month' && (
-            <Grid item xs={12} sm={3}>
-              <TextField select fullWidth label="Tháng" value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))}>
-                {months.map(month => <MenuItem key={month} value={month}>{month}</MenuItem>)}
-              </TextField>
-            </Grid>
-          )}
-          {periodType === 'quarter' && (
-            <Grid item xs={12} sm={3}>
-              <TextField select fullWidth label="Quý" value={selectedQuarter} onChange={e => setSelectedQuarter(Number(e.target.value))}>
-                {quarters.map(q => <MenuItem key={q} value={q}>Quý {q}</MenuItem>)}
-              </TextField>
-            </Grid>
-          )}
-          {periodType === 'custom' && (
-            <>
-              <Grid item xs={12} sm={3}>
-                <TextField
-                  label="Từ ngày"
-                  type="date"
-                  value={customStart}
-                  onChange={e => setCustomStart(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <TextField
-                  label="Đến ngày"
-                  type="date"
-                  value={customEnd}
-                  onChange={e => setCustomEnd(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-              </Grid>
-            </>
-          )}
         </Grid>
       </Paper>
 
@@ -251,7 +250,9 @@ const StudentStatisticsPanel = () => {
         {/* Bar Chart - Total Students by Month */}
         <Grid item xs={12}>
       <Paper sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>Số lượng học sinh theo tháng</Typography>
+        <Typography variant="h6" gutterBottom>
+          {`Số lượng học sinh theo tháng (${selectedYear})`}
+        </Typography>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
                 <CircularProgress />
@@ -274,7 +275,9 @@ const StudentStatisticsPanel = () => {
         {/* Line Chart - Monthly Changes */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>Biến động học sinh theo tháng</Typography>
+            <Typography variant="h6" gutterBottom>
+              {`Biến động học sinh theo tháng (${selectedYear})`}
+            </Typography>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
                 <CircularProgress />
@@ -312,6 +315,32 @@ const StudentStatisticsPanel = () => {
                     dot={{ fill: '#ff9800', strokeWidth: 2, r: 4 }}
                   />
                 </LineChart>
+              </ResponsiveContainer>
+            )}
+      </Paper>
+        </Grid>
+
+        {/* Grouped Bar Chart - New vs Left Students by Month */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              {`So sánh học sinh mới và rời đi theo tháng (${selectedYear})`}
+            </Typography>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={monthlyData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="monthName" label={{ value: 'Tháng', position: 'insideBottomRight', offset: -5 }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="newStudents" name="Học sinh mới" fill="#4caf50" />
+                  <Bar dataKey="leftStudents" name="Học sinh rời đi" fill="#f44336" />
+                </BarChart>
               </ResponsiveContainer>
             )}
       </Paper>

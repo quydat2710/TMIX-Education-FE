@@ -115,11 +115,20 @@ const FinancialStatisticsPanel = () => {
     }
   };
 
+  const paymentStatuses = [
+    { value: 'paid', label: 'Đã thanh toán' },
+    { value: 'partial', label: 'Đóng một phần' },
+    { value: 'pending', label: 'Chờ thanh toán' },
+  ];
+  const [paymentStatus, setPaymentStatus] = useState('paid');
+
   const fetchStudentPayments = async (page = 1) => {
     setLoadingStudent(true);
     try {
       let params = { page, limit: 10 };
-      if (periodType === 'month') {
+      if (periodType === 'status') {
+        params = { ...params, status: paymentStatus };
+      } else if (periodType === 'month') {
         params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
@@ -133,7 +142,6 @@ const FinancialStatisticsPanel = () => {
         params = { ...params, year, startMonth, endMonth };
       }
       const res = await getPaymentsAPI(params);
-      // API trả về: { data, totalPages, totalResults }
       setStudentPayments(res.data || []);
       setStudentPagination({
         page: page,
@@ -342,17 +350,61 @@ const FinancialStatisticsPanel = () => {
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Thống kê tài chính
       </Typography>
+      {/* Cards tổng quan */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>Tổng lương giáo viên</Typography>
+              <Typography variant="h5" color="error.main" fontWeight="bold">{fixedTotalTeacherSalary.toLocaleString()} ₫</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>Tổng học phí</Typography>
+              <Typography variant="h5" color="info.main" fontWeight="bold">{totalStatistics.totalStudentFees.toLocaleString()} ₫</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>Đã thu</Typography>
+              <Typography variant="h5" color="success.main" fontWeight="bold">{totalStatistics.totalPaidAmount.toLocaleString()} ₫</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>Còn thiếu</Typography>
+              <Typography variant="h5" color="warning.main" fontWeight="bold">{totalStatistics.totalRemainingAmount.toLocaleString()} ₫</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+      {/* Bộ lọc thời gian */}
       <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={3}>
-            <TextField select fullWidth label="Loại thời gian" value={periodType} onChange={e => setPeriodType(e.target.value)}>
+            <TextField select fullWidth label="Loại thống kê" value={periodType} onChange={e => setPeriodType(e.target.value)}>
               <MenuItem value="month">Tháng</MenuItem>
               <MenuItem value="quarter">Quý</MenuItem>
               <MenuItem value="year">Năm</MenuItem>
               <MenuItem value="custom">Tùy chỉnh</MenuItem>
+              <MenuItem value="status">Trạng thái thanh toán</MenuItem>
             </TextField>
           </Grid>
-          {periodType !== 'custom' && (
+          {periodType === 'status' && (
+            <Grid item xs={12} sm={3}>
+              <TextField select fullWidth label="Trạng thái thanh toán" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}>
+                {paymentStatuses.map(s => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
+              </TextField>
+            </Grid>
+          )}
+          {periodType !== 'custom' && periodType !== 'status' && (
             <Grid item xs={12} sm={3}>
               <TextField select fullWidth label="Năm" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}>
                 {years.map(year => <MenuItem key={year} value={year}>{year}</MenuItem>)}
@@ -409,42 +461,6 @@ const FinancialStatisticsPanel = () => {
           )}
         </Grid>
       </Paper>
-
-      {/* Cards tổng quan */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng lương giáo viên</Typography>
-              <Typography variant="h5" color="error.main" fontWeight="bold">{fixedTotalTeacherSalary.toLocaleString()} ₫</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng học phí</Typography>
-              <Typography variant="h5" color="info.main" fontWeight="bold">{totalStatistics.totalStudentFees.toLocaleString()} ₫</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Đã thu</Typography>
-              <Typography variant="h5" color="success.main" fontWeight="bold">{totalStatistics.totalPaidAmount.toLocaleString()} ₫</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Còn thiếu</Typography>
-              <Typography variant="h5" color="warning.main" fontWeight="bold">{totalStatistics.totalRemainingAmount.toLocaleString()} ₫</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
       {/* Tabs bảng chi tiết */}
       <Paper sx={{ mb: 3 }}>
@@ -540,37 +556,41 @@ const FinancialStatisticsPanel = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Học sinh</TableCell>
-                      <TableCell>Lớp</TableCell>
-                      <TableCell align="center">Tháng/Năm</TableCell>
-                      <TableCell align="center">Số buổi học</TableCell>
-                      <TableCell align="center">Tổng học phí</TableCell>
-                      <TableCell align="center">Đã đóng</TableCell>
-                      <TableCell align="center">Còn thiếu</TableCell>
+                    <TableCell>Lớp</TableCell>
+                    <TableCell align="center">Tháng</TableCell>
+                    <TableCell align="center">Số buổi học</TableCell>
+                    <TableCell align="center">Số tiền gốc</TableCell>
+                    <TableCell align="center">Giảm giá</TableCell>
+                    <TableCell align="center">Số tiền cuối</TableCell>
+                    <TableCell align="center">Đã đóng</TableCell>
+                    <TableCell align="center">Còn thiếu</TableCell>
                     <TableCell align="center">Trạng thái</TableCell>
-                      <TableCell align="center">Thao tác</TableCell>
+                    <TableCell align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                    {studentPayments.map((p) => (
+                  {studentPayments.map((p) => (
                     <TableRow key={p.id} hover>
-                        <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
-                        <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
-                        <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
-                        <TableCell align="center">{p.attendedLessons || 0}</TableCell>
-                        <TableCell align="center">{(p.finalAmount ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="center">{(p.remainingAmount ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
-                            color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
-                            size="small"
-                          />
-                        </TableCell>
+                      <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
+                      <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
+                      <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
+                      <TableCell align="center">{p.attendedLessons || 0}</TableCell>
+                      <TableCell align="center">{(p.totalAmount ?? 0).toLocaleString()} ₫</TableCell>
+                      <TableCell align="center">{(p.discountAmount ?? 0).toLocaleString()} ₫</TableCell>
+                      <TableCell align="center">{(p.finalAmount ?? 0).toLocaleString()} ₫</TableCell>
+                      <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
+                      <TableCell align="center">{(p.remainingAmount ?? 0).toLocaleString()} ₫</TableCell>
                       <TableCell align="center">
-                          <IconButton onClick={() => handleOpenPaymentHistory(p)}>
-                            <HistoryIcon />
-                          </IconButton>
+                        <Chip
+                          label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
+                          color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton onClick={() => handleOpenPaymentHistory(p)}>
+                          <HistoryIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

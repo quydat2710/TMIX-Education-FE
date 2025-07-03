@@ -69,6 +69,18 @@ const PrevArrow = (props) => {
 const AdvertisementSlider = ({ autoPlay = true, interval = 8000, ads }) => {
   if (!ads || ads.length === 0) return null;
 
+  // Sắp xếp theo priority tăng dần (priority nhỏ hơn là ưu tiên hơn), cùng priority thì createdAt tăng dần, lấy tối đa 5 quảng cáo
+  const sortedAds = [...ads]
+    .sort((a, b) => {
+      if ((a.priority ?? 0) !== (b.priority ?? 0)) {
+        return (a.priority ?? 0) - (b.priority ?? 0); // priority nhỏ hơn lên trước
+      }
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateA - dateB;
+    })
+    .slice(0, 5);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -86,7 +98,7 @@ const AdvertisementSlider = ({ autoPlay = true, interval = 8000, ads }) => {
   return (
     <Box sx={{ position: 'relative' }}>
       <Slider {...settings}>
-        {ads.map((ad, idx) => (
+        {sortedAds.map((ad, idx) => (
           <Box key={ad.id || idx} sx={{ position: 'relative', height: 550, overflow: 'hidden' }}>
             <Card
               sx={{
