@@ -11,6 +11,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import PaymentIcon from '@mui/icons-material/Payment';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { COLORS } from '../../utils/colors';
@@ -26,7 +27,7 @@ const getMenuItemsByRole = (role) => {
         { text: 'Quản lý học viên', icon: <SchoolIcon />, path: '/admin/students' },
         { text: 'Quản lý giáo viên', icon: <GroupIcon />, path: '/admin/teachers' },
         { text: 'Quản lý lớp học', icon: <ClassIcon />, path: '/admin/classes' },
-        { text: 'Quản lý phụ huynh', icon: <GroupIcon />, path: '/admin/parents' },
+        { text: 'Quản lý phụ huynh', icon: <FamilyRestroomIcon />, path: '/admin/parents' },
         { text: 'Quản lý quảng cáo', icon: <CampaignIcon />, path: '/admin/advertisements' },
         { text: 'Thống kê', icon: <AssessmentIcon />, path: '/admin/statistics' },
       ];

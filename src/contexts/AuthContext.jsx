@@ -266,7 +266,28 @@ export const AuthProvider = ({ children }) => {
       if (error.message === 'Request timeout') {
         errorMessage = 'Kết nối API timeout. Vui lòng thử lại.';
       } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+        // Dịch các thông báo lỗi phổ biến từ tiếng Anh sang tiếng Việt
+        const backendMessage = error.response.data.message;
+        const errorTranslations = {
+          'Incorrect email or password': 'Email hoặc mật khẩu không đúng',
+          'Invalid email or password': 'Email hoặc mật khẩu không đúng',
+          'Email or password is incorrect': 'Email hoặc mật khẩu không đúng',
+          'User not found': 'Tài khoản không tồn tại',
+          'Account not found': 'Tài khoản không tồn tại',
+          'Email not found': 'Email không tồn tại',
+          'Password is incorrect': 'Mật khẩu không đúng',
+          'Invalid credentials': 'Thông tin đăng nhập không hợp lệ',
+          'Authentication failed': 'Xác thực thất bại',
+          'Login failed': 'Đăng nhập thất bại',
+          'Account is disabled': 'Tài khoản đã bị vô hiệu hóa',
+          'Account is locked': 'Tài khoản đã bị khóa',
+          'Too many login attempts': 'Quá nhiều lần đăng nhập thất bại',
+          'Please try again later': 'Vui lòng thử lại sau',
+          'Server error': 'Lỗi server',
+          'Internal server error': 'Lỗi server nội bộ'
+        };
+
+        errorMessage = errorTranslations[backendMessage] || backendMessage;
       } else if (error.response?.status === 401) {
         errorMessage = 'Email hoặc mật khẩu không đúng';
       } else if (error.response?.status === 500) {
