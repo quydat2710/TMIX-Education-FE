@@ -1388,7 +1388,7 @@ const ParentManagement = () => {
             onClose={handleCloseDeleteDialog}
             onConfirm={handleDeleteParent}
             title="Xác nhận xóa phụ huynh"
-            content={`Bạn có chắc chắn muốn xóa phụ huynh "${parentToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+            message={parentToDelete ? `Bạn có chắc chắn muốn xóa phụ huynh "${parentToDelete.userId?.name}"? Hành động này không thể hoàn tác.` : ''}
             loading={loading}
           />
 

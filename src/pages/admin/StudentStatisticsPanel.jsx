@@ -163,6 +163,24 @@ const StudentStatisticsPanel = () => {
     fetchMonthlyData();
   }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
 
+  // Tính phần trăm tăng trưởng tháng này so với tháng trước
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentMonthData = monthlyData.find(m => m.month === currentMonth && m.year === selectedYear);
+  const prevMonthData = monthlyData.find(m => m.month === currentMonth - 1 && m.year === selectedYear);
+  let growthPercent = null;
+  if (currentMonth > 1 && currentMonthData && prevMonthData) {
+    const prev = prevMonthData.students || 0;
+    const curr = currentMonthData.students || 0;
+    if (prev > 0) {
+      growthPercent = ((curr - prev) / prev) * 100;
+    } else if (curr > 0) {
+      growthPercent = 100;
+    } else {
+      growthPercent = 0;
+    }
+  }
+
   return (
     <Box>
       <Typography variant="h5" fontWeight="bold" gutterBottom>
@@ -187,27 +205,27 @@ const StudentStatisticsPanel = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={2}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Đầu năm</Typography>
-              <Typography variant="h5" color="info.main" fontWeight="bold">
-                {loading ? <CircularProgress size={20} /> : summaryData.totalNewEnrollments - summaryData.netChange}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={2}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Cuối năm</Typography>
-              <Typography variant="h5" color="success.main" fontWeight="bold">
+              <Typography color="textSecondary" gutterBottom>Tổng học sinh mới</Typography>
+              <Typography variant="h5" color="primary.main" fontWeight="bold">
                 {loading ? <CircularProgress size={20} /> : summaryData.totalNewEnrollments}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={2}>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>Tổng học sinh rời đi</Typography>
+              <Typography variant="h5" color="warning.main" fontWeight="bold">
+                {loading ? <CircularProgress size={20} /> : summaryData.totalCompletions}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -226,19 +244,14 @@ const StudentStatisticsPanel = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng học sinh mới</Typography>
-              <Typography variant="h5" color="primary.main" fontWeight="bold">
-                {loading ? <CircularProgress size={20} /> : summaryData.totalNewEnrollments}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng học sinh rời đi</Typography>
-              <Typography variant="h5" color="warning.main" fontWeight="bold">
-                {loading ? <CircularProgress size={20} /> : summaryData.totalCompletions}
+              <Typography color="textSecondary" gutterBottom>Tăng trưởng tháng này</Typography>
+              <Typography
+                variant="h5"
+                color={growthPercent === null ? 'text.disabled' : growthPercent >= 0 ? 'success.main' : 'error.main'}
+                fontWeight="bold"
+              >
+                {loading ? <CircularProgress size={20} /> :
+                  growthPercent === null ? 'N/A' : `${growthPercent > 0 ? '+' : ''}${growthPercent.toFixed(1)}%`}
               </Typography>
             </CardContent>
           </Card>

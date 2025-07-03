@@ -162,7 +162,9 @@ const FinancialStatisticsPanel = () => {
     setLoadingTeacher(true);
     try {
       let params = { page, limit: 10 };
-      if (periodType === 'month') {
+      if (periodType === 'status') {
+        params = { ...params, status: paymentStatus };
+      } else if (periodType === 'month') {
         params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
@@ -232,6 +234,15 @@ const FinancialStatisticsPanel = () => {
     };
     fetchFixedTotalTeacherSalary();
   }, []);
+
+  useEffect(() => {
+    if (periodType === 'status') {
+      fetchStudentPayments(1);
+      fetchTeacherPayments(1);
+      setStudentPagination(prev => ({ ...prev, page: 1 }));
+      setTeacherPagination(prev => ({ ...prev, page: 1 }));
+    }
+  }, [paymentStatus, periodType]);
 
   const handleStudentPageChange = (event, newPage) => {
     fetchStudentPayments(newPage);
@@ -556,41 +567,41 @@ const FinancialStatisticsPanel = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Học sinh</TableCell>
-                    <TableCell>Lớp</TableCell>
+                      <TableCell>Lớp</TableCell>
                     <TableCell align="center">Tháng</TableCell>
-                    <TableCell align="center">Số buổi học</TableCell>
+                      <TableCell align="center">Số buổi học</TableCell>
                     <TableCell align="center">Số tiền gốc</TableCell>
                     <TableCell align="center">Giảm giá</TableCell>
                     <TableCell align="center">Số tiền cuối</TableCell>
-                    <TableCell align="center">Đã đóng</TableCell>
-                    <TableCell align="center">Còn thiếu</TableCell>
+                      <TableCell align="center">Đã đóng</TableCell>
+                      <TableCell align="center">Còn thiếu</TableCell>
                     <TableCell align="center">Trạng thái</TableCell>
-                    <TableCell align="center">Thao tác</TableCell>
+                      <TableCell align="center">Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {studentPayments.map((p) => (
+                    {studentPayments.map((p) => (
                     <TableRow key={p.id} hover>
-                      <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
-                      <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
-                      <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
-                      <TableCell align="center">{p.attendedLessons || 0}</TableCell>
+                        <TableCell>{p.studentId?.userId?.name || p.studentId?.name || 'Chưa có tên'}</TableCell>
+                        <TableCell>{p.classId?.name || 'Chưa có tên lớp'}</TableCell>
+                        <TableCell align="center">{p.month || 0}/{p.year || 0}</TableCell>
+                        <TableCell align="center">{p.attendedLessons || 0}</TableCell>
                       <TableCell align="center">{(p.totalAmount ?? 0).toLocaleString()} ₫</TableCell>
                       <TableCell align="center">{(p.discountAmount ?? 0).toLocaleString()} ₫</TableCell>
-                      <TableCell align="center">{(p.finalAmount ?? 0).toLocaleString()} ₫</TableCell>
-                      <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
-                      <TableCell align="center">{(p.remainingAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">{(p.finalAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">{(p.remainingAmount ?? 0).toLocaleString()} ₫</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
+                            color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
+                            size="small"
+                          />
+                        </TableCell>
                       <TableCell align="center">
-                        <Chip
-                          label={p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
-                          color={p.status === 'paid' ? 'success' : p.status === 'partial' ? 'warning' : 'error'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton onClick={() => handleOpenPaymentHistory(p)}>
-                          <HistoryIcon />
-                        </IconButton>
+                          <IconButton onClick={() => handleOpenPaymentHistory(p)}>
+                            <HistoryIcon />
+                          </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

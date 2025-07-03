@@ -852,7 +852,7 @@ const TeacherManagement = () => {
         onClose={handleCloseDeleteDialog}
         onConfirm={handleDeleteTeacher}
         title="Xác nhận xóa giáo viên"
-        content={`Bạn có chắc chắn muốn xóa giáo viên "${teacherToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+        message={teacherToDelete ? `Bạn có chắc chắn muốn xóa giáo viên "${teacherToDelete.userId?.name}"? Hành động này không thể hoàn tác.` : ''}
         loading={loading}
       />
 

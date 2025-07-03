@@ -189,10 +189,24 @@ const MyClasses = () => {
         const attRes = await getStudentAttendanceAPI(studentId);
         const attData = attRes?.data?.data || attRes?.data || attRes;
         // Lọc các bản ghi điểm danh đúng lớp
+        const filteredDetailed = (attData.detailedAttendance || []).filter(a => a.class?.id === classData.id);
+        const filteredAbsent = (attData.absentSessionsDetails || []).filter(a => a.class?.id === classData.id);
+        // Tính lại attendanceStats cho đúng lớp
+        let attendanceStats = {
+          totalSessions: filteredDetailed.length,
+          presentSessions: filteredDetailed.filter(a => a.status === 'present').length,
+          absentSessions: filteredDetailed.filter(a => a.status === 'absent').length,
+          lateSessions: filteredDetailed.filter(a => a.status === 'late').length,
+          attendanceRate: 0
+        };
+        if (attendanceStats.totalSessions > 0) {
+          attendanceStats.attendanceRate = Math.round(((attendanceStats.presentSessions + attendanceStats.lateSessions) / attendanceStats.totalSessions) * 100);
+        }
         const filteredAttendance = {
           ...attData,
-          absentSessionsDetails: (attData.absentSessionsDetails || []).filter(a => a.class?.id === classData.id),
-          detailedAttendance: (attData.detailedAttendance || []).filter(a => a.class?.id === classData.id),
+          attendanceStats,
+          absentSessionsDetails: filteredAbsent,
+          detailedAttendance: filteredDetailed,
         };
         setAttendanceInfo(filteredAttendance);
       }
@@ -200,7 +214,7 @@ const MyClasses = () => {
       setAttendanceInfo(null);
     } finally {
       setAttendanceLoading(false);
-    setOpenDialog(true);
+      setOpenDialog(true);
     }
   };
 
@@ -626,78 +640,6 @@ const MyClasses = () => {
                   </Paper>
                   </Grid>
 
-                  {/* Tiến độ học tập */}
-                  {selectedClass.status !== 'upcoming' && (
-                    <Grid item xs={12}>
-                      <Paper sx={{
-                        p: 3,
-                        borderRadius: 2,
-                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                        border: '1px solid #e0e6ed',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                      }}>
-                        <Typography variant="h6" gutterBottom sx={{
-                          color: '#2c3e50',
-                          fontWeight: 600,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          mb: 2
-                        }}>
-                          <Box sx={{
-                            width: 4,
-                            height: 20,
-                            bgcolor: '#667eea',
-                            borderRadius: 2
-                          }} />
-                          Tiến độ học tập của lớp
-                        </Typography>
-                        {(() => {
-                          // Lấy thông tin lịch học
-                          const startDate = selectedClass.startDate;
-                          const endDate = selectedClass.endDate;
-                          // Ưu tiên lấy mảng số thứ tự ngày trong tuần nếu có
-                          let daysOfWeek = [];
-                          if (selectedClass.schedule && Array.isArray(selectedClass.schedule.dayOfWeeks)) {
-                            daysOfWeek = selectedClass.schedule.dayOfWeeks;
-                          } else if (selectedClass.scheduleDays) {
-                            // Nếu chỉ có text, tạm không tính được
-                            daysOfWeek = [];
-                          }
-                          const { total, done } = countLessonsBetweenDates(startDate, endDate, daysOfWeek);
-                          const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-                          return (
-                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <Box sx={{ width: '100%', mr: 1 }}>
-                                  <LinearProgress
-                                    variant="determinate"
-                                    value={progress}
-                                    sx={{
-                                      height: 12,
-                                      borderRadius: 6,
-                                      bgcolor: '#f0f0f0',
-                                      '& .MuiLinearProgress-bar': {
-                                        bgcolor: '#667eea',
-                                      },
-                                    }}
-                                  />
-                                </Box>
-                                <Box sx={{ minWidth: 50 }}>
-                                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#667eea' }}>
-                                    {`${progress}%`}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                              <Typography variant="body2" sx={{ color: '#2c3e50' }}>
-                                Đã học : {done} / {total} buổi
-                              </Typography>
-                            </Box>
-                          );
-                        })()}
-                      </Paper>
-                    </Grid>
-                  )}
 
                   {/* Thống kê tham gia */}
                   {selectedClass.status !== 'upcoming' && (
@@ -778,16 +720,7 @@ const MyClasses = () => {
                                 <Card sx={{ textAlign: 'center', background: 'linear-gradient(135deg, #e3e0ff 0%, #b3baff 100%)', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'info.dark', fontWeight: 600 }}>
-                                      {(() => {
-                                        const stats = attendanceInfo.attendanceStats || {};
-                                        const present = stats.presentSessions ?? 0;
-                                        const late = stats.lateSessions ?? 0;
-                                        const absent = stats.absentSessions ?? 0;
-                                        const total = present + late + absent;
-                                        if (total === 0) return '0%';
-                                        const rate = Math.round(((present + late) / total) * 100);
-                                        return `${rate}%`;
-                                      })()}
+                                      {attendanceInfo.attendanceStats?.attendanceRate ?? 0}%
                             </Typography>
                               <Typography variant="body2" color="info.dark" sx={{ fontWeight: 500 }}>
                               Tỷ lệ tham gia
@@ -875,7 +808,7 @@ const MyClasses = () => {
                 </TableContainer>
                     </Box>
                         ) : (
-                          <Typography variant="body2" color="error" sx={{ p: 2 }}>Không có dữ liệu điểm danh.</Typography>
+                          <Typography variant="body2" color="black" align="center" sx={{ p: 2 }}>Không có dữ liệu điểm danh.</Typography>
                         )}
                   </Paper>
                 </Grid>

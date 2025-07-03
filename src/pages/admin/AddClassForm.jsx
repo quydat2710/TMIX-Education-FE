@@ -164,14 +164,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         }
       }));
     }
-
-    // Clear error when user selects time slot
-    if (errors.timeSlot) {
-      setErrors(prev => ({
-        ...prev,
-        timeSlot: ''
-      }));
-    }
   };
 
   const handleBlur = (field) => {
@@ -202,22 +194,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       setErrors(prev => ({
         ...prev,
         [`schedule.${field}`]: error
-      }));
-    }
-  };
-
-  const handleTimeSlotBlur = () => {
-    setTouched(prev => ({
-      ...prev,
-      timeSlot: true
-    }));
-
-    // Validate time slot on blur
-    const error = validateField('timeSlot', selectedTimeSlot);
-    if (error) {
-      setErrors(prev => ({
-        ...prev,
-        timeSlot: error
       }));
     }
   };
@@ -329,7 +305,10 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
           }
         };
       }
-      if (onSubmit) onSubmit(submitData);
+      if (onSubmit) {
+        console.log('CALLING onSubmit in AddClassForm', submitData);
+        onSubmit(submitData);
+      }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
     }
@@ -396,13 +375,13 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
           />
         </Grid>
         <Grid item xs={6}>
-          <FormControl fullWidth error={!!errors.timeSlot}>
+          <FormControl fullWidth>
             <InputLabel>Khung giờ học</InputLabel>
             <Select
               name="timeSlot"
               value={selectedTimeSlot}
               onChange={(e) => handleTimeSlotSelect(e.target.value)}
-              onBlur={handleTimeSlotBlur}
+              onBlur={() => handleScheduleBlur('timeSlots')}
               label="Khung giờ học"
               required
             >
@@ -421,7 +400,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
                 </MenuItem>
               )}
             </Select>
-            {errors.timeSlot && <FormHelperText>{errors.timeSlot}</FormHelperText>}
           </FormControl>
         </Grid>
         <Grid item xs={6}>

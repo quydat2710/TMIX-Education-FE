@@ -42,6 +42,7 @@ import { createClassAPI, getAllClassesAPI, updateClassAPI, getClassByIdAPI, getS
 import ClassTeacherManagement from './ClassTeacherManagement';
 import ClassStudentManagement from './ClassStudentManagement';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const CustomTabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -80,6 +81,8 @@ const ClassManagement = () => {
   const [classStudentsError, setClassStudentsError] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshKey, setRefreshKey] = useState(0);
+  const [openCloseClassDialog, setOpenCloseClassDialog] = useState(false);
+  const [classToClose, setClassToClose] = useState(null);
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -444,7 +447,7 @@ const ClassManagement = () => {
                       <IconButton
                         size="small"
                         title="Đóng lớp học"
-                        onClick={() => handleCloseClass(cls)}
+                        onClick={() => { setClassToClose(cls); setOpenCloseClassDialog(true); }}
                         sx={{ color: 'error.main' }}
                       >
                         <CloseIcon fontSize="small" />
@@ -1104,6 +1107,14 @@ const ClassManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        open={openCloseClassDialog}
+        onClose={() => { setOpenCloseClassDialog(false); setClassToClose(null); }}
+        onConfirm={() => { if (classToClose) handleCloseClass(classToClose); setOpenCloseClassDialog(false); setClassToClose(null); }}
+        title="Xác nhận đóng lớp học"
+        message={classToClose ? `Bạn có chắc chắn muốn đóng lớp học "${classToClose.name}"? Hành động này không thể hoàn tác.` : ''}
+        loading={loading}
+      />
       <NotificationSnackbar
         open={snackbar.open}
         onClose={handleCloseNotification}

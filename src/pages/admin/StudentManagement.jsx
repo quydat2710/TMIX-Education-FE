@@ -801,7 +801,7 @@ const StudentManagement = () => {
         onClose={handleCloseDeleteDialog}
         onConfirm={handleDeleteStudent}
         title="Xác nhận xóa học sinh"
-        content={`Bạn có chắc chắn muốn xóa học sinh "${studentToDelete?.userId?.name}"? Hành động này không thể hoàn tác.`}
+        message={studentToDelete ? `Bạn có chắc chắn muốn xóa học sinh "${studentToDelete.userId?.name}"? Hành động này không thể hoàn tác.` : ''}
         loading={loading}
       />
 

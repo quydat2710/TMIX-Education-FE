@@ -45,19 +45,6 @@ export const createClassValidationSchema = Yup.object().shape({
   description: Yup.string()
     .max(500, 'Mô tả không được quá 500 ký tự'),
 
-  timeSlot: Yup.string()
-    .required('Khung giờ học là bắt buộc')
-    .test('is-valid-time-slot', 'Khung giờ học không hợp lệ', function(value) {
-      if (!value) return false;
-      const [start, end] = value.split('-');
-      if (!start || !end) return false;
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(start) || !timeRegex.test(end)) return false;
-      const startTime = new Date(`2000-01-01T${start}`);
-      const endTime = new Date(`2000-01-01T${end}`);
-      return endTime > startTime;
-    }),
-
   schedule: Yup.object().shape({
     startDate: Yup.string()
       .required('Ngày bắt đầu là bắt buộc')
@@ -86,22 +73,7 @@ export const createClassValidationSchema = Yup.object().shape({
       .max(7, 'Không được chọn quá 7 ngày'),
 
     timeSlots: Yup.object().shape({
-      startTime: Yup.string()
-        .required('Giờ bắt đầu là bắt buộc')
-        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ bắt đầu không hợp lệ (HH:MM)'),
-
-      endTime: Yup.string()
-        .required('Giờ kết thúc là bắt buộc')
-        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ kết thúc không hợp lệ (HH:MM)')
-        .test('is-after-start-time', 'Giờ kết thúc phải sau giờ bắt đầu', function(value) {
-          const { startTime } = this.parent;
-          if (!startTime || !value) return true;
-
-          const start = new Date(`2000-01-01T${startTime}`);
-          const end = new Date(`2000-01-01T${value}`);
-
-          return end > start;
-        })
+      // BỎ validate cho startTime và endTime
     })
   })
 });
@@ -128,19 +100,6 @@ export const updateClassValidationSchema = Yup.object().shape({
   description: Yup.string()
     .max(500, 'Mô tả không được quá 500 ký tự'),
 
-  timeSlot: Yup.string()
-    .required('Khung giờ học là bắt buộc')
-    .test('is-valid-time-slot', 'Khung giờ học không hợp lệ', function(value) {
-      if (!value) return false;
-      const [start, end] = value.split('-');
-      if (!start || !end) return false;
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(start) || !timeRegex.test(end)) return false;
-      const startTime = new Date(`2000-01-01T${start}`);
-      const endTime = new Date(`2000-01-01T${end}`);
-      return endTime > startTime;
-    }),
-
   schedule: Yup.object().shape({
     startDate: Yup.string()
       .required('Ngày bắt đầu là bắt buộc')
@@ -169,22 +128,7 @@ export const updateClassValidationSchema = Yup.object().shape({
       .max(7, 'Không được chọn quá 7 ngày'),
 
     timeSlots: Yup.object().shape({
-      startTime: Yup.string()
-        .required('Giờ bắt đầu là bắt buộc')
-        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ bắt đầu không hợp lệ (HH:MM)'),
-
-      endTime: Yup.string()
-        .required('Giờ kết thúc là bắt buộc')
-        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ kết thúc không hợp lệ (HH:MM)')
-        .test('is-after-start-time', 'Giờ kết thúc phải sau giờ bắt đầu', function(value) {
-          const { startTime } = this.parent;
-          if (!startTime || !value) return true;
-
-          const start = new Date(`2000-01-01T${startTime}`);
-          const end = new Date(`2000-01-01T${value}`);
-
-          return end > start;
-        })
+      // BỎ validate cho startTime và endTime
     })
   })
 });
