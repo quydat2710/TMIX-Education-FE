@@ -1,5 +1,13 @@
 import axios from 'axios';
 
+// Tạo custom event để thông báo logout
+const createLogoutEvent = () => {
+  const event = new CustomEvent('auth:logout', {
+    detail: { reason: 'token_expired' }
+  });
+  window.dispatchEvent(event);
+};
+
 const instance = axios.create({
     baseURL: 'https://eng-center-management.onrender.com/api/v1',
     timeout: 60000,
@@ -80,7 +88,8 @@ instance.interceptors.response.use(
                     localStorage.removeItem('refresh_token');
                     localStorage.removeItem('userData');
                     localStorage.removeItem('parent_id');
-                    window.location.href = '/login';
+                    // Thông báo logout cho AuthContext
+                    createLogoutEvent();
                     return Promise.reject(error);
                 }
 
@@ -98,10 +107,24 @@ instance.interceptors.response.use(
                     let newRefreshToken = null;
 
                     // Xử lý response theo cấu trúc khác nhau
-                    if (response.data?.tokens?.access?.token) {
+                    console.log('Refresh token response:', response);
+
+                    if (response?.tokens?.access?.token) {
+                        newAccessToken = response.tokens.access.token;
+                        newRefreshToken = response.tokens.refresh?.token;
+                    } else if (response?.data?.tokens?.access?.token) {
                         newAccessToken = response.data.tokens.access.token;
                         newRefreshToken = response.data.tokens.refresh?.token;
-                    } else if (response.data?.access_token) {
+                    } else if (response?.access?.token) {
+                        newAccessToken = response.access.token;
+                        newRefreshToken = response.refresh?.token;
+                    } else if (response?.data?.access?.token) {
+                        newAccessToken = response.data.access.token;
+                        newRefreshToken = response.data.refresh?.token;
+                    } else if (response?.access_token) {
+                        newAccessToken = response.access_token;
+                        newRefreshToken = response.refresh_token;
+                    } else if (response?.data?.access_token) {
                         newAccessToken = response.data.access_token;
                         newRefreshToken = response.data.refresh_token;
                     }
@@ -130,18 +153,24 @@ instance.interceptors.response.use(
                     processQueue(refreshError, null);
 
                     // Logout user
-                localStorage.removeItem('access_token');
+                    localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
                     localStorage.removeItem('userData');
                     localStorage.removeItem('parent_id');
-                window.location.href = '/login';
-
+                    // Thông báo logout cho AuthContext
+                    createLogoutEvent();
                     return Promise.reject(refreshError);
                 } finally {
                     isRefreshing = false;
                 }
             }
-            return Promise.reject(error.response.data);
+            // Trả về error object với response data để dễ xử lý
+        return Promise.reject({
+          response: {
+            status: error.response.status,
+            data: error.response.data
+          }
+        });
         }
         return Promise.reject(error);
     }

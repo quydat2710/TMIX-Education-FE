@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, TextField, Button, MenuItem, Grid, Typography, Select, InputLabel, FormControl, Checkbox, ListItemText, OutlinedInput, Chip
+  Box, TextField, Button, MenuItem, Grid, Typography, Select, InputLabel, FormControl, Checkbox, ListItemText, OutlinedInput, Chip, FormHelperText
 } from '@mui/material';
 import { getAllTeachersAPI } from '../../services/api';
+import { validateClassData, validateField } from '../../validations/classValidation';
 
 const daysOfWeek = [
   { value: 0, label: 'Chủ nhật' },
@@ -14,11 +15,7 @@ const daysOfWeek = [
   { value: 6, label: 'Thứ 7' },
 ];
 
-const statusOptions = [
-  { value: 'active', label: 'Đang hoạt động' },
-  { value: 'closed', label: 'Đã đóng' },
-  { value: 'upcoming', label: 'Sắp khai giảng' },
-];
+
 
 const timeSlotOptions = [
   { value: '07:00-09:00', label: '7:00 - 9:00', startTime: '07:00', endTime: '09:00' },
@@ -35,7 +32,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
     section: '',
     name: '',
     year: new Date().getFullYear(),
-    status: 'active',
     feePerLesson: '',
     maxStudents: '',
     description: '',
@@ -52,6 +48,8 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
   });
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   // Populate form when editing
   useEffect(() => {
@@ -61,7 +59,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         section: classData.section || '',
         name: classData.name || '',
         year: classData.year || new Date().getFullYear(),
-        status: classData.status || 'active',
         feePerLesson: classData.feePerLesson || '',
         maxStudents: classData.maxStudents || '',
         description: classData.description || '',
@@ -98,6 +95,14 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       ...prev,
       [name]: value
     }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleScheduleChange = (e) => {
@@ -109,6 +114,14 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         [name]: value
       }
     }));
+
+    // Clear error when user starts typing
+    if (errors[`schedule.${name}`]) {
+      setErrors(prev => ({
+        ...prev,
+        [`schedule.${name}`]: ''
+      }));
+    }
   };
 
   const handleTimeSlotChange = (e) => {
@@ -151,11 +164,109 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         }
       }));
     }
+
+    // Clear error when user selects time slot
+    if (errors.timeSlot) {
+      setErrors(prev => ({
+        ...prev,
+        timeSlot: ''
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleBlur = (field) => {
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+
+    // Validate field on blur
+    const error = validateField(field, form[field]);
+    if (error) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: error
+      }));
+    }
+  };
+
+  const handleScheduleBlur = (field) => {
+    setTouched(prev => ({
+      ...prev,
+      [`schedule.${field}`]: true
+    }));
+
+    // Validate field on blur
+    const error = validateField(`schedule.${field}`, form.schedule[field]);
+    if (error) {
+      setErrors(prev => ({
+        ...prev,
+        [`schedule.${field}`]: error
+      }));
+    }
+  };
+
+  const handleTimeSlotBlur = () => {
+    setTouched(prev => ({
+      ...prev,
+      timeSlot: true
+    }));
+
+    // Validate time slot on blur
+    const error = validateField('timeSlot', selectedTimeSlot);
+    if (error) {
+      setErrors(prev => ({
+        ...prev,
+        timeSlot: error
+      }));
+    }
+  };
+
+  // Hàm tính toán trạng thái tự động dựa trên ngày
+  const calculateStatus = (startDate, endDate) => {
+    if (!startDate || !endDate) return 'upcoming';
+
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Đặt thời gian cho ngày bắt đầu và kết thúc
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    if (now < start) {
+      return 'upcoming'; // Chưa đến ngày bắt đầu
+    } else if (now >= start && now <= end) {
+      return 'active'; // Trong thời gian học
+    } else {
+      return 'closed'; // Quá ngày kết thúc
+    }
+  };
+
+  const handleSubmit = async (e) => {
     try {
       e.preventDefault();
+
+      // Prepare data for validation
+      const validationData = {
+        ...form,
+        schedule: {
+          ...form.schedule,
+          timeSlots: {
+            startTime: selectedTimeSlot.split(' - ')[0] || form.schedule.timeSlots.startTime,
+            endTime: selectedTimeSlot.split(' - ')[1] || form.schedule.timeSlots.endTime
+          }
+        }
+      };
+
+      // Validate all fields
+      const validationErrors = await validateClassData(validationData);
+
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
       // Format dates to yyyy/mm/dd format
       const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -166,17 +277,21 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         return `${year}/${month}/${day}`;
       };
       let submitData;
+      // Tính toán trạng thái tự động
+      const autoStatus = calculateStatus(form.schedule.startDate, form.schedule.endDate);
+
+      // Sắp xếp ngày học trong tuần theo thứ tự Thứ 2 -> Chủ nhật
+      const sortedDays = [...form.schedule.dayOfWeeks].map(day => parseInt(day)).sort((a, b) => {
+        // Thứ 2-7: 1-6, Chủ nhật: 0 (cuối cùng)
+        if (a === 0) return 1;
+        if (b === 0) return -1;
+        return a - b;
+      });
+
       if (classData) {
         // EDIT MODE: chỉ gửi đúng body update class
-        // Sắp xếp ngày học trong tuần theo thứ tự Thứ 2 -> Chủ nhật
-        const sortedDays = [...form.schedule.dayOfWeeks].map(day => parseInt(day)).sort((a, b) => {
-          // Thứ 2-7: 1-6, Chủ nhật: 0 (cuối cùng)
-          if (a === 0) return 1;
-          if (b === 0) return -1;
-          return a - b;
-        });
         submitData = {
-          status: form.status,
+          status: autoStatus, // Sử dụng trạng thái tự động
           feePerLesson: parseInt(form.feePerLesson),
           maxStudents: parseInt(form.maxStudents),
           description: form.description,
@@ -193,32 +308,26 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         };
       } else {
         // CREATE MODE: giữ nguyên như cũ
-        // Sắp xếp ngày học trong tuần theo thứ tự Thứ 2 -> Chủ nhật
-        const sortedDays = [...form.schedule.dayOfWeeks].map(day => parseInt(day)).sort((a, b) => {
-          if (a === 0) return 1;
-          if (b === 0) return -1;
-          return a - b;
-        });
         submitData = {
-        grade: form.grade,
-        section: form.section,
-        name: form.name,
-        year: parseInt(form.year),
-        status: form.status,
-        feePerLesson: parseInt(form.feePerLesson),
-        maxStudents: parseInt(form.maxStudents),
-        description: form.description,
-        room: form.room,
-        schedule: {
-          startDate: formatDate(form.schedule.startDate),
-          endDate: formatDate(form.schedule.endDate),
-          dayOfWeeks: sortedDays,
-          timeSlots: {
-            startTime: form.schedule.timeSlots.startTime,
-            endTime: form.schedule.timeSlots.endTime
+          grade: form.grade,
+          section: form.section,
+          name: form.name,
+          year: parseInt(form.year),
+          status: autoStatus, // Sử dụng trạng thái tự động
+          feePerLesson: parseInt(form.feePerLesson),
+          maxStudents: parseInt(form.maxStudents),
+          description: form.description,
+          room: form.room,
+          schedule: {
+            startDate: formatDate(form.schedule.startDate),
+            endDate: formatDate(form.schedule.endDate),
+            dayOfWeeks: sortedDays,
+            timeSlots: {
+              startTime: form.schedule.timeSlots.startTime,
+              endTime: form.schedule.timeSlots.endTime
+            }
           }
-        }
-      };
+        };
       }
       if (onSubmit) onSubmit(submitData);
     } catch (error) {
@@ -230,24 +339,70 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
     <Box component="form" id={id || "class-form"} onSubmit={handleSubmit} noValidate>
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <TextField label="Khối " name="grade" value={form.grade} onChange={handleChange} fullWidth required disabled={!!classData} />
+          <TextField
+            label="Khối"
+            name="grade"
+            value={form.grade}
+            onChange={handleChange}
+            onBlur={() => handleBlur('grade')}
+            fullWidth
+            required
+            disabled={!!classData}
+            error={!!errors.grade}
+            helperText={errors.grade}
+          />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Lớp " name="section" value={form.section} onChange={handleChange} fullWidth required disabled={!!classData} />
+          <TextField
+            label="Lớp"
+            name="section"
+            value={form.section}
+            onChange={handleChange}
+            onBlur={() => handleBlur('section')}
+            fullWidth
+            required
+            disabled={!!classData}
+            error={!!errors.section}
+            helperText={errors.section}
+          />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Tên lớp" name="name" value={form.name} onChange={handleChange} fullWidth required disabled={!!classData} />
+          <TextField
+            label="Tên lớp"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            onBlur={() => handleBlur('name')}
+            fullWidth
+            required
+            disabled={!!classData}
+            error={!!errors.name}
+            helperText={errors.name}
+          />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Năm học" name="year" type="number" value={form.year} onChange={handleChange} fullWidth required disabled={!!classData} />
+          <TextField
+            label="Năm học"
+            name="year"
+            type="number"
+            value={form.year}
+            onChange={handleChange}
+            onBlur={() => handleBlur('year')}
+            fullWidth
+            required
+            disabled={!!classData}
+            error={!!errors.year}
+            helperText={errors.year}
+          />
         </Grid>
         <Grid item xs={6}>
-          <FormControl fullWidth>
+          <FormControl fullWidth error={!!errors.timeSlot}>
             <InputLabel>Khung giờ học</InputLabel>
             <Select
               name="timeSlot"
               value={selectedTimeSlot}
               onChange={(e) => handleTimeSlotSelect(e.target.value)}
+              onBlur={handleTimeSlotBlur}
               label="Khung giờ học"
               required
             >
@@ -266,16 +421,49 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
                 </MenuItem>
               )}
             </Select>
+            {errors.timeSlot && <FormHelperText>{errors.timeSlot}</FormHelperText>}
           </FormControl>
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Học phí/buổi" name="feePerLesson" type="number" value={form.feePerLesson} onChange={handleChange} fullWidth required />
+          <TextField
+            label="Học phí/buổi"
+            name="feePerLesson"
+            type="number"
+            value={form.feePerLesson}
+            onChange={handleChange}
+            onBlur={() => handleBlur('feePerLesson')}
+            fullWidth
+            required
+            error={!!errors.feePerLesson}
+            helperText={errors.feePerLesson}
+          />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Số học sinh tối đa" name="maxStudents" type="number" value={form.maxStudents} onChange={handleChange} fullWidth required />
+          <TextField
+            label="Số học sinh tối đa"
+            name="maxStudents"
+            type="number"
+            value={form.maxStudents}
+            onChange={handleChange}
+            onBlur={() => handleBlur('maxStudents')}
+            fullWidth
+            required
+            error={!!errors.maxStudents}
+            helperText={errors.maxStudents}
+          />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Phòng học" name="room" value={form.room} onChange={handleChange} fullWidth required />
+          <TextField
+            label="Phòng học"
+            name="room"
+            value={form.room}
+            onChange={handleChange}
+            onBlur={() => handleBlur('room')}
+            fullWidth
+            required
+            error={!!errors.room}
+            helperText={errors.room}
+          />
         </Grid>
         <Grid item xs={6}>
           <TextField
@@ -284,9 +472,12 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
             type="date"
             value={form.schedule.startDate}
             onChange={handleScheduleChange}
+            onBlur={() => handleScheduleBlur('startDate')}
             fullWidth
             InputLabelProps={{ shrink: true }}
             required
+            error={!!errors['schedule.startDate']}
+            helperText={errors['schedule.startDate']}
           />
         </Grid>
         <Grid item xs={6}>
@@ -296,19 +487,23 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
             type="date"
             value={form.schedule.endDate}
             onChange={handleScheduleChange}
+            onBlur={() => handleScheduleBlur('endDate')}
             fullWidth
             InputLabelProps={{ shrink: true }}
             required
+            error={!!errors['schedule.endDate']}
+            helperText={errors['schedule.endDate']}
           />
         </Grid>
         <Grid item xs={12}>
-          <FormControl fullWidth>
+          <FormControl fullWidth error={!!errors['schedule.dayOfWeeks']}>
             <InputLabel>Ngày học trong tuần</InputLabel>
             <Select
               multiple
               name="dayOfWeeks"
               value={form.schedule.dayOfWeeks}
               onChange={handleDayOfWeeksChange}
+              onBlur={() => handleScheduleBlur('dayOfWeeks')}
               input={<OutlinedInput label="Ngày học trong tuần" />}
               renderValue={(selected) => selected.map(val => daysOfWeek.find(d => d.value === val)?.label).join(', ')}
             >
@@ -319,25 +514,23 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
                 </MenuItem>
               ))}
             </Select>
+            {errors['schedule.dayOfWeeks'] && <FormHelperText>{errors['schedule.dayOfWeeks']}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={6}>
-          <FormControl fullWidth>
-            <InputLabel>Trạng thái</InputLabel>
-            <Select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              label="Trạng thái"
-            >
-              {statusOptions.map(opt => (
-                <MenuItem key={String(opt.value)} value={opt.value}>{opt.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+
         <Grid item xs={12}>
-          <TextField label="Mô tả" name="description" value={form.description} onChange={handleChange} fullWidth multiline rows={2} />
+          <TextField
+            label="Mô tả"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            onBlur={() => handleBlur('description')}
+            fullWidth
+            multiline
+            rows={2}
+            error={!!errors.description}
+            helperText={errors.description}
+          />
         </Grid>
       </Grid>
     </Box>

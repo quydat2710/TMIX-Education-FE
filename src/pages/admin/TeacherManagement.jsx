@@ -132,24 +132,27 @@ const TeacherManagement = () => {
   };
 
   const handleCloseDialog = () => {
-    setSelectedTeacher(null);
     setOpenDialog(false);
-    setForm({
-      name: '',
-      email: '',
-      password: '',
-      phone: '',
-      address: '',
-      gender: 'female',
-      dayOfBirth: '',
-      salaryPerLesson: '',
-      qualifications: '',
-      specialization: '',
-      description: '',
-      isActive: true,
-    });
-    setError('');
-    setFormErrors({});
+    // Reset form after dialog is closed to avoid flash effect
+    setTimeout(() => {
+      setSelectedTeacher(null);
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        address: '',
+        gender: 'female',
+        dayOfBirth: '',
+        salaryPerLesson: '',
+        qualifications: '',
+        specialization: '',
+        description: '',
+        isActive: true,
+      });
+      setError('');
+      setFormErrors({});
+    }, 100);
   };
 
   const handleOpenViewDialog = (teacherData) => {

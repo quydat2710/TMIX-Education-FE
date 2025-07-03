@@ -164,6 +164,18 @@ export const AuthProvider = ({ children }) => {
     } else {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
+
+    // Lắng nghe event logout từ axios interceptor
+    const handleLogoutEvent = (event) => {
+      console.log('Received logout event:', event.detail);
+      dispatch({ type: 'LOGOUT' });
+    };
+
+    window.addEventListener('auth:logout', handleLogoutEvent);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogoutEvent);
+    };
   }, []);
 
   // Luôn đồng bộ user/token vào localStorage khi thay đổi
@@ -268,7 +280,8 @@ export const AuthProvider = ({ children }) => {
         payload: errorMessage
       });
 
-      throw new Error(errorMessage);
+      // Không throw error để tránh reload trang
+      return null;
     }
   };
 
@@ -346,7 +359,8 @@ export const AuthProvider = ({ children }) => {
       console.error('Refresh token error:', error);
       // Nếu refresh token thất bại, logout user
       await logout();
-      throw error;
+      // Không throw error để tránh reload trang
+      return null;
     }
   };
 

@@ -120,25 +120,28 @@ const ParentManagement = () => {
   };
 
   const handleCloseDialog = () => {
-    setSelectedParent(null);
     setOpenDialog(false);
-    setForm({
-      name: '',
-      email: '',
-      password: '',
-      dayOfBirth: '',
-      phone: '',
-      address: '',
-      gender: 'male',
-      canSeeTeacherInfo: true,
-    });
-    setClassEdits([]);
-    setNewChildId('');
-    setTabValue(0);
-    setStudentSearchQuery('');
-    setSearchResults([]);
-    setError('');
-    setFormErrors({});
+    // Reset form after dialog is closed to avoid flash effect
+    setTimeout(() => {
+      setSelectedParent(null);
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        dayOfBirth: '',
+        phone: '',
+        address: '',
+        gender: 'male',
+        canSeeTeacherInfo: true,
+      });
+      setClassEdits([]);
+      setNewChildId('');
+      setTabValue(0);
+      setStudentSearchQuery('');
+      setSearchResults([]);
+      setError('');
+      setFormErrors({});
+    }, 100);
   };
 
   const handleOpenViewDialog = (parentData) => {

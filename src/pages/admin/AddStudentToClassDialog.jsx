@@ -124,7 +124,7 @@ const AddStudentToClassDialog = ({ open, onClose, classData, onUpdate }) => {
       if (onUpdate) onUpdate();
       onClose();
     } catch (error) {
-      setNotification({ open: true, message: error.response?.data?.message || 'Lỗi khi thêm học sinh.', severity: 'error' });
+      setNotification({ open: true, message: error.response?.data?.message || 'Học sinh đã có trong lớp.', severity: 'error' });
     } finally {
       setLoading(false);
     }

@@ -116,19 +116,22 @@ const StudentManagement = () => {
   };
 
   const handleCloseDialog = () => {
-    setSelectedStudent(null);
     setOpenDialog(false);
-    setFormSubmitted(false);
-    setForm({
-      name: '',
-      email: '',
-      password: '',
-      dayOfBirth: '',
-      phone: '',
-      address: '',
-      gender: 'female',
-    });
-    setError('');
+    // Reset form after dialog is closed to avoid flash effect
+    setTimeout(() => {
+      setSelectedStudent(null);
+      setFormSubmitted(false);
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        dayOfBirth: '',
+        phone: '',
+        address: '',
+        gender: 'female',
+      });
+      setError('');
+    }, 100);
   };
 
   const handleChange = (e) => {

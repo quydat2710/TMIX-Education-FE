@@ -74,31 +74,45 @@ const Login = () => {
     return () => clearInterval(autofillInterval);
   }, [values.email, values.password]);
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted, preventing default reload');
     setIsSubmitting(true);
     clearError();
 
     const isValid = validate();
     if (!isValid) {
+      console.log('Form validation failed');
       setIsSubmitting(false);
       return;
     }
 
     try {
+      console.log('Attempting login with:', { email: values.email, password: '***' });
       const result = await login({
         email: values.email,
         password: values.password
       });
-      // Điều hướng đến dashboard theo role
-      const userRole = result?.user?.role;
-      if (userRole) {
-        navigate(getDashboardPath(userRole), { replace: true });
+
+      console.log('Login result:', result);
+
+      // Nếu login thành công, result sẽ có user data
+      if (result && result.user) {
+        const userRole = result.user.role;
+        console.log('Login successful, navigating to:', userRole);
+        if (userRole) {
+          navigate(getDashboardPath(userRole), { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } else {
-        navigate('/', { replace: true });
+        console.log('Login failed, result is null');
       }
+      // Nếu login thất bại, result sẽ là null và error đã được set trong AuthContext
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login failed with error:', error);
+      // Không cần làm gì thêm vì AuthContext đã xử lý error và set vào state
+      // Error sẽ được hiển thị thông qua authError từ useAuth()
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +186,7 @@ const Login = () => {
               </Alert>
             )}
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
               <TextField
                 margin="normal"
                 required

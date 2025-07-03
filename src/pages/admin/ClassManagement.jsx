@@ -93,9 +93,12 @@ const ClassManagement = () => {
   };
 
   const handleCloseDialog = () => {
-    setSelectedClass(null);
     setOpenDialog(false);
-    setError('');
+    // Reset form after dialog is closed to avoid flash effect
+    setTimeout(() => {
+      setSelectedClass(null);
+      setError('');
+    }, 100);
   };
 
   const handleOpenViewDialog = (classData) => {
@@ -379,13 +382,13 @@ const ClassManagement = () => {
           <TableHead>
             <TableRow>
               <TableCell width="10%">Tên lớp</TableCell>
-              <TableCell width="15%">Giáo viên</TableCell>
+              <TableCell width="12">Giáo viên</TableCell>
               <TableCell width="10%">Năm học</TableCell>
-              <TableCell width="10%">Học phí mỗi buổi</TableCell>
-              <TableCell width="20%">Lịch học</TableCell>
+              <TableCell width="15%">Học phí mỗi buổi</TableCell>
+              <TableCell width="15%">Lịch học</TableCell>
               <TableCell width="10%">Phòng học</TableCell>
-              <TableCell width="10%">Trạng thái</TableCell>
-              <TableCell width="15%" align="center">Thao tác</TableCell>
+              <TableCell width="13%">Trạng thái</TableCell>
+              <TableCell width="10%" align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -430,7 +433,7 @@ const ClassManagement = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="left">
                     <IconButton size="small" title="Xem chi tiết" onClick={() => handleOpenViewDialog(cls)}>
                       <ViewIcon fontSize="small" />
                     </IconButton>
