@@ -229,6 +229,7 @@ const Dashboard = () => {
                 Danh sách lớp học
               </Typography>
                 {dashboardData.classList.length > 0 ? (
+                <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
                 <TableContainer sx={commonStyles.tableContainer}>
                   <Table size="small">
                     <TableHead>
@@ -242,60 +243,61 @@ const Dashboard = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                        {dashboardData.classList.map((classItem, index) => {
-                          const schedule = formatSchedule(classItem.schedule);
-                          return (
-                            <TableRow key={index} sx={commonStyles.tableRow}>
+                          {dashboardData.classList.map((classItem, index) => {
+                            const schedule = formatSchedule(classItem.schedule);
+                            return (
+                              <TableRow key={index} sx={commonStyles.tableRow}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
-                                  {classItem.className}
+                                    {classItem.className}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                                  {classItem.teacherName || 'Chưa phân công'}
+                                    {classItem.teacherName || 'Chưa phân công'}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                                  {classItem.room || 'N/A'}
+                                    {classItem.room || 'N/A'}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                                  {schedule.days}
+                                    {schedule.days}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                                  {schedule.time}
+                                    {schedule.time}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
-                                  label={
-                                    classItem.status === 'active'
-                                      ? 'Đang học'
-                                      : classItem.status === 'completed'
-                                      ? 'Hoàn thành'
-                                      : classItem.status || 'N/A'
-                                  }
-                                  color={
-                                    classItem.status === 'active'
-                                      ? 'success'
-                                      : classItem.status === 'completed'
-                                      ? 'primary'
-                                      : 'default'
-                                  }
+                                    label={
+                                      classItem.status === 'active'
+                                        ? 'Đang học'
+                                        : classItem.status === 'completed'
+                                        ? 'Hoàn thành'
+                                        : classItem.status || 'N/A'
+                                    }
+                                    color={
+                                      classItem.status === 'active'
+                                        ? 'success'
+                                        : classItem.status === 'completed'
+                                        ? 'primary'
+                                        : 'default'
+                                    }
                               size="small"
                             />
                           </TableCell>
                         </TableRow>
-                          );
-                        })}
+                            );
+                          })}
                     </TableBody>
                   </Table>
                 </TableContainer>
+                </Box>
               ) : (
                 <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                   Chưa có lớp học nào

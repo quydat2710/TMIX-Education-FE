@@ -4,11 +4,12 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, updateParentAPI, sendVerificationEmailAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, updateParentAPI, sendVerificationEmailAPI, getParentByIdAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { validateParent, validateChangePassword } from '../../validations/parentValidation';
+import { useLocation } from 'react-router-dom';
 
 const ParentProfile = () => {
   const { user, updateUser } = useAuth();
@@ -37,6 +38,7 @@ const ParentProfile = () => {
   const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
   const fileInputRef = useRef();
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
@@ -52,6 +54,18 @@ const ParentProfile = () => {
       setAvatarPreview(user.avatar || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        if (!user?.parentId) return;
+        const res = await getParentByIdAPI(user.parentId);
+        const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+        if (newUser) updateUser(newUser);
+      } catch (e) { /* ignore */ }
+    };
+    if (location.state?.reload) fetchLatestUser();
+  }, [location.state, user?.parentId]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {

@@ -4,11 +4,12 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateStudentAPI, sendVerificationEmailAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateStudentAPI, sendVerificationEmailAPI, getStudentByIdAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { validateStudent, validateChangePassword } from '../../validations/studentValidation';
+import { useLocation } from 'react-router-dom';
 
 const StudentProfile = () => {
   const { user, updateUser } = useAuth();
@@ -37,6 +38,7 @@ const StudentProfile = () => {
   const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
   const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
@@ -52,6 +54,18 @@ const StudentProfile = () => {
       setAvatarPreview(user.avatar || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        if (!user?.studentId) return;
+        const res = await getStudentByIdAPI(user.studentId);
+        const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+        if (newUser) updateUser(newUser);
+      } catch (e) { /* ignore */ }
+    };
+    if (location.state?.reload) fetchLatestUser();
+  }, [location.state, user?.studentId]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = (e) => {

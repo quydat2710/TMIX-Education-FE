@@ -183,7 +183,7 @@ const Dashboard = () => {
 
         {/* Stat Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <StatCard
               title="Số con đang học"
               value={stats.totalChildren || 0}
@@ -191,7 +191,7 @@ const Dashboard = () => {
               color="primary"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <StatCard
               title="Tổng số lớp"
               value={stats.totalClasses || 0}
@@ -199,7 +199,7 @@ const Dashboard = () => {
               color="success"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <StatCard
               title="Tổng học phí"
               value={formatCurrency(stats.totalFees || 0)}
@@ -207,7 +207,7 @@ const Dashboard = () => {
               color="warning"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <StatCard
               title="Đã thanh toán"
               value={formatCurrency(stats.paidFees || 0)}
@@ -215,26 +215,19 @@ const Dashboard = () => {
               color="info"
             />
           </Grid>
-        </Grid>
-
-        {/* Additional Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <StatCard
               title="Còn thiếu"
-                value={formatCurrency(stats.pendingPayments || 0)}
+              value={formatCurrency(stats.pendingPayments || 0)}
               icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="error"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tỷ lệ thanh toán"
-              value={`${(stats.totalFees || 0) > 0 ? Math.round(((stats.paidFees || 0) / (stats.totalFees || 0)) * 100) : 0}%`}
-              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              color="success"
-            />
           </Grid>
+
+        {/* Additional Stats */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {/* Đã xoá StatCard 'Còn thiếu' duplicate ở đây */}
         </Grid>
 
           {/* Children Information with Schedules */}

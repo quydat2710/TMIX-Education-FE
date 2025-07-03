@@ -4,11 +4,12 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, updateTeacherAPI, sendVerificationEmailAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, updateTeacherAPI, sendVerificationEmailAPI, getTeacherByIdAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { validateTeacher, validateChangePassword } from '../../validations/teacherValidation';
+import { useLocation } from 'react-router-dom';
 
 const TeacherProfile = () => {
   const { user, updateUser } = useAuth();
@@ -42,6 +43,7 @@ const TeacherProfile = () => {
   const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
   const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const location = useLocation();
 
   // Helper: Chuyển đổi mọi kiểu ngày về dd/mm/yyyy
   const parseDateToDDMMYYYY = (dateString) => {
@@ -83,6 +85,18 @@ const TeacherProfile = () => {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        if (!user?.teacherId) return;
+        const res = await getTeacherByIdAPI(user.teacherId);
+        const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+        if (newUser) updateUser(newUser);
+      } catch (e) { /* ignore */ }
+    };
+    if (location.state?.reload) fetchLatestUser();
+  }, [location.state, user?.teacherId]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {

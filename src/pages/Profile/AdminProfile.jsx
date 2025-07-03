@@ -4,11 +4,12 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI, getAdminByIdAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { validateEmail, validatePhone, validateDayOfBirth, validateAddress, validateGender, validateName, validateChangePassword } from '../../validations/commonValidation';
+import { useLocation } from 'react-router-dom';
 
 const AdminProfile = () => {
   const { user, updateUser } = useAuth();
@@ -37,6 +38,7 @@ const AdminProfile = () => {
   const [passwordFormErrors, setPasswordFormErrors] = useState({});
   const fileInputRef = useRef();
   const [emailVerifySnackbar, setEmailVerifySnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
@@ -52,6 +54,19 @@ const AdminProfile = () => {
       setAvatarPreview(user.avatar || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        if (!user?.adminId && !user?.id) return;
+        const id = user?.adminId || user?.id;
+        const res = await getAdminByIdAPI(id);
+        const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+        if (newUser) updateUser(newUser);
+      } catch (e) { /* ignore */ }
+    };
+    if (location.state?.reload) fetchLatestUser();
+  }, [location.state, user?.adminId, user?.id]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {

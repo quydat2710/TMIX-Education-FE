@@ -12,7 +12,7 @@ export const commonStyles = {
   contentContainer: {
     backgroundColor: 'white',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    p: 3,
+    p: 5,
   },
   pageHeader: {
     display: 'flex',
@@ -51,7 +51,7 @@ export const commonStyles = {
 
   // Form styles
   formContainer: {
-    p: 2,
+    p: 5,
   },
   formGrid: {
     mt: 2,

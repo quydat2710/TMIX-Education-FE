@@ -243,7 +243,7 @@ const AttendanceHistoryModal = ({
                           <Tooltip title={isExpanded ? "Đóng chi tiết" : "Xem chi tiết"}>
                             <IconButton
                               size="small"
-                              onClick={() => handleToggleRow(index)}
+                              onClick={e => { e.stopPropagation(); handleToggleRow(index); }}
                             >
                                   {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                             </IconButton>

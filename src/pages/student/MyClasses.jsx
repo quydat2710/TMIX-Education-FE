@@ -39,8 +39,9 @@ import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
-import { getStudentScheduleAPI, getClassByIdAPI, getStudentAttendanceAPI } from '../../services/api';
+import { getStudentByIdAPI } from '../../services/api';
 import dayjs from 'dayjs';
+import StatCard from '../../components/common/StatCard';
 
 const MyClasses = () => {
   const { user } = useAuth();
@@ -53,112 +54,77 @@ const MyClasses = () => {
 
   useEffect(() => {
     const fetchClasses = async () => {
+      console.log('DEBUG - fetchClasses START');
       setLoading(true);
       try {
         let studentId = user?.id;
         if (user?.role === 'student' && user?.studentId) {
           studentId = user.studentId;
         }
-        if (!studentId) throw new Error('Không tìm thấy thông tin học sinh');
+        if (!studentId) {
+          console.log('DEBUG - Không tìm thấy thông tin học sinh', user);
+          throw new Error('Không tìm thấy thông tin học sinh');
+        }
 
-        // 1. Lấy lịch học
-        const scheduleRes = await getStudentScheduleAPI(studentId);
-        console.log('scheduleRes:', scheduleRes);
-        const schedules = scheduleRes.data.schedules;
-        console.log('Schedules lấy trực tiếp:', schedules, Array.isArray(schedules));
-
-        if (!Array.isArray(schedules) || schedules.length === 0) {
-          console.log('Không có lịch học nào');
+        // Lấy thông tin học sinh và các lớp học từ getStudentByIdAPI
+        console.log('DEBUG - Gọi getStudentByIdAPI với studentId:', studentId);
+        const res = await getStudentByIdAPI(studentId);
+        console.log('DEBUG - API response:', res);
+        const studentData = res;
+        console.log('DEBUG - studentData:', studentData);
+        console.log('DEBUG - studentData.classes:', studentData.classes);
+        if (!studentData || !Array.isArray(studentData.classes)) {
+          console.log('DEBUG - Không có hoặc không phải mảng classes:', studentData?.classes);
           setClasses([]);
+          console.log('DEBUG - setClasses([]) do không có dữ liệu');
           return;
         }
 
-        const classIds = Array.from(new Set(schedules.map(item => item.class?.id).filter(Boolean)));
-        console.log('classIds to fetch:', classIds);
-
-        // 2. Lấy thông tin từng lớp
-        const classPromises = classIds.map(async (classId) => {
-          console.log('Fetching class info for classId:', classId);
-          const classRes = await getClassByIdAPI(classId);
-          console.log('classRes for classId', classId, ':', classRes);
-          return classRes?.data || {};
-        });
-
-        const classList = await Promise.all(classPromises);
-        console.log('classList:', classList);
-
-        // 3. Lấy toàn bộ điểm danh của học sinh
-        const attendanceRes = await getStudentAttendanceAPI(studentId);
-        console.log('attendanceRes:', attendanceRes);
-
-        // Sử dụng detailedAttendance thay vì attendanceRecords
-        const attendanceList = attendanceRes?.data?.detailedAttendance || [];
-        console.log('attendanceList:', attendanceList);
-
-        // Lấy thống kê điểm danh
-        const attendanceStats = attendanceRes?.data?.attendanceStats || {
-          presentSessions: 0,
-          absentSessions: 0,
-          lateSessions: 0,
-          totalSessions: 0,
-          attendanceRate: 0
-        };
-        console.log('attendanceStats:', attendanceStats);
-
-        // 4. Gộp dữ liệu lại
-        const realClasses = classList.map(classData => {
-          console.log('Processing classData:', classData);
-
-          // Tìm thông tin schedule, teacher từ schedules
-          const scheduleInfo = schedules.find(s => s.class?.id === classData.id);
-          console.log('Found scheduleInfo for class', classData.id, ':', scheduleInfo);
-
-          // Lọc điểm danh cho đúng class
-          const classAttendance = attendanceList.filter(a => a.class?.id === classData.id);
-          console.log('Class attendance for', classData.id, ':', classAttendance);
-          console.log('All attendance records:', attendanceList.map(a => ({ classId: a.class?.id, status: a.status })));
-
-          const attendedLessons = classAttendance.filter(a => a.status === 'present' || a.status === 'late').length;
-          const missedLessons = classAttendance.filter(a => a.status === 'absent').length;
-          const totalLessons = classAttendance.length;
-          const progress = totalLessons > 0 ? Math.round((attendedLessons / totalLessons) * 100) : 0;
-
-          const processedClass = {
-            id: classData.id,
-            name: classData.name,
-            teacher: scheduleInfo?.teacher?.name || 'Chưa phân công',
-            schedule: scheduleInfo ? `${scheduleInfo.schedule?.dayOfWeeks?.join(', ')} - ${scheduleInfo.schedule?.timeSlots?.startTime || ''}-${scheduleInfo.schedule?.timeSlots?.endTime || ''}` : 'Chưa có lịch',
-            status: classData.status || 'active',
-            progress,
-            totalLessons,
-            attendedLessons,
-            missedLessons,
-            upcomingLessons: 0, // Có thể tính thêm nếu muốn
-            room: classData.room || 'Chưa phân phòng',
-            startDate: classData.startDate,
-            endDate: classData.endDate,
-            feePerLesson: classData.feePerLesson || 0,
-            description: classData.description || '',
-            attendanceHistory: classAttendance.map(a => ({
-              id: a.checkedAt || a.date,
-              date: a.date,
-              dayOfWeek: dayjs(a.date).format('dddd'),
-              status: a.status,
-              time: dayjs(a.date).format('HH:mm'),
-              note: a.note || ''
-            }))
+        // Chuyển đổi dữ liệu lớp học từ response mới
+        const realClasses = studentData.classes.map((item) => {
+          const classInfo = item.classId;
+          const teacherName = classInfo.teacherId?.userId?.name || 'Chưa phân công';
+          const schedule = classInfo.schedule;
+          const dayText = schedule?.dayOfWeeks?.length > 0
+            ? schedule.dayOfWeeks.map(d => ['CN','T2','T3','T4','T5','T6','T7'][d]).join(', ')
+            : 'Chưa có lịch';
+          const startTime = schedule?.timeSlots?.startTime || '';
+          const endTime = schedule?.timeSlots?.endTime || '';
+          let scheduleDays = dayText;
+          let scheduleTime = '';
+          if (startTime && endTime) {
+            scheduleTime = `${startTime} - ${endTime}`;
+          } else if (startTime || endTime) {
+            scheduleTime = startTime || endTime;
+          }
+          return {
+            id: classInfo.id,
+            name: classInfo.name,
+            teacher: teacherName,
+            scheduleDays,
+            scheduleTime,
+            status: classInfo.status,
+            enrollStatus: item.status,
+            room: classInfo.room || 'Chưa phân phòng',
+            startDate: schedule?.startDate,
+            endDate: schedule?.endDate,
+            grade: classInfo.grade,
+            section: classInfo.section,
+            year: classInfo.year,
+            discountPercent: item.discountPercent,
+            enrollmentDate: item.enrollmentDate
           };
-
-          console.log('Processed class:', processedClass);
-          return processedClass;
         });
-
-        console.log('Final realClasses:', realClasses);
         setClasses(realClasses);
+        console.log('DEBUG - setClasses(realClasses):', realClasses);
       } catch (error) {
+        console.log('DEBUG - Error in fetchClasses:', error);
         console.error('Error fetching classes:', error);
+        setClasses([]);
+        console.log('DEBUG - setClasses([]) do error');
       } finally {
         setLoading(false);
+        console.log('DEBUG - fetchClasses END');
       }
     };
     fetchClasses();
@@ -188,26 +154,15 @@ const MyClasses = () => {
       // Tab "Đang học" - hiển thị các lớp active
       matchesStatus = classItem.status === 'active';
     } else if (selectedTab === 1) {
-      // Tab "Đã kết thúc" - hiển thị các lớp closed
-      matchesStatus = classItem.status === 'closed';
-    } else if (selectedTab === 2) {
       // Tab "Sắp khai giảng" - hiển thị các lớp upcoming
       matchesStatus = classItem.status === 'upcoming';
+    } else if (selectedTab === 2) {
+      // Tab "Đã kết thúc" - hiển thị các lớp closed
+      matchesStatus = classItem.status === 'closed' || classItem.status === 'completed';
     }
 
     return matchesSearch && matchesStatus;
   });
-
-  // Debug log
-  console.log('Current classes state:', classes);
-  console.log('Filtered classes:', filteredClasses);
-  console.log('Search query:', searchQuery);
-
-  // Debug trạng thái lớp học
-  console.log('Class statuses:', classes.map(c => ({ id: c.id, name: c.name, status: c.status })));
-  console.log('Active classes:', classes.filter(c => c.status === 'active').length);
-  console.log('Closed classes:', classes.filter(c => c.status === 'closed').length);
-  console.log('Upcoming classes:', classes.filter(c => c.status === 'upcoming').length);
 
   const getStatusColor = (status) => {
     if (status === 'active') return 'success';
@@ -236,82 +191,72 @@ const MyClasses = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Card thông tin tổng quan */}
-        <Grid item xs={12} md={4}>
-              <Card sx={{ height: '100%', boxShadow: 3 }}>
-            <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary, fontWeight: 600 }}>
-                    <SchoolIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Thống kê học tập
-              </Typography>
-                  <Divider sx={{ mb: 2 }} />
-              <Grid container spacing={2}>
+        {/* Stat Cards */}
                 <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Tổng số lớp:</Typography>
-                        <Typography variant="h6" sx={{ color: COLORS.primary, fontWeight: 600 }}>
-                          {classes.length} lớp
-                        </Typography>
-                      </Box>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Tổng số lớp"
+                value={classes.length}
+                icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+                color="primary"
+              />
                 </Grid>
-                <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Đang học:</Typography>
-                        <Typography variant="h6" sx={{ color: 'success.main', fontWeight: 600 }}>
-                          {classes.filter((c) => c.status === 'active').length} lớp
-                  </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Đang học"
+                value={classes.filter((c) => c.status === 'active').length}
+                icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+                color="success"
+              />
                 </Grid>
-                <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Đã kết thúc:</Typography>
-                        <Typography variant="h6" sx={{ color: 'info.main', fontWeight: 600 }}>
-                          {classes.filter((c) => c.status === 'closed').length} lớp
-                        </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Đã kết thúc"
+                value={classes.filter((c) => c.status === 'closed' || c.status === 'completed').length}
+                icon={<CancelIcon sx={{ fontSize: 40 }} />}
+                color="info"
+              />
                     </Grid>
-                    <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Sắp khai giảng:</Typography>
-                        <Typography variant="h6" sx={{ color: 'warning.main', fontWeight: 600 }}>
-                          {classes.filter((c) => c.status === 'upcoming').length} lớp
-                  </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Sắp khai giảng"
+                value={classes.filter((c) => c.status === 'upcoming').length}
+                icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
+                color="warning"
+              />
                     </Grid>
-                    <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Tổng buổi học:</Typography>
-                        <Typography variant="h6" sx={{ color: COLORS.secondary, fontWeight: 600 }}>
-                          {classes.reduce((sum, c) => sum + c.totalLessons, 0)} buổi
-                        </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Tổng buổi học"
+                value={classes.reduce((sum, c) => sum + c.totalLessons, 0)}
+                icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+                color="secondary"
+              />
                     </Grid>
-                    <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Đã tham gia:</Typography>
-                        <Typography variant="h6" sx={{ color: 'success.main', fontWeight: 600 }}>
-                          {classes.reduce((sum, c) => sum + c.attendedLessons, 0)} buổi
-                        </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Đã tham gia"
+                value={classes.reduce((sum, c) => sum + c.attendedLessons, 0)}
+                icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+                color="success"
+              />
                     </Grid>
-                    <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle2" color="text.secondary">Đã nghỉ:</Typography>
-                        <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 600 }}>
-                          {classes.reduce((sum, c) => sum + c.missedLessons, 0)} buổi
-                        </Typography>
-                      </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Đã nghỉ"
+                value={classes.reduce((sum, c) => sum + c.missedLessons, 0)}
+                icon={<CancelIcon sx={{ fontSize: 40 }} />}
+                color="error"
+              />
                 </Grid>
               </Grid>
-            </CardContent>
-          </Card>
         </Grid>
 
         {/* Danh sách lớp học */}
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2, mb: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 0, mb: 3, boxShadow: 'none', background: 'transparent' }}>
+            <Box sx={{ width: '100%' }}>
                 <TextField
                   fullWidth
                   placeholder="Tìm kiếm lớp học..."
@@ -324,15 +269,20 @@ const MyClasses = () => {
                       </InputAdornment>
                     ),
                   }}
+                sx={{ width: '100%', background: '#fff', borderRadius: 2, boxShadow: 1 }}
                 />
-              </Grid>
-            </Grid>
+            </Box>
           </Paper>
 
-          <Tabs value={selectedTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-            <Tab label="Đang học" />
-            <Tab label="Đã kết thúc" />
-            <Tab label="Sắp khai giảng" />
+          <Tabs
+            value={selectedTab}
+            onChange={handleTabChange}
+            sx={{ mb: 2, width: '100%' }}
+            TabIndicatorProps={{ sx: { height: 4, borderRadius: 2 } }}
+          >
+            <Tab label="Đang học" sx={{ width: '33.33%' }} />
+            <Tab label="Sắp khai giảng" sx={{ width: '33.33%' }} />
+            <Tab label="Đã kết thúc" sx={{ width: '33.33%' }} />
           </Tabs>
 
           {loading ? (
@@ -362,10 +312,12 @@ const MyClasses = () => {
                         <TableCell sx={{ color: 'black', fontWeight: 600 }}>Tên lớp</TableCell>
                         <TableCell sx={{ color: 'black', fontWeight: 600 }}>Giáo viên</TableCell>
                         <TableCell sx={{ color: 'black', fontWeight: 600 }}>Lịch học</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Phòng học</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Năm</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Ngày bắt đầu</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Ngày kết thúc</TableCell>
                         <TableCell sx={{ color: 'black', fontWeight: 600 }}>Trạng thái</TableCell>
-                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Thống kê tham gia</TableCell>
-                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Tiến độ</TableCell>
-                        <TableCell sx={{ color: 'black', fontWeight: 600 }} align="center">Thao tác</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 600 }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -380,85 +332,45 @@ const MyClasses = () => {
                               <Typography variant="body2">{classItem.teacher}</Typography>
                           </TableCell>
                           <TableCell>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
-                                {classItem.schedule?.split(' - ')[0] || 'Chưa có lịch'}
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                              {classItem.scheduleDays || 'Chưa có lịch'}
+                            </Typography>
+                            {classItem.scheduleTime && (
+                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                {classItem.scheduleTime}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                {classItem.schedule?.split(' - ')[1] || ''}
-                              </Typography>
-                            </Box>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">{classItem.room}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">{classItem.year}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">{classItem.startDate ? new Date(classItem.startDate).toLocaleDateString('vi-VN') : ''}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">{classItem.endDate ? new Date(classItem.endDate).toLocaleDateString('vi-VN') : ''}</Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
                               label={getStatusLabel(classItem.status)}
                               color={getStatusColor(classItem.status)}
                               size="small"
-                              sx={{
-                                fontWeight: 600,
-                                '& .MuiChip-icon': {
-                                  fontSize: '16px'
-                                }
-                              }}
+                              sx={{ fontWeight: 600 }}
                             />
                           </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />
-                                <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                  Đã học: {classItem.attendedLessons}/{classItem.totalLessons}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <CancelIcon sx={{ fontSize: 16, color: 'error.main' }} />
-                                <Typography variant="caption" sx={{ color: 'error.main' }}>
-                                  Đã nghỉ: {classItem.missedLessons} buổi
-                                </Typography>
-                              </Box>
-                              {classItem.upcomingLessons > 0 && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <ScheduleIcon sx={{ fontSize: 16, color: 'info.main' }} />
-                                  <Typography variant="caption" sx={{ color: 'info.main' }}>
-                                    Sắp tới: {classItem.upcomingLessons} buổi
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Box sx={{ width: '100%', mr: 1 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={classItem.progress}
-                              sx={{
-                                height: 8,
-                                borderRadius: 5,
-                                    bgcolor: COLORS.background,
-                                '& .MuiLinearProgress-bar': {
-                                      bgcolor: COLORS.primary,
-                                },
-                              }}
-                            />
-                          </Box>
-                          <Box sx={{ minWidth: 35 }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {`${Math.round(classItem.progress)}%`}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          onClick={() => handleOpenDialog(classItem)}
-                          color="primary"
+                          <TableCell align="center">
+                            <IconButton
+                              onClick={() => handleOpenDialog(classItem)}
+                              color="primary"
                               title="Xem chi tiết"
-                        >
-                          <ViewIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
+                            >
+                              <ViewIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -575,10 +487,10 @@ const MyClasses = () => {
                           </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                             <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                            {selectedClass.schedule?.split(' - ')[0] || 'Chưa có lịch'}
+                            {selectedClass.scheduleDays || 'Chưa có lịch'}
                           </Typography>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            {selectedClass.schedule?.split(' - ')[1] || ''}
+                            {selectedClass.scheduleTime || ''}
                           </Typography>
                         </Box>
                   </Grid>

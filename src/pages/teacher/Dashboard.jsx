@@ -163,16 +163,8 @@ const Dashboard = () => {
         </Typography>
 
         {/* Stat Cards - First Row */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tổng học viên"
-                value={dashboardData.totalStudent}
-              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
-              color="primary"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={6} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp đang dạy"
                 value={dashboardData.teachingClasses}
@@ -180,7 +172,7 @@ const Dashboard = () => {
               color="success"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp đã kết thúc"
                 value={dashboardData.closedClasses}
@@ -188,7 +180,7 @@ const Dashboard = () => {
               color="warning"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp sắp tới"
                 value={dashboardData.upcomingClasses}
@@ -199,7 +191,7 @@ const Dashboard = () => {
         </Grid>
 
           {/* Salary Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={6} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Tổng lương"
@@ -227,114 +219,103 @@ const Dashboard = () => {
         </Grid>
 
         {/* Content Sections */}
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           {/* Active Classes */}
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 6px 24px rgba(0,0,0,0.12)', bgcolor: '#fff', border: '1px solid #e0e0e0', mb: 3 }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                 Lớp học đang dạy
               </Typography>
-                {dashboardData.activeClasses.length > 0 ? (
-                  <TableContainer sx={commonStyles.tableContainer}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Thời gian</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {dashboardData.activeClasses.map((classItem, index) => {
-                          const schedule = formatSchedule(classItem.schedule);
-                          return (
-                            <TableRow key={index} sx={commonStyles.tableRow}>
-                              <TableCell>
-                                <Typography variant="body2" fontWeight="medium">
-                                  {classItem.name}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2">
-                                  {classItem.room || 'N/A'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2">
-                                  {schedule.days}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2">
-                                  {schedule.time}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Chip
-                                  label="Đang dạy"
-                                  color="success"
-                                  size="small"
-                                />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                ) : (
-                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                    Chưa có lớp học nào đang dạy
-                  </Typography>
-                )}
+                <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
+                  {dashboardData.activeClasses.length > 0 ? (
+                    <TableContainer sx={commonStyles.tableContainer}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Thời gian</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {dashboardData.activeClasses.map((classItem, index) => {
+                            const schedule = formatSchedule(classItem.schedule);
+                            return (
+                              <TableRow key={index} sx={commonStyles.tableRow}>
+                                <TableCell>
+                                  <Typography variant="body2" fontWeight="medium">
+                                    {classItem.name}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">
+                                    {classItem.room || 'N/A'}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">
+                                    {schedule.days}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">
+                                    {schedule.time}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label="Đang dạy"
+                                    color="success"
+                                    size="small"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                      Chưa có lớp học nào đang dạy
+                    </Typography>
+                  )}
+                </Box>
             </Paper>
             </Grid>
 
-                        {/* Recent Salary */}
+          {/* Recent Salary */}
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 6px 24px rgba(0,0,0,0.12)', bgcolor: '#fff', border: '1px solid #e0e0e0', mb: 3 }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                   Lương tháng gần đây
                 </Typography>
                 {dashboardData.recentlySalary && Object.keys(dashboardData.recentlySalary).length > 0 ? (
-                  <TableContainer sx={commonStyles.tableContainer}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Tháng/Năm</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Tổng buổi</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Lương/buổi</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow sx={commonStyles.tableRow}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {formatMonthYear(dashboardData.recentlySalary.month, dashboardData.recentlySalary.year)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {dashboardData.recentlySalary.totalLessons || 0}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {formatCurrency(dashboardData.recentlySalary.salaryPerLesson)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" color="success.main" fontWeight="medium">
-                              {formatCurrency(dashboardData.recentlySalary.paidAmount)}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={3} justifyContent="space-between" alignItems="flex-start">
+                      <Box flex={1}>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                          <strong>Tháng/Năm:</strong> {formatMonthYear(dashboardData.recentlySalary.month, dashboardData.recentlySalary.year)}
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                          <strong>Tổng buổi:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{dashboardData.recentlySalary.totalLessons || 0}</span>
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                          <strong>Lương/buổi:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency(dashboardData.recentlySalary.salaryPerLesson)}</span>
+                        </Typography>
+                      </Box>
+                      <Box flex={1}>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                          <strong>Tổng lương:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency((dashboardData.recentlySalary.totalLessons || 0) * (dashboardData.recentlySalary.salaryPerLesson || 0))}</span>
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                          <strong>Đã thanh toán:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency(dashboardData.recentlySalary.paidAmount)}</span>
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 ) : (
                   <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                     Chưa có thông tin lương gần đây

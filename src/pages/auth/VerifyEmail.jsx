@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress, Alert, Paper } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Paper } from '@mui/material';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import { verifyEmailAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const getProfilePath = (role) => {
   switch (role) {
@@ -20,6 +21,7 @@ const VerifyEmail = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(5);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -30,7 +32,6 @@ const VerifyEmail = () => {
         setCountdown((prev) => {
           if (prev === 1) {
             clearInterval(timer);
-            // Điều hướng về trang cá nhân và truyền state để reload dữ liệu
             navigate(getProfilePath(user?.role), { state: { reload: true } });
           }
           return prev - 1;
@@ -46,22 +47,27 @@ const VerifyEmail = () => {
     setSuccess(false);
     setCountdown(5);
     try {
-      // Giả sử token xác thực lấy từ query string hoặc localStorage tuỳ backend
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token') || localStorage.getItem('verify_email_token');
       if (!token) {
         setError('Không tìm thấy mã xác thực email.');
+        setSnackbar({ open: true, message: 'Không tìm thấy mã xác thực email.', severity: 'error' });
         setLoading(false);
         return;
       }
       await verifyEmailAPI(token);
       setSuccess(true);
+      setSnackbar({ open: true, message: 'Xác thực email thành công! Đang chuyển về trang cá nhân...', severity: 'success' });
     } catch (err) {
-      setError(err?.response?.data?.message || 'Xác thực email thất bại.');
+      const msg = err?.response?.data?.message || 'Xác thực email thất bại.';
+      setError(msg);
+      setSnackbar({ open: true, message: msg, severity: 'error' });
     } finally {
       setLoading(false);
     }
   };
+
+  const handleCloseSnackbar = () => setSnackbar(s => ({ ...s, open: false }));
 
   return (
     <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" bgcolor="#f5f6fa">
@@ -74,12 +80,14 @@ const VerifyEmail = () => {
           Vui lòng nhấn nút bên dưới để xác thực email của bạn.
         </Typography>
         {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Typography color="success.main" sx={{ mb: 2, fontWeight: 500 }}>
             Xác thực email thành công!<br />
             Đang chuyển về trang cá nhân sau {countdown} giây...
-          </Alert>
+          </Typography>
         )}
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && !success && (
+          <Typography color="error.main" sx={{ mb: 2, fontWeight: 500 }}>{error}</Typography>
+        )}
         <Button
           variant="contained"
           color="primary"
@@ -91,6 +99,13 @@ const VerifyEmail = () => {
           {loading ? <CircularProgress size={24} color="inherit" /> : 'Xác thực email'}
         </Button>
       </Paper>
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        autoHideDuration={3000}
+      />
     </Box>
   );
 };
