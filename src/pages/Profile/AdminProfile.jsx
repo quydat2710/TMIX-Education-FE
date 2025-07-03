@@ -57,7 +57,7 @@ const AdminProfile = () => {
 
   useEffect(() => {
     const reloadUserInfo = async () => {
-      if (location.state?.reload && user?.id) {
+      if (user?.id) {
         try {
           const res = await getUserByIdAPI(user.id);
           const userData = res?.data?.data || res?.data || res;
@@ -68,7 +68,8 @@ const AdminProfile = () => {
       }
     };
     reloadUserInfo();
-  }, [location.state, user?.id, updateUser]);
+    // eslint-disable-next-line
+  }, [user?.id, updateUser]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {
