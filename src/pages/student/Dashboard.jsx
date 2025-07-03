@@ -25,10 +25,7 @@ import {
 import { COLORS } from '../../utils/colors';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
-import {
-  getStudentScheduleAPI,
-  getStudentAttendanceAPI,
-} from '../../services/api';
+import { getStudentDashboardAPI } from '../../services/api';
 import { commonStyles } from '../../utils/styles';
 
 const Dashboard = () => {
@@ -37,11 +34,12 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalClasses: 0,
     activeClasses: 0,
+    completedClasses: 0,
     totalLessons: 0,
     attendedLessons: 0,
     attendanceRate: 0,
-    upcomingClasses: 0,
-    completedClasses: 0,
+    absentSessions: 0,
+    lateSessions: 0,
   });
   const [schedule, setSchedule] = useState([]);
   const [upcomingClasses, setUpcomingClasses] = useState([]);
@@ -57,61 +55,42 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     setLoading(true);
+    setError(''); // Reset error at the start
     try {
-      // Get student ID from localStorage
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const studentId = userData.studentId || userData.id;
-
       if (!studentId) {
         setError('Không tìm thấy thông tin học sinh');
+        setLoading(false);
         return;
       }
-
-      // Fetch data in parallel
-      const [scheduleRes, attendanceRes] = await Promise.all([
-        getStudentScheduleAPI(studentId),
-        getStudentAttendanceAPI(studentId),
-      ]);
-
-      const scheduleData = scheduleRes?.data?.schedules || scheduleRes?.data || [];
-      const attendanceStats = attendanceRes?.data?.attendanceStats || {};
-      const detailedAttendance = attendanceRes?.data?.detailedAttendance || [];
-
-      // Calculate statistics
-      const activeClasses = scheduleRes?.data?.totalActiveClasses || scheduleData.filter(c => c.class?.status === 'active' || c.status === 'active').length;
-      const totalLessons = attendanceStats.totalSessions || 0;
-      const attendedLessons = attendanceStats.presentSessions || 0;
-      const attendanceRate = attendanceStats.attendanceRate || 0;
+      const res = await getStudentDashboardAPI(studentId);
+      const d = res.data?.data || res.data;
+      setStats({
+        totalClasses: d.totalClasses,
+        activeClasses: d.activeClasses,
+        completedClasses: d.completedClasses,
+        totalLessons: d.attendance?.totalSessions,
+        attendedLessons: d.attendance?.presentSessions,
+        attendanceRate: d.attendance?.attendanceRate,
+        absentSessions: d.attendance?.absentSessions,
+        lateSessions: d.attendance?.lateSessions,
+      });
 
       // Get upcoming classes for today and tomorrow
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const upcoming = scheduleData.filter(c => {
+      const upcoming = d.schedules.filter(c => {
         const classData = c.class || c;
         if (classData.status !== 'active') return false;
         const classDate = new Date(c.schedule?.startDate);
         return classDate >= today && classDate <= tomorrow;
       }).slice(0, 3);
 
-      const completedClasses = scheduleData.filter(c => {
-        const classData = c.class || c;
-        return classData.status === 'completed' || classData.status === 'closed';
-      }).length;
-
-      setStats({
-        totalClasses: scheduleData.length,
-        activeClasses,
-        totalLessons,
-        attendedLessons,
-        attendanceRate,
-        upcomingClasses: upcoming.length,
-        completedClasses,
-      });
-
       // Get all classes for display
-      const allClasses = scheduleData.map(c => {
+      const allClasses = d.schedules.map(c => {
         const classData = c.class || c;
         return {
           id: classData.id,
@@ -230,40 +209,38 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp hoàn thành"
-              value={stats.completedClasses || 0}
+              value={stats.completedClasses}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
           </Grid>
-            </Grid>
-
-        {/* Additional Stats */}
+        </Grid>
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
-              title="Lớp sắp tới"
-              value={stats.upcomingClasses}
+              title="Tổng số buổi"
+              value={stats.totalLessons}
               icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
-              color="primary"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <StatCard
-              title="Buổi học đã tham gia"
-              value={`${stats.attendedLessons}/${stats.totalLessons}`}
-              icon={<TimeIcon sx={{ fontSize: 40 }} />}
               color="info"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
-              title="Tỷ lệ tham gia"
-              value={`${stats.attendanceRate}%`}
-              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+              title="Buổi đã tham gia"
+              value={stats.attendedLessons}
+              icon={<TimeIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
           </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <StatCard
+              title="Tỷ lệ tham gia"
+              value={`${stats.attendanceRate || 0}%`}
+              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+              color="primary"
+            />
           </Grid>
+        </Grid>
 
         {/* Content Sections */}
         <Grid container spacing={3}>

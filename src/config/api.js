@@ -91,5 +91,11 @@ export const API_CONFIG = {
       UPDATE: (id) => `/announcements/${id}`,
       DELETE: (id) => `/announcements/${id}`,
     },
+    DASHBOARD: {
+      ADMIN: '/dashboard/admin',
+      TEACHER: (id) => `/dashboard/teacher/${id}`,
+      PARENT: (id) => `/dashboard/parent/${id}`,
+      STUDENT: (id) => `/dashboard/student/${id}`,
+    },
   },
 };

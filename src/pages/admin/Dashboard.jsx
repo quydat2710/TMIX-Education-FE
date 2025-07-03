@@ -27,31 +27,24 @@ import { COLORS } from '../../utils/colors';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
-import {
-  getAllStudentsAPI,
-  getAllTeachersAPI,
-  getAllClassesAPI,
-  getPaymentsAPI,
-  getTeacherPaymentsAPI,
-  getTotalPaymentsAPI,
-} from '../../services/api';
+import { getAdminDashboardAPI } from '../../services/api';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({
-    totalStudents: 0,
-    totalTeachers: 0,
-    totalClasses: 0,
+    totalStudent: 0,
+    totalTeacher: 0,
+    activeClasses: 0,
+    upcomingClasses: 0,
+    closedClasses: 0,
     totalRevenue: 0,
     totalPaidAmount: 0,
-    totalUnpaidAmount: 0,
-    totalExpenses: 0,
-    activeClasses: 0,
-    pendingPayments: 0,
+    totalUnPaidAmount: 0,
+    teacherTotalSalary: 0,
+    teacherPaidAmount: 0,
+    teacherUnPaidAmount: 0,
   });
-  const [recentPayments, setRecentPayments] = useState([]);
-  const [recentTeacherPayments, setRecentTeacherPayments] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -61,109 +54,37 @@ const Dashboard = () => {
     setLoading(true);
     setError(''); // Clear any previous errors
     try {
-      const [
-        studentsRes,
-        teachersRes,
-        classesRes,
-        paymentsRes,
-        teacherPaymentsRes,
-        totalPaymentsRes,
-      ] = await Promise.all([
-        getAllStudentsAPI(),
-        getAllTeachersAPI(),
-        getAllClassesAPI(),
-        getPaymentsAPI({ limit: 1000 }),
-        getTeacherPaymentsAPI({ limit: 1000 }),
-        getTotalPaymentsAPI(),
-      ]);
-
-
-
-      const students = studentsRes?.data?.students || studentsRes?.data || [];
-      const teachers = teachersRes?.data?.teachers || teachersRes?.data || [];
-      const classes = classesRes?.data?.classes || classesRes?.data || [];
-
-      const payments = paymentsRes?.data?.payments ||
-                      paymentsRes?.data ||
-                      paymentsRes?.payments ||
-                      [];
-
-      const teacherPayments = teacherPaymentsRes?.data?.teacherPayments ||
-                             teacherPaymentsRes?.data ||
-                             teacherPaymentsRes?.teacherPayments ||
-                             [];
-
-      const totalStudents = studentsRes?.data?.totalResults || studentsRes?.totalResults || students.length || 0;
-      const totalTeachers = teachersRes?.data?.totalResults || teachersRes?.totalResults || teachers.length || 0;
-      const totalClasses = classesRes?.data?.totalResults || classesRes?.totalResults || classes.length || 0;
-
-
-
-
-
-      const totalPaymentsData = totalPaymentsRes?.data || {};
-      const totalRevenue = totalPaymentsData.total || 0;
-      const totalPaidAmount = totalPaymentsData.paid || 0;
-      const totalUnpaidAmount = totalRevenue - totalPaidAmount; // Tính số tiền chưa thu
-
-
-
-      const totalExpenses = teacherPayments.reduce((sum, payment) => {
-        const amount = Number(payment.paidAmount) || Number(payment.amount) || 0;
-        return sum + amount;
-      }, 0);
-
-      const activeClasses = classes.filter(c => c.status === 'active' || c.isActive).length;
-      const pendingPayments = payments.filter(p => p.status === 'pending' || p.status === 'unpaid' || p.status === 'pending').length;
-
-
-
-      const calculatedStats = {
-        totalStudents,
-        totalTeachers,
-        totalClasses,
-        totalRevenue: totalRevenue || 0,
-        totalPaidAmount: totalPaidAmount || 0,
-        totalUnpaidAmount: totalUnpaidAmount || 0,
-        totalExpenses: totalExpenses || 0,
-        activeClasses: activeClasses || 0,
-        pendingPayments: pendingPayments || 0,
+      const res = await getAdminDashboardAPI();
+      console.log('API response:', res.data);
+      const d = res.data || {};
+      console.log('d.totalStudent:', d.totalStudent);
+      console.log('d.totalTeacher:', d.totalTeacher);
+      console.log('d.activeClasses:', d.activeClasses);
+      console.log('d.upcomingClasses:', d.upcomingClasses);
+      console.log('d.closedClasses:', d.closedClasses);
+      console.log('d.paymentInfo:', d.paymentInfo);
+      console.log('d.paymentInfo[0]:', d.paymentInfo?.[0]);
+      console.log('d.paymentInfo[0].totalRevenue:', d.paymentInfo?.[0]?.totalRevenue);
+      console.log('d.teacherPaymentInfo:', d.teacherPaymentInfo);
+      console.log('d.teacherPaymentInfo[0]:', d.teacherPaymentInfo?.[0]);
+      console.log('d.teacherPaymentInfo[0].totalSalary:', d.teacherPaymentInfo?.[0]?.totalSalary);
+      const newStats = {
+        totalStudent: d.totalStudent,
+        totalTeacher: d.totalTeacher,
+        activeClasses: d.activeClasses,
+        upcomingClasses: d.upcomingClasses,
+        closedClasses: d.closedClasses,
+        totalRevenue: d.paymentInfo?.[0]?.totalRevenue,
+        totalPaidAmount: d.paymentInfo?.[0]?.totalPaidAmount,
+        totalUnPaidAmount: d.paymentInfo?.[0]?.totalUnPaidAmount,
+        teacherTotalSalary: d.teacherPaymentInfo?.[0]?.totalSalary,
+        teacherPaidAmount: d.teacherPaymentInfo?.[0]?.totalPaidAmount,
+        teacherUnPaidAmount: d.teacherPaymentInfo?.[0]?.totalUnPaidAmount,
       };
-
-
-
-      setStats(calculatedStats);
-
-      const sortedPayments = payments.sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.date || 0);
-        const dateB = new Date(b.createdAt || b.date || 0);
-        return dateB - dateA;
-      });
-
-      const sortedTeacherPayments = teacherPayments.sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.date || 0);
-        const dateB = new Date(b.createdAt || b.date || 0);
-        return dateB - dateA;
-      });
-
-      setRecentPayments(sortedPayments.slice(0, 5));
-      setRecentTeacherPayments(sortedTeacherPayments.slice(0, 5));
+      console.log('Stats set:', newStats);
+      setStats(newStats);
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
-      setStats({
-        totalStudents: 0,
-        totalTeachers: 0,
-        totalClasses: 0,
-        totalRevenue: 0,
-        totalPaidAmount: 0,
-        totalUnpaidAmount: 0,
-        totalExpenses: 0,
-        activeClasses: 0,
-        pendingPayments: 0,
-      });
-      setRecentPayments([]);
-      setRecentTeacherPayments([]);
     } finally {
       setLoading(false);
     }
@@ -228,7 +149,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng học viên"
-              value={stats.totalStudents || 0}
+              value={stats.totalStudent || 0}
               icon={<SchoolIcon sx={{ fontSize: 40 }} />}
               color="primary"
             />
@@ -236,7 +157,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng giáo viên"
-              value={stats.totalTeachers || 0}
+              value={stats.totalTeacher || 0}
               icon={<PersonIcon sx={{ fontSize: 40 }} />}
               color="secondary"
             />
@@ -251,30 +172,26 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng doanh thu"
-              value={formatCurrency(stats.totalRevenue || 0)}
-              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              color="warning"
-            />
-          </Grid>
-        </Grid>
-
-        {/* Additional Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tổng lớp học"
-              value={stats.totalClasses || 0}
-              icon={<PeopleIcon sx={{ fontSize: 40 }} />}
+              title="Lớp sắp khai giảng"
+              value={stats.upcomingClasses || 0}
+              icon={<ClassIcon sx={{ fontSize: 40 }} />}
               color="info"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Chi phí lương"
-              value={formatCurrency(stats.totalExpenses || 0)}
-              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
-              color="error"
+              title="Lớp đã kết thúc"
+              value={stats.closedClasses || 0}
+              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              color="warning"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tổng doanh thu"
+              value={formatCurrency(stats.totalRevenue || 0)}
+              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
+              color="primary"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -287,112 +204,35 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng chưa thu"
-              value={formatCurrency(stats.totalUnpaidAmount || 0)}
+              title="Chưa thu"
+              value={formatCurrency(stats.totalUnPaidAmount || 0)}
               icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="warning"
             />
           </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tổng lương giáo viên"
+              value={formatCurrency(stats.teacherTotalSalary || 0)}
+              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+              color="secondary"
+            />
         </Grid>
-
-        {/* Recent Activities */}
-        <Grid container spacing={3}>
-          {/* Recent Student Payments */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary.main, fontWeight: 600 }}>
-                Thanh toán học phí gần đây
-              </Typography>
-              {recentPayments.length > 0 ? (
-                <TableContainer sx={commonStyles.tableContainer}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Học sinh</TableCell>
-                        <TableCell align="right">Số tiền</TableCell>
-                        <TableCell align="center">Trạng thái</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                                              {recentPayments.map((payment, index) => (
-                          <TableRow key={payment.id || index} hover sx={commonStyles.tableRow}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {payment.studentId?.userId?.name || payment.studentId?.name || 'N/A'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="600" color="success.main">
-                              {formatCurrency(payment.amount || 0)}
-                      </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={getStatusLabel(payment.status)}
-                              color={getStatusColor(payment.status)}
-                              size="small"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  Chưa có thanh toán nào
-                      </Typography>
-              )}
-            </Paper>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Đã trả lương"
+              value={formatCurrency(stats.teacherPaidAmount || 0)}
+              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
+              color="success"
+            />
             </Grid>
-
-          {/* Recent Teacher Payments */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: COLORS.secondary.main, fontWeight: 600 }}>
-                Thanh toán lương gần đây
-              </Typography>
-              {recentTeacherPayments.length > 0 ? (
-                <TableContainer sx={commonStyles.tableContainer}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Giáo viên</TableCell>
-                        <TableCell align="right">Số tiền</TableCell>
-                        <TableCell align="center">Trạng thái</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                                              {recentTeacherPayments.map((payment, index) => (
-                          <TableRow key={payment.id || index} hover sx={commonStyles.tableRow}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {payment.teacherId?.userId?.name || payment.teacherId?.name || 'N/A'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="600" color="error.main">
-                              {formatCurrency(payment.paidAmount || 0)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={payment.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
-                              color={payment.status === 'paid' ? 'success' : 'warning'}
-                              size="small"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  Chưa có thanh toán lương nào
-                </Typography>
-              )}
-            </Paper>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Chưa trả lương"
+              value={formatCurrency(stats.teacherUnPaidAmount || 0)}
+              icon={<WarningIcon sx={{ fontSize: 40 }} />}
+              color="warning"
+            />
           </Grid>
         </Grid>
         </Box>

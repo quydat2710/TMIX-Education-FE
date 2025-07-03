@@ -43,9 +43,9 @@ import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
 import {
   getParentByIdAPI,
-  getPaymentsByStudentAPI,
   getClassByIdAPI,
   getTeacherByIdAPI,
+  getParentDashboardAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -91,6 +91,15 @@ const Dashboard = () => {
         return;
       }
 
+      // Call new dashboard API
+      let parentDashboard = {};
+      try {
+        const parentDashboardRes = await getParentDashboardAPI(parentId);
+        parentDashboard = parentDashboardRes?.data?.data || parentDashboardRes?.data || {};
+      } catch (err) {
+        console.error('Error fetching parent dashboard API:', err);
+      }
+
       console.log('Fetching parent data for ID:', parentId);
 
       // Fetch parent data
@@ -109,60 +118,18 @@ const Dashboard = () => {
       console.log('Parent studentIds type:', typeof parent?.studentIds);
       setParentData(parent);
 
-      // Fetch children data and their payments
+      // Fetch children data (without payment aggregation)
       // Use studentIds from parent response instead of children property
       const children = parent?.studentIds || [];
-      console.log('Children found:', children.length);
-      console.log('Children array:', children);
-
-      const childrenWithPayments = await Promise.all(
+      const childrenWithClasses = await Promise.all(
         children.map(async (child) => {
           try {
-            console.log('Fetching payments for child:', child.id);
-            const paymentsRes = await getPaymentsByStudentAPI(child.id, { limit: 100 });
-            console.log('Payments response for child', child.id, ':', paymentsRes);
-
-            const payments = paymentsRes?.data?.payments || paymentsRes?.data || [];
-            console.log('Extracted payments array:', payments);
-            console.log('First payment example:', payments[0]);
-
-            const totalFees = payments.reduce((sum, p) => {
-              const amount = Number(p.finalAmount) || Number(p.amount) || 0;
-              console.log('Payment:', p, 'Amount:', amount);
-              return sum + amount;
-            }, 0);
-
-            const paidFees = payments.reduce((sum, p) => {
-              const amount = Number(p.paidAmount) || Number(p.amount) || 0;
-              console.log('Payment paid:', p, 'Amount:', amount);
-              return sum + amount;
-            }, 0);
-
-            const pendingPayments = payments.filter(p => p.status !== 'paid').length;
-
-            console.log('Calculated for child:', {
-              totalFees,
-              paidFees,
-              pendingPayments,
-              paymentsCount: payments.length
-            });
-
-            // Debug classes structure
-            console.log('Child classes:', child.classes);
-            console.log('First class example:', child.classes?.[0]);
-            console.log('Classes length:', child.classes?.length);
-
             // Fetch detailed class information for each class
             const classesWithDetails = await Promise.all(
               (child.classes || []).map(async (classItem) => {
                 try {
-                  console.log('Fetching class details for:', classItem.classId || classItem.id);
                   const classRes = await getClassByIdAPI(classItem.classId || classItem.id);
-                  console.log('Class API response:', classRes);
-
                   const classData = classRes?.data || classRes;
-                  console.log('Class data:', classData);
-
                   return {
                     ...classItem,
                     id: classItem.classId || classItem.id,
@@ -174,7 +141,6 @@ const Dashboard = () => {
                     status: classItem.status || 'active',
                   };
                 } catch (err) {
-                  console.error('Error fetching class details:', err);
                   return {
                     ...classItem,
                     id: classItem.classId || classItem.id,
@@ -188,27 +154,18 @@ const Dashboard = () => {
                 }
               })
             );
-
-            console.log('Classes with details:', classesWithDetails);
-
             // Fetch teacher information for each class
             const classesWithTeachers = await Promise.all(
               classesWithDetails.map(async (classItem) => {
                 if (classItem.teacherId) {
                   try {
-                    console.log('Fetching teacher details for:', classItem.teacherId);
                     const teacherRes = await getTeacherByIdAPI(classItem.teacherId);
-                    console.log('Teacher API response:', teacherRes);
-
                     const teacherData = teacherRes?.data || teacherRes;
-                    console.log('Teacher data:', teacherData);
-
                     return {
                       ...classItem,
                       teacherName: teacherData?.userId?.name || teacherData?.name || 'Chưa phân công',
                     };
                   } catch (err) {
-                    console.error('Error fetching teacher details:', err);
                     return {
                       ...classItem,
                       teacherName: 'Chưa phân công',
@@ -222,10 +179,7 @@ const Dashboard = () => {
                 }
               })
             );
-
-            console.log('Classes with teachers:', classesWithTeachers);
-
-            // Format child data to match expected structure
+            // Format child data to match expected structure (no payment fields)
             const formattedChild = {
               id: child.id,
               studentId: child.id,
@@ -237,18 +191,10 @@ const Dashboard = () => {
               avatar: child.userId?.avatar || child.avatar || null,
               status: child.status || 'active',
               classes: classesWithTeachers,
-              payments,
-              totalFees,
-              paidFees,
-              pendingPayments,
             };
-
-            console.log('Formatted child:', formattedChild);
-
             return formattedChild;
           } catch (err) {
-            console.error(`Error fetching payments for child ${child.id}:`, err);
-    return {
+            return {
               id: child.id,
               studentId: child.id,
               name: child.userId?.name || child.name || 'N/A',
@@ -259,35 +205,20 @@ const Dashboard = () => {
               avatar: child.userId?.avatar || child.avatar || null,
               status: child.status || 'active',
               classes: child.classes || [],
-              payments: [],
-              totalFees: 0,
-              paidFees: 0,
-              pendingPayments: 0,
             };
           }
         })
       );
-
-      console.log('Children with payments:', childrenWithPayments);
-      setChildrenData(childrenWithPayments);
-
-      // Calculate overall statistics
-      const totalChildren = childrenWithPayments.length;
-      const totalClasses = childrenWithPayments.reduce((sum, child) => sum + (child.classes?.length || 0), 0);
-      const totalFees = childrenWithPayments.reduce((sum, child) => sum + child.totalFees, 0);
-      const paidFees = childrenWithPayments.reduce((sum, child) => sum + child.paidFees, 0);
-      const pendingPayments = childrenWithPayments.reduce((sum, child) => sum + child.pendingPayments, 0);
-
+      setChildrenData(childrenWithClasses);
+      // Calculate overall statistics using only parentDashboard API data
       const calculatedStats = {
-        totalChildren,
-      totalClasses,
-        totalFees,
-        paidFees,
-        pendingPayments,
-        attendanceRate: 85, // Mock attendance rate for now
+        totalChildren: parentDashboard.totalChildren ?? 0,
+        totalClasses: parentDashboard.totalClasses ?? 0,
+        totalFees: parentDashboard.paymentInfo?.[0]?.totalRevenue ?? 0,
+        paidFees: parentDashboard.paymentInfo?.[0]?.totalPaidAmount ?? 0,
+        pendingPayments: parentDashboard.paymentInfo?.[0]?.totalUnPaidAmount ?? 0,
+        attendanceRate: parentDashboard.attendanceRate ?? 0,
       };
-
-      console.log('Calculated stats:', calculatedStats);
       setStats(calculatedStats);
 
     } catch (err) {

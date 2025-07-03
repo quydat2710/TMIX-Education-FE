@@ -197,3 +197,9 @@ export const updateUserAPI = (userId, data) => {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 };
+
+// Dashboard APIs
+export const getAdminDashboardAPI = () => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.ADMIN);
+export const getTeacherDashboardAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.TEACHER(id));
+export const getParentDashboardAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.PARENT(id));
+export const getStudentDashboardAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.STUDENT(id));

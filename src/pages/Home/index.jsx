@@ -19,6 +19,7 @@ import WelcomeAdPopup from '../../components/advertisement/WelcomeAdPopup';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { getAllAnnouncementsAPI } from '../../services/api';
+import FeedbackHome from './FeedbackHome';
 
 const teachers = [
   {
@@ -320,12 +321,13 @@ const Home = () => {
                 </Grid>
               ))}
             </Grid>
+            {/* Feedback slider section */}
+            <Box sx={{ my: 8 }}>
+              <FeedbackHome />
+            </Box>
           </Box>
-
-
-
-        <Footer />
-      </Box>
+        </Box>
+      <Footer />
     </Box>
   );
 };
