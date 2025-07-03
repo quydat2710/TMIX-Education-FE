@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI, getAdminByIdAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
@@ -12,7 +12,7 @@ import { validateEmail, validatePhone, validateDayOfBirth, validateAddress, vali
 import { useLocation } from 'react-router-dom';
 
 const AdminProfile = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshToken } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -56,17 +56,10 @@ const AdminProfile = () => {
   }, [user]);
 
   useEffect(() => {
-    const fetchLatestUser = async () => {
-      try {
-        if (!user?.adminId && !user?.id) return;
-        const id = user?.adminId || user?.id;
-        const res = await getAdminByIdAPI(id);
-        const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
-        if (newUser) updateUser(newUser);
-      } catch (e) { /* ignore */ }
-    };
-    if (location.state?.reload) fetchLatestUser();
-  }, [location.state, user?.adminId, user?.id]);
+    if (location.state?.reload) {
+      refreshToken();
+    }
+  }, [location.state, refreshToken]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {

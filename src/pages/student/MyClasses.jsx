@@ -39,7 +39,7 @@ import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
-import { getStudentByIdAPI } from '../../services/api';
+import { getStudentByIdAPI, getStudentDashboardAPI } from '../../services/api';
 import dayjs from 'dayjs';
 import StatCard from '../../components/common/StatCard';
 
@@ -51,6 +51,18 @@ const MyClasses = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalClasses: 0,
+    activeClasses: 0,
+    completedClasses: 0,
+    attendance: {
+      totalSessions: 0,
+      presentSessions: 0,
+      absentSessions: 0,
+      lateSessions: 0,
+      attendanceRate: 0
+    }
+  });
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -64,6 +76,26 @@ const MyClasses = () => {
         if (!studentId) {
           console.log('DEBUG - Không tìm thấy thông tin học sinh', user);
           throw new Error('Không tìm thấy thông tin học sinh');
+        }
+
+        // Lấy dữ liệu dashboard cho StatCard
+        try {
+          const dashRes = await getStudentDashboardAPI(studentId);
+          const dashData = dashRes?.data?.data || dashRes?.data || {};
+          setDashboardData({
+            totalClasses: dashData.totalClasses || 0,
+            activeClasses: dashData.activeClasses || 0,
+            completedClasses: dashData.completedClasses || 0,
+            attendance: dashData.attendance || {
+              totalSessions: 0,
+              presentSessions: 0,
+              absentSessions: 0,
+              lateSessions: 0,
+              attendanceRate: 0
+            }
+          });
+        } catch (e) {
+          // Nếu lỗi vẫn tiếp tục lấy danh sách lớp
         }
 
         // Lấy thông tin học sinh và các lớp học từ getStudentByIdAPI
@@ -192,65 +224,73 @@ const MyClasses = () => {
 
       <Grid container spacing={3}>
         {/* Stat Cards */}
-                <Grid item xs={12}>
+        <Grid item xs={12}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng số lớp"
-                value={classes.length}
+                value={dashboardData.totalClasses || classes.length}
                 icon={<SchoolIcon sx={{ fontSize: 40 }} />}
                 color="primary"
               />
-                </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đang học"
-                value={classes.filter((c) => c.status === 'active').length}
+                value={dashboardData.activeClasses || classes.filter((c) => c.status === 'active').length}
                 icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
                 color="success"
               />
-                </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đã kết thúc"
-                value={classes.filter((c) => c.status === 'closed' || c.status === 'completed').length}
+                value={dashboardData.completedClasses || classes.filter((c) => c.status === 'closed' || c.status === 'completed').length}
                 icon={<CancelIcon sx={{ fontSize: 40 }} />}
                 color="info"
               />
-                    </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
-                title="Sắp khai giảng"
-                value={classes.filter((c) => c.status === 'upcoming').length}
+                title="Tỷ lệ tham gia"
+                value={typeof dashboardData.attendance.attendanceRate === 'number' ? `${dashboardData.attendance.attendanceRate}%` : ''}
                 icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
                 color="warning"
               />
-                    </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
-                title="Tổng buổi học"
-                value={classes.reduce((sum, c) => sum + c.totalLessons, 0)}
-                icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+                title="Tổng số buổi"
+                value={dashboardData.attendance.totalSessions}
+                icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
                 color="secondary"
               />
-                    </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
-                title="Đã tham gia"
-                value={classes.reduce((sum, c) => sum + c.attendedLessons, 0)}
+                title="Buổi có mặt"
+                value={dashboardData.attendance.presentSessions}
                 icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
                 color="success"
               />
-                    </Grid>
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
-                title="Đã nghỉ"
-                value={classes.reduce((sum, c) => sum + c.missedLessons, 0)}
+                title="Buổi vắng"
+                value={dashboardData.attendance.absentSessions}
                 icon={<CancelIcon sx={{ fontSize: 40 }} />}
                 color="error"
               />
-                </Grid>
-              </Grid>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Buổi muộn"
+                value={dashboardData.attendance.lateSessions}
+                icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
+                color="warning"
+              />
+            </Grid>
+          </Grid>
         </Grid>
 
         {/* Danh sách lớp học */}
