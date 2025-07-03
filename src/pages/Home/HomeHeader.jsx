@@ -27,8 +27,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const sectionIds = [
   { label: 'Trang chủ', id: 'hero-section' },
-  { label: 'Giáo viên', id: 'teachers-section' },
   { label: 'Về chúng tôi', id: 'about-section' },
+  { label: 'Giáo viên', id: 'teachers-section' },
+  { label: 'Đánh giá', id: 'feedback-section' },
 ];
 
 const scrollToSection = (id) => {

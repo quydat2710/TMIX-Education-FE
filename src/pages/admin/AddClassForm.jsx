@@ -243,16 +243,28 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         </Grid>
         <Grid item xs={6}>
           <FormControl fullWidth>
-            <InputLabel>Trạng thái</InputLabel>
+            <InputLabel>Khung giờ học</InputLabel>
             <Select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              label="Trạng thái"
+              name="timeSlot"
+              value={selectedTimeSlot}
+              onChange={(e) => handleTimeSlotSelect(e.target.value)}
+              label="Khung giờ học"
+              required
             >
-              {statusOptions.map(opt => (
-                <MenuItem key={String(opt.value)} value={opt.value}>{opt.label}</MenuItem>
+              {timeSlotOptions.map(slot => (
+                <MenuItem key={String(slot.value)} value={slot.value}>
+                  {slot.label}
+                </MenuItem>
               ))}
+              {/* Nếu selectedTimeSlot không nằm trong options thì vẫn hiển thị */}
+              {selectedTimeSlot && !timeSlotOptions.some(slot => slot.value === selectedTimeSlot) && (
+                <MenuItem key={selectedTimeSlot} value={selectedTimeSlot}>
+                  {(() => {
+                    const [start, end] = selectedTimeSlot.split('-');
+                    return `${start} - ${end}`;
+                  })()}
+                </MenuItem>
+              )}
             </Select>
           </FormControl>
         </Grid>
@@ -309,30 +321,18 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormControl fullWidth>
-            <InputLabel>Khung giờ học</InputLabel>
+            <InputLabel>Trạng thái</InputLabel>
             <Select
-              name="timeSlot"
-              value={selectedTimeSlot}
-              onChange={(e) => handleTimeSlotSelect(e.target.value)}
-              label="Khung giờ học"
-              required
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              label="Trạng thái"
             >
-              {timeSlotOptions.map(slot => (
-                <MenuItem key={String(slot.value)} value={slot.value}>
-                  {slot.label}
-                </MenuItem>
+              {statusOptions.map(opt => (
+                <MenuItem key={String(opt.value)} value={opt.value}>{opt.label}</MenuItem>
               ))}
-              {/* Nếu selectedTimeSlot không nằm trong options thì vẫn hiển thị */}
-              {selectedTimeSlot && !timeSlotOptions.some(slot => slot.value === selectedTimeSlot) && (
-                <MenuItem key={selectedTimeSlot} value={selectedTimeSlot}>
-                  {(() => {
-                    const [start, end] = selectedTimeSlot.split('-');
-                    return `${start} - ${end}`;
-                  })()}
-                </MenuItem>
-              )}
             </Select>
           </FormControl>
         </Grid>

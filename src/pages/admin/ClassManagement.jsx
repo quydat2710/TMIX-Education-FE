@@ -32,6 +32,7 @@ import {
   Search as SearchIcon,
   Edit as EditIcon,
   Visibility as ViewIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import { commonStyles } from "../../utils/styles";
@@ -186,6 +187,23 @@ const ClassManagement = () => {
       showSnackbar(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCloseClass = async (classData) => {
+    if (!classData) return;
+
+    try {
+      const closeData = {
+        status: 'closed'
+      };
+
+      await updateClassAPI(classData.id, closeData);
+      showSnackbar('Đóng lớp học thành công!', 'success');
+      fetchClasses(page); // Refresh class list
+    } catch (err) {
+      console.error('Close class error:', err);
+      showSnackbar(err?.response?.data?.message || 'Có lỗi xảy ra khi đóng lớp học', 'error');
     }
   };
 
@@ -419,6 +437,16 @@ const ClassManagement = () => {
                     <IconButton size="small" title="Chỉnh sửa" onClick={() => handleOpenDialog(cls)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
+                    {cls.status !== 'closed' && (
+                      <IconButton
+                        size="small"
+                        title="Đóng lớp học"
+                        onClick={() => handleCloseClass(cls)}
+                        sx={{ color: 'error.main' }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
                 );

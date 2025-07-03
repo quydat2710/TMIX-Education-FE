@@ -28,53 +28,61 @@ import {
   Payment as PaymentIcon,
   Schedule as ScheduleIcon,
   Event as EventIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
-import { COLORS } from '../../utils/colors';
+import { useAuth } from '../../contexts/AuthContext';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import { getTeacherDashboardAPI } from '../../services/api';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    totalStudents: 0,
+  const [dashboardData, setDashboardData] = useState({
+    totalStudent: 0,
     teachingClasses: 0,
     closedClasses: 0,
     upcomingClasses: 0,
-    totalSalary: 0,
-    paidSalary: 0,
-    unpaidSalary: 0,
+    paymentInfo: [],
+    activeClasses: [],
+    recentlySalary: {}
   });
 
   useEffect(() => {
+    if (user) {
     fetchDashboardData();
-  }, []);
+    }
+  }, [user]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     setError('');
+
     try {
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const teacherId = userData.teacherId || userData.id;
+      const teacherId = user?.teacherId || user?.id;
       if (!teacherId) {
         setError('Không tìm thấy thông tin giáo viên');
         setLoading(false);
         return;
       }
-      const res = await getTeacherDashboardAPI(teacherId);
-      const d = res.data?.data || res.data;
-      setStats({
-        totalStudents: d.totalStudent,
-        teachingClasses: d.teachingClasses,
-        closedClasses: d.closedClasses,
-        upcomingClasses: d.upcomingClasses,
-        totalSalary: d.paymentInfo?.[0]?.totalSalary,
-        paidSalary: d.paymentInfo?.[0]?.totalPaidAmount,
-        unpaidSalary: d.paymentInfo?.[0]?.totalUnPaidAmount,
+
+      const response = await getTeacherDashboardAPI(teacherId);
+      const data = response?.data?.data || response?.data || {};
+
+      setDashboardData({
+        totalStudent: data.totalStudent || 0,
+        teachingClasses: data.teachingClasses || 0,
+        closedClasses: data.closedClasses || 0,
+        upcomingClasses: data.upcomingClasses || 0,
+        paymentInfo: data.paymentInfo || [],
+        activeClasses: data.activeClasses || [],
+        recentlySalary: data.recentlySalary || {}
       });
+
     } catch (err) {
+      console.error('Error fetching teacher dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
     } finally {
       setLoading(false);
@@ -85,18 +93,7 @@ const Dashboard = () => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    }).format(amount || 0);
   };
 
   const formatTime = (timeString) => {
@@ -104,32 +101,42 @@ const Dashboard = () => {
     return timeString.substring(0, 5); // Get HH:MM format
   };
 
-  const formatSchedule = (schedule) => {
-    if (!schedule) return { dayText: 'Chưa có lịch', timeText: '' };
+  const formatDayOfWeek = (dayNumber) => {
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return days[dayNumber] || '';
+  };
 
-    const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const formatSchedule = (schedule) => {
+    if (!schedule) return { days: 'Chưa có lịch', time: '' };
+
     const days = schedule.dayOfWeeks || [];
     const timeSlots = schedule.timeSlots || {};
 
     const dayText = days.length > 0
-      ? days.map(day => dayNames[day] || `Thứ ${day}`).join(', ')
+      ? days.map(day => formatDayOfWeek(day)).join(', ')
       : 'Chưa có lịch';
 
     const timeText = timeSlots.startTime && timeSlots.endTime
       ? `${formatTime(timeSlots.startTime)} - ${formatTime(timeSlots.endTime)}`
       : '';
 
-    return { dayText, timeText };
+    return { days: dayText, time: timeText };
+  };
+
+  const formatMonthYear = (month, year) => {
+    const monthNames = [
+      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    return `${monthNames[month - 1] || 'Tháng'} ${year}`;
   };
 
   if (loading) {
     return (
       <DashboardLayout role="teacher">
-        <Box sx={commonStyles.pageContainer}>
-          <Box sx={commonStyles.contentContainer}>
+        <Box sx={{ py: 4 }}>
             <LinearProgress />
             <Typography sx={{ textAlign: 'center', mt: 2 }}>Đang tải dữ liệu dashboard...</Typography>
-          </Box>
         </Box>
       </DashboardLayout>
     );
@@ -152,7 +159,7 @@ const Dashboard = () => {
         )}
 
         <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
-          Xin chào <strong>{JSON.parse(localStorage.getItem('userData') || '{}').name || 'Giáo viên'}</strong>, đây là thông tin giảng dạy của bạn
+            Xin chào <strong>{user?.name || 'Giáo viên'}</strong>, đây là thông tin giảng dạy của bạn
         </Typography>
 
         {/* Stat Cards - First Row */}
@@ -160,7 +167,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng học viên"
-              value={stats.totalStudents}
+                value={dashboardData.totalStudent}
               icon={<SchoolIcon sx={{ fontSize: 40 }} />}
               color="primary"
             />
@@ -168,7 +175,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp đang dạy"
-              value={stats.teachingClasses}
+                value={dashboardData.teachingClasses}
               icon={<ClassIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
@@ -176,7 +183,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp đã kết thúc"
-              value={stats.closedClasses}
+                value={dashboardData.closedClasses}
               icon={<ClassIcon sx={{ fontSize: 40 }} />}
               color="warning"
             />
@@ -184,17 +191,19 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp sắp tới"
-              value={stats.upcomingClasses}
+                value={dashboardData.upcomingClasses}
               icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
               color="info"
             />
           </Grid>
         </Grid>
+
+          {/* Salary Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Tổng lương"
-              value={formatCurrency(stats.totalSalary)}
+                value={formatCurrency(dashboardData.paymentInfo[0]?.totalSalary)}
               icon={<PaymentIcon sx={{ fontSize: 40 }} />}
               color="secondary"
             />
@@ -202,7 +211,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lương đã nhận"
-              value={formatCurrency(stats.paidSalary)}
+                value={formatCurrency(dashboardData.paymentInfo[0]?.totalPaidAmount)}
               icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
               color="success"
             />
@@ -210,7 +219,7 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lương chưa nhận"
-              value={formatCurrency(stats.unpaidSalary)}
+                value={formatCurrency(dashboardData.paymentInfo[0]?.totalUnPaidAmount)}
               icon={<PaymentIcon sx={{ fontSize: 40 }} />}
               color="error"
             />
@@ -221,21 +230,116 @@ const Dashboard = () => {
         <Grid container spacing={3}>
           {/* Active Classes */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: COLORS.primary.main, fontWeight: 600 }}>
+              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                 Lớp học đang dạy
               </Typography>
-              {/* Active classes section content remains unchanged */}
+                {dashboardData.activeClasses.length > 0 ? (
+                  <TableContainer sx={commonStyles.tableContainer}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Thời gian</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {dashboardData.activeClasses.map((classItem, index) => {
+                          const schedule = formatSchedule(classItem.schedule);
+                          return (
+                            <TableRow key={index} sx={commonStyles.tableRow}>
+                              <TableCell>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {classItem.name}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {classItem.room || 'N/A'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {schedule.days}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {schedule.time}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label="Đang dạy"
+                                  color="success"
+                                  size="small"
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    Chưa có lớp học nào đang dạy
+                  </Typography>
+                )}
             </Paper>
             </Grid>
 
-          {/* Recent Payments */}
+                        {/* Recent Salary */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: COLORS.secondary.main, fontWeight: 600 }}>
-                Thanh toán lương gần đây
+              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+                  Lương tháng gần đây
                 </Typography>
-              {/* Recent payments section content remains unchanged */}
+                {dashboardData.recentlySalary && Object.keys(dashboardData.recentlySalary).length > 0 ? (
+                  <TableContainer sx={commonStyles.tableContainer}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Tháng/Năm</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Tổng buổi</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Lương/buổi</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow sx={commonStyles.tableRow}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {formatMonthYear(dashboardData.recentlySalary.month, dashboardData.recentlySalary.year)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {dashboardData.recentlySalary.totalLessons || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {formatCurrency(dashboardData.recentlySalary.salaryPerLesson)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="success.main" fontWeight="medium">
+                              {formatCurrency(dashboardData.recentlySalary.paidAmount)}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    Chưa có thông tin lương gần đây
+                  </Typography>
+                )}
             </Paper>
           </Grid>
         </Grid>

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Slider from 'react-slick';
-import { Card, CardContent, Avatar, Typography, Box, Button } from '@mui/material';
+import { Card, CardContent, Avatar, Typography, Box, Button, IconButton } from '@mui/material';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -21,7 +22,7 @@ const feedbacks = [
     content: 'Chị Thảo hiện đang là giảng viên luật tại Đại học Ngoại thương, đã có một hành trình học tiếng Anh đáng ngưỡng mộ cùng Langmaster. Sau khi hoàn thành khóa học, chị không chỉ nâng cao khả năng tiếng Anh mà còn trở thành huấn luyện viên và trợ giảng tại Langmaster, tiếp tục phát triển bản thân và đạt được điểm IELTS 7.5 ấn tượng. Nhờ vào sự nỗ lực không ngừng và nền tản...',
     socialLink: 'https://www.youtube.com/watch?v=swE1JrEZyAs&list=PLxc4V8jyRl2fPgPOKX3qSI1hHFsIYE6Je&index=7',
     socialType: 'img',
-    socialIcon: '/images/social-media-icons/youtube.svg',
+    socialIcon: '/images/youtube.png',
   },
   {
     img: 'https://langmaster.edu.vn/storage/images/student-testimonial/1728017221-Seeding 1 ảnh.webp',
@@ -30,12 +31,12 @@ const feedbacks = [
     content: 'Hơn 10 năm làm việc tại Langmaster đã giúp chị phát triển bản thân vượt bậc. Tại đây, chị học được bài học quý giá về việc làm mọi thứ với "100% OR NOTHING". Chính phương châm này đã giúp chị thành công và được thăng tiến. Langmaster còn là nơi chị rèn luyện khả năng quan sát, phân tích, và không ngừng phát triển bản thân, biến chị từ một cô sinh viên nhút nhát thành...',
     socialLink: 'https://youtu.be/zaf8i5UoB08?si=31E0SuJKLPYUl2bV',
     socialType: 'img',
-    socialIcon: '/images/social-media-icons/youtube.svg',
+    socialIcon: '/images/youtube.png',
   },
   {
     img: 'https://langmaster.edu.vn/storage/images/student-testimonial/1713952311-Thu Trang.webp',
-    alt: 'Tiktoker Hạ Thu Trang',
-    name: 'Tiktoker Hạ Thu Trang',
+    alt: 'Hạ Thu Trang',
+    name: 'Hạ Thu Trang',
     content: 'Học 1 kèm 1 thì thích nhất là sai ở đâu cô sửa ở đó, cô dạy rất sát theo năng lực, nên chỉ sau gần 3 tháng thì mình đã gần như lấy lại tự tin, có thể giao tiếp tốt với mọi người, đọc tài liệu, tra cứu thông tin rất nhanh. Cứ đà này ra trường mình có thể tự tin apply các công ty nước ngoài.',
     socialLink: 'https://www.facebook.com/Tienganhgiaotieplangmaster/posts/pfbid0Lh8ReNQ6J7XQxpZRA25FMc2fksXzxb8Ro1jtTucRsgzLLgwyj4EASgnNQegQicnGl',
     socialType: 'svg',
@@ -43,17 +44,17 @@ const feedbacks = [
   },
   {
     img: 'https://langmaster.edu.vn/storage/images/student-testimonial/1714194022-Trúc Linh.webp',
-    alt: 'Tiktoker Trúc Linh',
-    name: 'Tiktoker Trúc Linh',
+    alt: 'Trúc Linh',
+    name: 'Trúc Linh',
     content: 'Để duy trì sự sáng tạo và không ngừng nâng cao trình độ tiếng Anh, bí quyết của mình chính là đăng ký lớp học 1 kèm 1 ở Langmaster. Tại đây, mình được hình thành thói quen tốt đó là kết hợp tự học và học online. Tự học là để chủ động trong tốc độ, còn học với Langmaster để có môi trường luyện tập phản xạ.',
     socialLink: 'https://www.tiktok.com/@truclinh.99_/video/7357727736166649089?lang=vi-VN',
     socialType: 'img',
-    socialIcon: '/images/social-media-icons/youtube.svg',
+    socialIcon: '/images/youtube.png',
   },
   {
     img: 'https://langmaster.edu.vn/storage/images/student-testimonial/1713934327-6.webp',
-    alt: 'Tiktoker - Đỗ Văn Linh',
-    name: 'Tiktoker - Đỗ Văn Linh',
+    alt: 'Đỗ Văn Linh',
+    name: 'Đỗ Văn Linh',
     content: (
       <span>
         Đến với lớp học Offline của Langmaster, Linh đã được trải nghiệm 3 KHÔNG:<br/>- Không được chỉ ngồi im chép bài, vì bạn cần phải luyện kỹ năng giao tiếp, phải nói, nói và nói liên tục<br/>- Không buồn ngủ vì không khí lớp học rất sôi động và ai cũng nhiệt tình phát biểu<br/>- Không sợ xấu hổ khi nói sai vì mình sẽ được giáo viên sửa lỗi liên tục và tiến bộ ngay tức thì
@@ -61,7 +62,7 @@ const feedbacks = [
     ),
     socialLink: 'https://www.tiktok.com/@dovanling/video/7359545175112273169',
     socialType: 'img',
-    socialIcon: '/images/social-media-icons/youtube.svg',
+    socialIcon: '/images/youtube.png',
   },
 ];
 
@@ -117,7 +118,7 @@ const FeedbackCard = ({ fb }) => (
       }}
     >
       <CardContent sx={{ width: "100%", p: 0 }}>
-        <Typography variant="body1" sx={{ mb: 2, minHeight: 100, textAlign: "justify" }}>
+        <Typography variant="body1" sx={{ mb: 2, minHeight: 100, textAlign: "justify", fontSize: '1.1rem', lineHeight: 1.6 }}>
           {fb.content}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 2 }}>
@@ -161,6 +162,15 @@ const FeedbackHome = () => {
   // Khi slider chuyển, cập nhật current
   const handleBeforeChange = (oldIndex, newIndex) => setCurrent(newIndex);
 
+  // Xử lý điều hướng mũi tên
+  const handlePrev = () => {
+    sliderRef.current.slickPrev();
+  };
+
+  const handleNext = () => {
+    sliderRef.current.slickNext();
+  };
+
   const settings = {
     dots: false,
     infinite: true,
@@ -186,7 +196,85 @@ const FeedbackHome = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative', px: 4 }}>
+      {/* Tiêu đề */}
+      <Typography
+        variant="h4"
+        sx={{
+          textAlign: 'center',
+          mb: 4,
+          color: '#000',
+          fontWeight: 'bold',
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+        }}
+      >
+        Phụ huynh và học sinh nói gì sau khóa học
+      </Typography>
+
+      {/* Mũi tên trái */}
+      <IconButton
+        onClick={handlePrev}
+        sx={{
+          position: 'absolute',
+          left: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 10,
+          bgcolor: '#f5f5f5 !important',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          width: 48,
+          height: 48,
+          '&:hover': {
+            bgcolor: '#e0e0e0 !important',
+            boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+          },
+          '&:active': {
+            bgcolor: '#d0d0d0 !important',
+          },
+          '&:focus': {
+            bgcolor: '#f5f5f5 !important',
+            outline: 'none',
+          },
+          '@media (max-width: 600px)': {
+            left: 8,
+          }
+        }}
+      >
+        <ChevronLeft sx={{ color: '#e53935', fontSize: 28 }} />
+      </IconButton>
+
+      {/* Mũi tên phải */}
+      <IconButton
+        onClick={handleNext}
+        sx={{
+          position: 'absolute',
+          right: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 10,
+          bgcolor: '#f5f5f5 !important',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          width: 48,
+          height: 48,
+          '&:hover': {
+            bgcolor: '#e0e0e0 !important',
+            boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+          },
+          '&:active': {
+            bgcolor: '#d0d0d0 !important',
+          },
+          '&:focus': {
+            bgcolor: '#f5f5f5 !important',
+            outline: 'none',
+          },
+          '@media (max-width: 600px)': {
+            right: 8,
+          }
+        }}
+      >
+        <ChevronRight sx={{ color: '#e53935', fontSize: 28 }} />
+      </IconButton>
+
       <Slider
         {...settings}
         ref={sliderRef}
@@ -196,25 +284,6 @@ const FeedbackHome = () => {
           <FeedbackCard fb={fb} key={idx} />
         ))}
       </Slider>
-      {/* Navigation bằng tên feedback */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 3 }}>
-        {navIndexes.map((startIdx, i) => (
-          <Button
-            key={i}
-            onClick={() => sliderRef.current.slickGoTo(startIdx)}
-            variant={current >= startIdx && current < startIdx + 3 ? "contained" : "outlined"}
-            color="error"
-            sx={{
-              borderRadius: 4,
-              fontWeight: 600,
-              textTransform: "none",
-              px: 3
-            }}
-          >
-            {feedbacks[startIdx].name}
-          </Button>
-        ))}
-      </Box>
     </Box>
   );
 };

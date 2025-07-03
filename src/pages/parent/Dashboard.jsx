@@ -3,9 +3,6 @@ import {
   Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  Button,
   Chip,
   Avatar,
   Table,
@@ -15,16 +12,8 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Divider,
-  IconButton,
-  Tooltip,
-  Badge,
   LinearProgress,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -32,20 +21,14 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import SchoolIcon from '@mui/icons-material/School';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PersonIcon from '@mui/icons-material/Person';
-import EventIcon from '@mui/icons-material/Event';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import WarningIcon from '@mui/icons-material/Warning';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import DiscountIcon from '@mui/icons-material/Discount';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
 import {
-  getParentByIdAPI,
-  getClassByIdAPI,
-  getTeacherByIdAPI,
   getParentDashboardAPI,
+  getStudentScheduleAPI,
 } from '../../services/api';
 
 const Dashboard = () => {
@@ -53,15 +36,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [parentData, setParentData] = useState(null);
-  const [childrenData, setChildrenData] = useState([]);
+
+  const [dashboardData, setDashboardData] = useState(null);
+  const [childrenSchedules, setChildrenSchedules] = useState([]);
   const [stats, setStats] = useState({
     totalChildren: 0,
     totalClasses: 0,
     totalFees: 0,
     paidFees: 0,
     pendingPayments: 0,
-    attendanceRate: 0,
   });
 
   useEffect(() => {
@@ -75,7 +58,7 @@ const Dashboard = () => {
 
   const fetchParentData = async () => {
     setLoading(true);
-    setError(''); // Clear any previous errors
+    setError('');
 
     console.log('Starting fetchParentData, user:', user);
 
@@ -91,133 +74,47 @@ const Dashboard = () => {
         return;
       }
 
-      // Call new dashboard API
-      let parentDashboard = {};
-      try {
+      // Call parent dashboard API
         const parentDashboardRes = await getParentDashboardAPI(parentId);
-        parentDashboard = parentDashboardRes?.data?.data || parentDashboardRes?.data || {};
-      } catch (err) {
-        console.error('Error fetching parent dashboard API:', err);
-      }
+      const dashboardData = parentDashboardRes?.data?.data || parentDashboardRes?.data || {};
+      setDashboardData(dashboardData);
 
-      console.log('Fetching parent data for ID:', parentId);
+      console.log('Dashboard data:', dashboardData);
 
-      // Fetch parent data
-      const parentRes = await getParentByIdAPI(parentId);
-      console.log('Parent API response:', parentRes);
-      console.log('Parent API response type:', typeof parentRes);
-      console.log('Parent API response keys:', Object.keys(parentRes || {}));
 
-      // Handle different possible response structures
-      const parent = parentRes?.data || parentRes;
-      console.log('Parent data:', parent);
-      console.log('Parent data type:', typeof parent);
-      console.log('Parent data keys:', Object.keys(parent || {}));
-      console.log('Parent studentIds:', parent?.studentIds);
-      console.log('Parent studentIds length:', parent?.studentIds?.length);
-      console.log('Parent studentIds type:', typeof parent?.studentIds);
-      setParentData(parent);
 
-      // Fetch children data (without payment aggregation)
-      // Use studentIds from parent response instead of children property
-      const children = parent?.studentIds || [];
-      const childrenWithClasses = await Promise.all(
-        children.map(async (child) => {
-          try {
-            // Fetch detailed class information for each class
-            const classesWithDetails = await Promise.all(
-              (child.classes || []).map(async (classItem) => {
-                try {
-                  const classRes = await getClassByIdAPI(classItem.classId || classItem.id);
-                  const classData = classRes?.data || classRes;
+      // Fetch schedules for each child
+      const studentPayments = dashboardData.studentPayments || [];
+      const schedulesPromises = studentPayments.map(async (studentPayment) => {
+        try {
+          const scheduleRes = await getStudentScheduleAPI(studentPayment.studentId);
+          const scheduleData = scheduleRes?.data?.data || scheduleRes?.data || {};
                   return {
-                    ...classItem,
-                    id: classItem.classId || classItem.id,
-                    name: classData?.name || classItem.name || 'N/A',
-                    teacherId: classData?.teacherId || classItem.teacherId,
-                    schedule: classData?.schedule || classItem.schedule,
-                    feePerLesson: classData?.feePerLesson || classItem.feePerLesson || 0,
-                    room: classData?.room || classData?.classroom || classItem.room || classItem.classroom,
-                    status: classItem.status || 'active',
+            ...studentPayment,
+            schedules: scheduleData.schedules || [],
+            totalActiveClasses: scheduleData.totalActiveClasses || 0,
                   };
                 } catch (err) {
+          console.error(`Error fetching schedule for student ${studentPayment.studentId}:`, err);
                   return {
-                    ...classItem,
-                    id: classItem.classId || classItem.id,
-                    name: classItem.name || 'N/A',
-                    teacherId: classItem.teacherId,
-                    schedule: classItem.schedule,
-                    feePerLesson: classItem.feePerLesson || 0,
-                    room: classItem.room || classItem.classroom,
-                    status: classItem.status || 'active',
-                  };
-                }
-              })
-            );
-            // Fetch teacher information for each class
-            const classesWithTeachers = await Promise.all(
-              classesWithDetails.map(async (classItem) => {
-                if (classItem.teacherId) {
-                  try {
-                    const teacherRes = await getTeacherByIdAPI(classItem.teacherId);
-                    const teacherData = teacherRes?.data || teacherRes;
-                    return {
-                      ...classItem,
-                      teacherName: teacherData?.userId?.name || teacherData?.name || 'Chưa phân công',
-                    };
-                  } catch (err) {
-                    return {
-                      ...classItem,
-                      teacherName: 'Chưa phân công',
-                    };
-                  }
-                } else {
-                  return {
-                    ...classItem,
-                    teacherName: 'Chưa phân công',
-                  };
-                }
-              })
-            );
-            // Format child data to match expected structure (no payment fields)
-            const formattedChild = {
-              id: child.id,
-              studentId: child.id,
-              name: child.userId?.name || child.name || 'N/A',
-              email: child.userId?.email || child.email || 'N/A',
-              age: child.userId?.age || child.age || 0,
-              grade: child.userId?.grade || child.grade || 'N/A',
-              dateOfBirth: child.userId?.dayOfBirth || child.dateOfBirth || 'N/A',
-              avatar: child.userId?.avatar || child.avatar || null,
-              status: child.status || 'active',
-              classes: classesWithTeachers,
-            };
-            return formattedChild;
-          } catch (err) {
-            return {
-              id: child.id,
-              studentId: child.id,
-              name: child.userId?.name || child.name || 'N/A',
-              email: child.userId?.email || child.email || 'N/A',
-              age: child.userId?.age || child.age || 0,
-              grade: child.userId?.grade || child.grade || 'N/A',
-              dateOfBirth: child.userId?.dayOfBirth || child.dateOfBirth || 'N/A',
-              avatar: child.userId?.avatar || child.avatar || null,
-              status: child.status || 'active',
-              classes: child.classes || [],
-            };
-          }
-        })
-      );
-      setChildrenData(childrenWithClasses);
-      // Calculate overall statistics using only parentDashboard API data
+            ...studentPayment,
+            schedules: [],
+            totalActiveClasses: 0,
+          };
+        }
+      });
+
+      const childrenWithSchedules = await Promise.all(schedulesPromises);
+      setChildrenSchedules(childrenWithSchedules);
+
+      // Calculate statistics from dashboard data
+      const paymentInfo = dashboardData.paymentInfo || {};
       const calculatedStats = {
-        totalChildren: parentDashboard.totalChildren ?? 0,
-        totalClasses: parentDashboard.totalClasses ?? 0,
-        totalFees: parentDashboard.paymentInfo?.[0]?.totalRevenue ?? 0,
-        paidFees: parentDashboard.paymentInfo?.[0]?.totalPaidAmount ?? 0,
-        pendingPayments: parentDashboard.paymentInfo?.[0]?.totalUnPaidAmount ?? 0,
-        attendanceRate: parentDashboard.attendanceRate ?? 0,
+        totalChildren: dashboardData.totalChildren || 0,
+        totalClasses: childrenWithSchedules.reduce((total, child) => total + (child.totalActiveClasses || 0), 0),
+        totalFees: paymentInfo.totalRevenue || 0,
+        paidFees: paymentInfo.totalPaidAmount || 0,
+        pendingPayments: paymentInfo.totalUnPaidAmount || 0,
       };
       setStats(calculatedStats);
 
@@ -225,16 +122,15 @@ const Dashboard = () => {
       console.error('Error fetching parent dashboard data:', err);
       setError('Không thể tải dữ liệu dashboard');
 
-      // Set fallback data to show something
+      // Set fallback data
       setStats({
         totalChildren: 0,
         totalClasses: 0,
         totalFees: 0,
         paidFees: 0,
         pendingPayments: 0,
-        attendanceRate: 0,
       });
-      setChildrenData([]);
+      setChildrenSchedules([]);
     } finally {
       setLoading(false);
     }
@@ -247,14 +143,11 @@ const Dashboard = () => {
     }).format(amount);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+
+
+  const formatDayOfWeek = (dayNumber) => {
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return days[dayNumber] || '';
   };
 
   if (loading) {
@@ -285,7 +178,7 @@ const Dashboard = () => {
           )}
 
           <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
-            Xin chào {parentData?.userId?.name || parentData?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
+            Xin chào {user?.name || user?.userId?.name || 'Phụ huynh'}, đây là thông tin học tập và thanh toán của con bạn
           </Typography>
 
         {/* Stat Cards */}
@@ -329,17 +222,9 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Còn thiếu"
-              value={formatCurrency((stats.totalFees || 0) - (stats.paidFees || 0))}
+                value={formatCurrency(stats.pendingPayments || 0)}
               icon={<WarningIcon sx={{ fontSize: 40 }} />}
               color="error"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Thanh toán chờ"
-              value={stats.pendingPayments || 0}
-              icon={<AttachMoneyIcon sx={{ fontSize: 40 }} />}
-              color="warning"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -350,37 +235,29 @@ const Dashboard = () => {
               color="success"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tỷ lệ tham gia"
-              value={`${stats.attendanceRate || 0}%`}
-              icon={<EventIcon sx={{ fontSize: 40 }} />}
-              color="secondary"
-            />
-          </Grid>
         </Grid>
 
-        {/* Children Information */}
+          {/* Children Information with Schedules */}
         <Grid container spacing={3}>
-          {childrenData.map((child, childIndex) => (
-            <Grid item xs={12} key={child.id}>
+            {childrenSchedules.map((child, childIndex) => (
+              <Grid item xs={12} key={child.studentId}>
               <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                    {child.name?.charAt(0)?.toUpperCase() || 'N'}
+                      {child.studentName?.charAt(0)?.toUpperCase() || 'N'}
                   </Avatar>
                   <Box>
                     <Typography variant="h6" fontWeight="bold">
-                      {child.name || 'N/A'}
+                        {child.studentName || 'N/A'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {child.email || 'N/A'}
+                        {child.studentEmail || 'N/A'}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* Child's Classes */}
-                {child.classes && child.classes.length > 0 ? (
+                  {/* Child's Schedules */}
+                  {child.schedules && child.schedules.length > 0 ? (
                   <TableContainer sx={commonStyles.tableContainer}>
                     <Table size="small">
                       <TableHead>
@@ -389,51 +266,54 @@ const Dashboard = () => {
                           <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Học phí</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Thời gian</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {child.classes.map((classItem, classIndex) => (
-                          <TableRow key={classItem.id || classItem.classId || classIndex} sx={commonStyles.tableRow}>
+                          {child.schedules.map((scheduleItem, scheduleIndex) => (
+                            <TableRow key={scheduleIndex} sx={commonStyles.tableRow}>
                             <TableCell>
                               <Typography variant="body2" fontWeight="medium">
-                                {classItem.name || classItem.className || 'N/A'}
+                                  {scheduleItem.class?.name || 'N/A'}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Lớp {scheduleItem.class?.grade || ''} - Năm {scheduleItem.class?.year || ''}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
-                                {classItem.teacherName || 'Chưa phân công'}
+                                  {scheduleItem.teacher?.name || 'Chưa phân công'}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
-                                {classItem.room || classItem.classroom || 'N/A'}
+                                  {scheduleItem.class?.room || 'N/A'}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
-                                {classItem.schedule?.dayOfWeeks?.map(d => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d]).join(', ')} • {classItem.schedule?.timeSlots?.startTime} - {classItem.schedule?.timeSlots?.endTime}
+                                  {scheduleItem.schedule?.dayOfWeeks?.map(d => formatDayOfWeek(d)).join(', ')}
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" fontWeight="600">
-                                {formatCurrency(classItem.feePerLesson || classItem.fee || 0)}/buổi
+                                <Typography variant="body2">
+                                  {scheduleItem.schedule?.timeSlots?.startTime} - {scheduleItem.schedule?.timeSlots?.endTime}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Chip
                                 label={
-                                  classItem.status === 'active'
+                                    scheduleItem.class?.status === 'active'
                                     ? 'Đang học'
-                                    : classItem.status === 'completed'
+                                      : scheduleItem.class?.status === 'completed'
                                     ? 'Đã hoàn thành'
-                                    : classItem.status || 'N/A'
+                                      : scheduleItem.class?.status || 'N/A'
                                 }
                                 color={
-                                  classItem.status === 'active'
+                                    scheduleItem.class?.status === 'active'
                                     ? 'success'
-                                    : classItem.status === 'completed'
+                                      : scheduleItem.class?.status === 'completed'
                                     ? 'default'
                                     : 'default'
                                 }
@@ -447,7 +327,7 @@ const Dashboard = () => {
                   </TableContainer>
                 ) : (
                   <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                    Chưa có lớp học nào
+                      Chưa có lịch học nào
                   </Typography>
                 )}
 
@@ -459,17 +339,17 @@ const Dashboard = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Tổng học phí: <strong>{formatCurrency(child.totalFees || 0)}</strong>
+                          Tổng học phí: <strong>{formatCurrency(child.totalAmount || 0)}</strong>
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Đã thanh toán: <strong style={{ color: 'green' }}>{formatCurrency(child.paidFees || 0)}</strong>
+                          Đã thanh toán: <strong style={{ color: 'green' }}>{formatCurrency(child.totalPaidAmount || 0)}</strong>
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Typography variant="body2" color="text.secondary">
-                        Còn thiếu: <strong style={{ color: 'red' }}>{formatCurrency((child.totalFees || 0) - (child.paidFees || 0))}</strong>
+                          Còn thiếu: <strong style={{ color: 'red' }}>{formatCurrency(child.totalUnPaidAmount || 0)}</strong>
                       </Typography>
                     </Grid>
                   </Grid>
@@ -479,7 +359,7 @@ const Dashboard = () => {
           ))}
         </Grid>
 
-        {childrenData.length === 0 && (
+          {childrenSchedules.length === 0 && (
           <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
               Chưa có con nào được đăng ký
