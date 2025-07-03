@@ -158,7 +158,10 @@ const AdminProfile = () => {
     try {
       const updateBody = { email: profileData.email, name: profileData.name, dayOfBirth: profileData.dayOfBirth, phone: profileData.phone, address: profileData.address, gender: profileData.gender };
       await updateUserAPI(user.id, updateBody);
-      updateUser({ ...user, ...updateBody });
+      // Fetch latest user info from server
+      const res = await getUserByIdAPI(user.id);
+      const userData = res?.data?.data || res?.data || res;
+      updateUser(userData);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
       let errorMessage = 'Cập nhật thông tin thất bại';

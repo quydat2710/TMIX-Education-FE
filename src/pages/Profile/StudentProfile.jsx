@@ -143,7 +143,10 @@ const StudentProfile = () => {
       const updateBody = { email: profileData.email, name: profileData.name, dayOfBirth: profileData.dayOfBirth, phone: profileData.phone, address: profileData.address, gender: profileData.gender };
       console.log('DEBUG updateBody gửi lên:', updateBody);
       await updateStudentAPI(user.studentId, { userData: updateBody });
-      updateUser(updateBody);
+      // Fetch latest user info from server
+      const res = await getStudentByIdAPI(user.studentId);
+      const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+      if (newUser) updateUser(newUser);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
       let errorMessage = 'Cập nhật thông tin thất bại';

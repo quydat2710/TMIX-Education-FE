@@ -140,7 +140,10 @@ const ParentProfile = () => {
         gender: profileData.gender,
       };
       await updateParentAPI(user.parentId, { userData });
-      updateUser(userData);
+      // Fetch latest user info from server
+      const res = await getParentByIdAPI(user.parentId);
+      const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+      if (newUser) updateUser(newUser);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
       let errorMessage = 'Cập nhật thông tin thất bại';

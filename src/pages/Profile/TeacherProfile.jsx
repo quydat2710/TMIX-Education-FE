@@ -185,7 +185,10 @@ const TeacherProfile = () => {
         description: teacherFields.description,
       };
       await updateTeacherAPI(user.teacher.id, { userData, teacherData });
-      updateUser({ ...profileData, ...teacherFields });
+      // Fetch latest user info from server
+      const res = await getTeacherByIdAPI(user.teacherId);
+      const newUser = res?.userId || res?.data?.userId || res?.data?.data?.userId;
+      if (newUser) updateUser(newUser);
       setSuccess('Cập nhật thông tin thành công!');
     } catch (err) {
       let errorMessage = 'Cập nhật thông tin thất bại';
