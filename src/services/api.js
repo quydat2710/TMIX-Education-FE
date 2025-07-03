@@ -62,6 +62,7 @@ export const resetPasswordAPI = (email, code, password) => {
 
 // User APIs
 export const uploadAvatarAPI = (formData) => axiosInstance.post(API_CONFIG.ENDPOINTS.USERS.UPLOAD_AVATAR, formData);
+export const getUserByIdAPI = (id) => axiosInstance.get(API_CONFIG.ENDPOINTS.USERS.GET_BY_ID(id));
 
 // Class APIs
 export const createClassAPI = (data) => axiosInstance.post(API_CONFIG.ENDPOINTS.CLASSES.CREATE, data);

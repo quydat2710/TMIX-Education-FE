@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, PhotoCamera as PhotoCameraIcon, Save as SaveIcon, Cancel as CancelIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI } from '../../services/api';
+import { changePasswordAPI, uploadAvatarAPI, updateUserAPI, sendVerificationEmailAPI, getUserByIdAPI } from '../../services/api';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
@@ -56,10 +56,19 @@ const AdminProfile = () => {
   }, [user]);
 
   useEffect(() => {
-    if (location.state?.reload) {
-      refreshToken();
-    }
-  }, [location.state, refreshToken]);
+    const reloadUserInfo = async () => {
+      if (location.state?.reload && user?.id) {
+        try {
+          const res = await getUserByIdAPI(user.id);
+          const userData = res?.data?.data || res?.data || res;
+          updateUser(userData);
+        } catch (e) {
+          // fallback: không làm gì
+        }
+      }
+    };
+    reloadUserInfo();
+  }, [location.state, user?.id, updateUser]);
 
   const handleAvatarClick = () => fileInputRef.current.click();
   const handleAvatarChange = async (e) => {

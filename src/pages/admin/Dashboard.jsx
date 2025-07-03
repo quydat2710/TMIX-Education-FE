@@ -139,17 +139,9 @@ const Dashboard = () => {
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Tổng học viên"
-                value={dashboardData.totalStudent}
-              icon={<SchoolIcon sx={{ fontSize: 40 }} />}
-              color="primary"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Tổng giáo viên"
-                value={dashboardData.totalTeacher}
-              icon={<PersonIcon sx={{ fontSize: 40 }} />}
+              title="Tổng số lớp học"
+              value={dashboardData.activeClasses + dashboardData.upcomingClasses + dashboardData.closedClasses}
+              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
               color="secondary"
             />
           </Grid>
@@ -169,16 +161,24 @@ const Dashboard = () => {
               color="info"
             />
           </Grid>
-          </Grid>
-
-          {/* Stat Cards - Second Row */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp đã kết thúc"
                 value={dashboardData.closedClasses}
               icon={<ClassIcon sx={{ fontSize: 40 }} />}
               color="warning"
+            />
+          </Grid>
+        </Grid>
+
+          {/* Stat Cards - Second Row */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Tổng giáo viên"
+                value={dashboardData.totalTeacher}
+              icon={<PersonIcon sx={{ fontSize: 40 }} />}
+              color="secondary"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -209,7 +209,15 @@ const Dashboard = () => {
 
           {/* Stat Cards - Third Row */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Tổng học viên"
+                  value={dashboardData.totalStudent}
+                icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+                color="primary"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng lương giáo viên"
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalSalary)}
@@ -217,7 +225,7 @@ const Dashboard = () => {
               color="secondary"
             />
         </Grid>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Đã trả lương"
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalPaidAmount)}
@@ -225,7 +233,7 @@ const Dashboard = () => {
               color="success"
             />
             </Grid>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Chưa trả lương"
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalUnPaidAmount)}
@@ -241,7 +249,7 @@ const Dashboard = () => {
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                  Thanh toán học phí gần đây
+                  Thanh toán học phí
                 </Typography>
                 {dashboardData.recentlyPayment.length > 0 ? (
                   <TableContainer sx={commonStyles.tableContainer}>
@@ -249,7 +257,7 @@ const Dashboard = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Học viên</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền đã thanh toán</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                         </TableRow>
                       </TableHead>
@@ -262,7 +270,7 @@ const Dashboard = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2">
+                              <Typography variant="body2" align="center">
                                 {formatCurrency(payment.paidAmount)}
                               </Typography>
                             </TableCell>
@@ -290,7 +298,7 @@ const Dashboard = () => {
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                  Thanh toán lương gần đây
+                  Thanh toán lương
                 </Typography>
                 {dashboardData.recentlySalary.length > 0 ? (
                   <TableContainer sx={commonStyles.tableContainer}>
@@ -298,7 +306,7 @@ const Dashboard = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền đã thanh toán</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                         </TableRow>
                       </TableHead>
@@ -311,7 +319,7 @@ const Dashboard = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2">
+                              <Typography variant="body2" align="center">
                                 {formatCurrency(salary.paidAmount)}
                               </Typography>
                             </TableCell>

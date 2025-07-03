@@ -39,7 +39,7 @@ import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
-import { getStudentByIdAPI, getStudentDashboardAPI } from '../../services/api';
+import { getStudentByIdAPI, getStudentDashboardAPI, getClassByIdAPI, getTeacherByIdAPI, getStudentAttendanceAPI } from '../../services/api';
 import dayjs from 'dayjs';
 import StatCard from '../../components/common/StatCard';
 
@@ -63,6 +63,9 @@ const MyClasses = () => {
       attendanceRate: 0
     }
   });
+  const [classDetailLoading, setClassDetailLoading] = useState(false);
+  const [attendanceInfo, setAttendanceInfo] = useState(null);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -88,10 +91,10 @@ const MyClasses = () => {
             completedClasses: dashData.completedClasses || 0,
             attendance: dashData.attendance || {
               totalSessions: 0,
-              presentSessions: 0,
-              absentSessions: 0,
-              lateSessions: 0,
-              attendanceRate: 0
+          presentSessions: 0,
+          absentSessions: 0,
+          lateSessions: 0,
+          attendanceRate: 0
             }
           });
         } catch (e) {
@@ -162,9 +165,43 @@ const MyClasses = () => {
     fetchClasses();
   }, [user]);
 
-  const handleOpenDialog = (classData = null) => {
+  const handleOpenDialog = async (classData = null) => {
+    if (!classData?.id) return;
+    setClassDetailLoading(true);
+    setAttendanceLoading(true);
+    setAttendanceInfo(null);
+    try {
+      const res = await getClassByIdAPI(classData.id);
+      const detail = res?.data?.data || res?.data || res;
+      setSelectedClass({ ...classData, ...detail });
+    } catch (e) {
     setSelectedClass(classData);
+    } finally {
+      setClassDetailLoading(false);
+    }
+    // Lấy điểm danh
+    try {
+      let studentId = user?.id;
+      if (user?.role === 'student' && user?.studentId) {
+        studentId = user.studentId;
+      }
+      if (studentId) {
+        const attRes = await getStudentAttendanceAPI(studentId);
+        const attData = attRes?.data?.data || attRes?.data || attRes;
+        // Lọc các bản ghi điểm danh đúng lớp
+        const filteredAttendance = {
+          ...attData,
+          absentSessionsDetails: (attData.absentSessionsDetails || []).filter(a => a.class?.id === classData.id),
+          detailedAttendance: (attData.detailedAttendance || []).filter(a => a.class?.id === classData.id),
+        };
+        setAttendanceInfo(filteredAttendance);
+      }
+    } catch (e) {
+      setAttendanceInfo(null);
+    } finally {
+      setAttendanceLoading(false);
     setOpenDialog(true);
+    }
   };
 
   const handleCloseDialog = () => {
@@ -214,6 +251,23 @@ const MyClasses = () => {
     return total > 0 ? Math.round((attended / total) * 100) : 0;
   };
 
+  // Hàm tính số buổi học lý thuyết dựa trên ngày bắt đầu, ngày kết thúc, lịch học và ngày tham chiếu
+  function countLessonsBetweenDates(startDate, endDate, daysOfWeek, untilDate = new Date()) {
+    if (!startDate || !endDate || !Array.isArray(daysOfWeek) || daysOfWeek.length === 0) return { total: 0, done: 0 };
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date(untilDate);
+    let total = 0;
+    let done = 0;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      if (daysOfWeek.includes(d.getDay())) {
+        total++;
+        if (d <= today) done++;
+      }
+    }
+    return { total, done };
+  }
+
   return (
     <DashboardLayout role="student">
       <Box sx={commonStyles.pageContainer}>
@@ -224,7 +278,7 @@ const MyClasses = () => {
 
       <Grid container spacing={3}>
         {/* Stat Cards */}
-        <Grid item xs={12}>
+                <Grid item xs={12}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
@@ -233,7 +287,7 @@ const MyClasses = () => {
                 icon={<SchoolIcon sx={{ fontSize: 40 }} />}
                 color="primary"
               />
-            </Grid>
+                </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đang học"
@@ -241,7 +295,7 @@ const MyClasses = () => {
                 icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
                 color="success"
               />
-            </Grid>
+                </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đã kết thúc"
@@ -249,7 +303,7 @@ const MyClasses = () => {
                 icon={<CancelIcon sx={{ fontSize: 40 }} />}
                 color="info"
               />
-            </Grid>
+                    </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tỷ lệ tham gia"
@@ -257,7 +311,7 @@ const MyClasses = () => {
                 icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
                 color="warning"
               />
-            </Grid>
+                    </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng số buổi"
@@ -265,7 +319,7 @@ const MyClasses = () => {
                 icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
                 color="secondary"
               />
-            </Grid>
+                    </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Buổi có mặt"
@@ -273,7 +327,7 @@ const MyClasses = () => {
                 icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
                 color="success"
               />
-            </Grid>
+                    </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Buổi vắng"
@@ -281,7 +335,7 @@ const MyClasses = () => {
                 icon={<CancelIcon sx={{ fontSize: 40 }} />}
                 color="error"
               />
-            </Grid>
+                </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Buổi muộn"
@@ -289,7 +343,7 @@ const MyClasses = () => {
                 icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
                 color="warning"
               />
-            </Grid>
+              </Grid>
           </Grid>
         </Grid>
 
@@ -369,17 +423,14 @@ const MyClasses = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                              <Typography variant="body2">{classItem.teacher}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                                {classItem.teacher}
+                              </Typography>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>
                               {classItem.scheduleDays || 'Chưa có lịch'}
-                            </Typography>
-                            {classItem.scheduleTime && (
-                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                                {classItem.scheduleTime}
                               </Typography>
-                            )}
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">{classItem.room}</Typography>
@@ -400,17 +451,17 @@ const MyClasses = () => {
                               size="small"
                               sx={{ fontWeight: 600 }}
                             />
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton
-                              onClick={() => handleOpenDialog(classItem)}
-                              color="primary"
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          onClick={() => handleOpenDialog(classItem)}
+                          color="primary"
                               title="Xem chi tiết"
-                            >
-                              <ViewIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                        >
+                          <ViewIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -433,6 +484,14 @@ const MyClasses = () => {
           }
         }}
       >
+        {classDetailLoading && (
+          <Box sx={{ width: '100%', p: 4, textAlign: 'center' }}>
+            <LinearProgress />
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Đang tải chi tiết lớp học...
+            </Typography>
+          </Box>
+        )}
             <DialogTitle sx={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
@@ -462,7 +521,7 @@ const MyClasses = () => {
           </Box>
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
-          {selectedClass && (
+          {selectedClass && !classDetailLoading && (
             <Box sx={{ p: 4 }}>
                 <Grid container spacing={3}>
                   {/* Thông tin cơ bản */}
@@ -525,14 +584,17 @@ const MyClasses = () => {
                           <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                             Lịch học:
                           </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                             <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                            {selectedClass.scheduleDays || 'Chưa có lịch'}
+                      {selectedClass.scheduleDays || 'Chưa có lịch'}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            {selectedClass.scheduleTime || ''}
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                      Giờ học:
                           </Typography>
-                        </Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                      {selectedClass.scheduleTime || 'Chưa có giờ'}
+                    </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                           <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
@@ -564,7 +626,81 @@ const MyClasses = () => {
                   </Paper>
                   </Grid>
 
+                  {/* Tiến độ học tập */}
+                  {selectedClass.status !== 'upcoming' && (
+                    <Grid item xs={12}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                        border: '1px solid #e0e6ed',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }}>
+                        <Typography variant="h6" gutterBottom sx={{
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2
+                        }}>
+                          <Box sx={{
+                            width: 4,
+                            height: 20,
+                            bgcolor: '#667eea',
+                            borderRadius: 2
+                          }} />
+                          Tiến độ học tập của lớp
+                        </Typography>
+                        {(() => {
+                          // Lấy thông tin lịch học
+                          const startDate = selectedClass.startDate;
+                          const endDate = selectedClass.endDate;
+                          // Ưu tiên lấy mảng số thứ tự ngày trong tuần nếu có
+                          let daysOfWeek = [];
+                          if (selectedClass.schedule && Array.isArray(selectedClass.schedule.dayOfWeeks)) {
+                            daysOfWeek = selectedClass.schedule.dayOfWeeks;
+                          } else if (selectedClass.scheduleDays) {
+                            // Nếu chỉ có text, tạm không tính được
+                            daysOfWeek = [];
+                          }
+                          const { total, done } = countLessonsBetweenDates(startDate, endDate, daysOfWeek);
+                          const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+                          return (
+                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Box sx={{ width: '100%', mr: 1 }}>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={progress}
+                                    sx={{
+                                      height: 12,
+                                      borderRadius: 6,
+                                      bgcolor: '#f0f0f0',
+                                      '& .MuiLinearProgress-bar': {
+                                        bgcolor: '#667eea',
+                                      },
+                                    }}
+                                  />
+                                </Box>
+                                <Box sx={{ minWidth: 50 }}>
+                                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#667eea' }}>
+                                    {`${progress}%`}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Typography variant="body2" sx={{ color: '#2c3e50' }}>
+                                Đã học : {done} / {total} buổi
+                              </Typography>
+                            </Box>
+                          );
+                        })()}
+                      </Paper>
+                    </Grid>
+                  )}
+
                   {/* Thống kê tham gia */}
+                  {selectedClass.status !== 'upcoming' && (
                   <Grid item xs={12}>
                   <Paper sx={{
                     p: 3,
@@ -589,6 +725,12 @@ const MyClasses = () => {
                       }} />
                       Thống kê tham gia học tập
                     </Typography>
+                        {attendanceLoading ? (
+                          <Box sx={{ p: 2, textAlign: 'center' }}>
+                            <LinearProgress />
+                            <Typography variant="body2" sx={{ mt: 1 }}>Đang tải thông tin điểm danh...</Typography>
+                          </Box>
+                        ) : attendanceInfo ? (
                     <Box sx={{
                       p: 2,
                       bgcolor: 'white',
@@ -597,15 +739,10 @@ const MyClasses = () => {
                     }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={3}>
-                          <Card sx={{
-                            textAlign: 'center',
-                            bgcolor: 'success.light',
-                            borderRadius: 2,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}>
+                                <Card sx={{ textAlign: 'center', background: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%)', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'success.dark', fontWeight: 600 }}>
-                              {selectedClass.attendedLessons}
+                                      {attendanceInfo.attendanceStats?.presentSessions ?? 0}
                             </Typography>
                               <Typography variant="body2" color="success.dark" sx={{ fontWeight: 500 }}>
                               Buổi đã học
@@ -614,15 +751,10 @@ const MyClasses = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                          <Card sx={{
-                            textAlign: 'center',
-                            bgcolor: 'error.light',
-                            borderRadius: 2,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}>
+                                <Card sx={{ textAlign: 'center', background: 'linear-gradient(135deg, #ffe0e3 0%, #ffb3ba 100%)', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                           <CardContent>
                             <Typography variant="h4" sx={{ color: 'error.dark', fontWeight: 600 }}>
-                              {selectedClass.missedLessons}
+                                      {attendanceInfo.attendanceStats?.absentSessions ?? 0}
                             </Typography>
                               <Typography variant="body2" color="error.dark" sx={{ fontWeight: 500 }}>
                               Buổi đã nghỉ
@@ -631,34 +763,33 @@ const MyClasses = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                          <Card sx={{
-                            textAlign: 'center',
-                            bgcolor: 'info.light',
-                            borderRadius: 2,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}>
+                                <Card sx={{ textAlign: 'center', background: 'linear-gradient(135deg, #fff9e0 0%, #ffeab3 100%)', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                           <CardContent>
-                            <Typography variant="h4" sx={{ color: 'info.dark', fontWeight: 600 }}>
-                              {selectedClass.upcomingLessons}
+                            <Typography variant="h4" sx={{ color: 'warning.dark', fontWeight: 600 }}>
+                                      {attendanceInfo.attendanceStats?.lateSessions ?? 0}
                             </Typography>
-                              <Typography variant="body2" color="info.dark" sx={{ fontWeight: 500 }}>
-                              Buổi sắp tới
+                              <Typography variant="body2" color= "warning.dark" sx={{ fontWeight: 500 }}>
+                                      Buổi muộn
                             </Typography>
                           </CardContent>
                         </Card>
                       </Grid>
                       <Grid item xs={12} sm={3}>
-                          <Card sx={{
-                            textAlign: 'center',
-                            bgcolor: 'warning.light',
-                            borderRadius: 2,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}>
+                                <Card sx={{ textAlign: 'center', background: 'linear-gradient(135deg, #e3e0ff 0%, #b3baff 100%)', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                           <CardContent>
-                            <Typography variant="h4" sx={{ color: 'warning.dark', fontWeight: 600 }}>
-                              {calculateAttendanceRate(selectedClass.attendedLessons, selectedClass.totalLessons)}%
+                            <Typography variant="h4" sx={{ color: 'info.dark', fontWeight: 600 }}>
+                                      {(() => {
+                                        const stats = attendanceInfo.attendanceStats || {};
+                                        const present = stats.presentSessions ?? 0;
+                                        const late = stats.lateSessions ?? 0;
+                                        const absent = stats.absentSessions ?? 0;
+                                        const total = present + late + absent;
+                                        if (total === 0) return '0%';
+                                        const rate = Math.round(((present + late) / total) * 100);
+                                        return `${rate}%`;
+                                      })()}
                             </Typography>
-                              <Typography variant="body2" color="warning.dark" sx={{ fontWeight: 500 }}>
+                              <Typography variant="body2" color="info.dark" sx={{ fontWeight: 500 }}>
                               Tỷ lệ tham gia
                             </Typography>
                           </CardContent>
@@ -666,66 +797,15 @@ const MyClasses = () => {
                   </Grid>
                 </Grid>
                     </Box>
+                        ) : (
+                          <Typography variant="body2" color="error" sx={{ p: 2 }}>Không có dữ liệu điểm danh.</Typography>
+                        )}
                   </Paper>
               </Grid>
-
-                  {/* Tiến độ học tập */}
-              <Grid item xs={12}>
-                  <Paper sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                    border: '1px solid #e0e6ed',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                  }}>
-                    <Typography variant="h6" gutterBottom sx={{
-                      color: '#2c3e50',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      mb: 2
-                    }}>
-                      <Box sx={{
-                        width: 4,
-                        height: 20,
-                        bgcolor: '#667eea',
-                        borderRadius: 2
-                      }} />
-                  Tiến độ học tập
-                </Typography>
-                    <Box sx={{
-                      p: 2,
-                      bgcolor: 'white',
-                      borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                    }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ width: '100%', mr: 1 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={selectedClass.progress}
-                      sx={{
-                            height: 12,
-                            borderRadius: 6,
-                              bgcolor: '#f0f0f0',
-                        '& .MuiLinearProgress-bar': {
-                                bgcolor: '#667eea',
-                        },
-                      }}
-                    />
-                  </Box>
-                      <Box sx={{ minWidth: 50 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 600, color: '#667eea' }}>
-                      {`${Math.round(selectedClass.progress)}%`}
-                    </Typography>
-                  </Box>
-                </Box>
-                    </Box>
-                  </Paper>
-              </Grid>
+                  )}
 
                   {/* Lịch sử điểm danh */}
+                  {selectedClass.status !== 'upcoming' && (
               <Grid item xs={12}>
                   <Paper sx={{
                     p: 3,
@@ -750,53 +830,37 @@ const MyClasses = () => {
                       }} />
                       Lịch sử điểm danh
                 </Typography>
-                    <Box sx={{
-                      bgcolor: 'white',
-                      borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                      overflow: 'hidden'
-                    }}>
+                        {attendanceLoading ? (
+                          <Box sx={{ p: 2, textAlign: 'center' }}>
+                            <LinearProgress />
+                            <Typography variant="body2" sx={{ mt: 1 }}>Đang tải lịch sử điểm danh...</Typography>
+                          </Box>
+                        ) : attendanceInfo && attendanceInfo.detailedAttendance?.length > 0 ? (
+                          <Box sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                       <TableContainer>
                   <Table size="small">
                     <TableHead>
                             <TableRow sx={{ bgcolor: '#f8f9fa' }}>
                               <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Ngày</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Thứ</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Giờ học</TableCell>
                               <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Trạng thái</TableCell>
                               <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Ghi chú</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                          {selectedClass.attendanceHistory?.map((attendance) => (
-                            <TableRow key={attendance.id} hover>
+                                  {attendanceInfo.detailedAttendance.map((attendance, idx) => (
+                                    <TableRow key={idx} hover>
                               <TableCell>
                                   <Typography variant="body2" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                                   {new Date(attendance.date).toLocaleDateString('vi-VN')}
                                 </Typography>
                               </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" color="text.secondary">
-                                  {attendance.dayOfWeek}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" color="text.secondary">
-                                  {attendance.time}
-                                </Typography>
-                              </TableCell>
                           <TableCell>
                             <Chip
-                                  label={attendance.status === 'present' ? 'Có mặt' : 'Vắng'}
-                                  color={attendance.status === 'present' ? 'success' : 'error'}
+                                          label={attendance.status === 'present' ? 'Có mặt' : attendance.status === 'absent' ? 'Vắng' : 'Đi muộn'}
+                                          color={attendance.status === 'present' ? 'success' : attendance.status === 'absent' ? 'error' : 'warning'}
                               size="small"
-                                  icon={attendance.status === 'present' ? <CheckCircleIcon /> : <CancelIcon />}
-                                  sx={{
-                                    fontWeight: 600,
-                                    '& .MuiChip-icon': {
-                                      fontSize: '16px'
-                                    }
-                                  }}
+                                          icon={attendance.status === 'present' ? <CheckCircleIcon /> : attendance.status === 'absent' ? <CancelIcon /> : <ScheduleIcon />}
+                                          sx={{ fontWeight: 600, '& .MuiChip-icon': { fontSize: '16px' } }}
                             />
                           </TableCell>
                               <TableCell>
@@ -810,8 +874,12 @@ const MyClasses = () => {
                   </Table>
                 </TableContainer>
                     </Box>
+                        ) : (
+                          <Typography variant="body2" color="error" sx={{ p: 2 }}>Không có dữ liệu điểm danh.</Typography>
+                        )}
                   </Paper>
                 </Grid>
+                  )}
               </Grid>
             </Box>
           )}
