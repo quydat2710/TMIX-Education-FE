@@ -19,12 +19,6 @@ export const createClassValidationSchema = Yup.object().shape({
     .min(2, 'Tên lớp phải có ít nhất 2 ký tự')
     .max(50, 'Tên lớp không được quá 50 ký tự'),
 
-  year: Yup.number()
-    .required('Năm học là bắt buộc')
-    .typeError('Năm học phải là số')
-    .min(new Date().getFullYear() - 5, 'Năm học không được quá 5 năm trước')
-    .max(new Date().getFullYear() + 5, 'Năm học không được quá 5 năm sau'),
-
   feePerLesson: Yup.number()
     .required('Học phí mỗi buổi là bắt buộc')
     .typeError('Học phí phải là số')

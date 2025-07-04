@@ -179,18 +179,22 @@ const ClassManagement = () => {
   const handleUpdateClass = async (data) => {
     console.log('handleUpdateClass called with data:', data);
     console.log('selectedClass:', selectedClass);
-    if (!selectedClass) return;
+    if (!selectedClass) {
+      console.error('No selectedClass found');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       console.log('Calling updateClassAPI with:', selectedClass.id, data);
-      await updateClassAPI(selectedClass.id, data);
-      console.log('Update successful');
+      const response = await updateClassAPI(selectedClass.id, data);
+      console.log('Update successful, response:', response);
       showSnackbar('Cập nhật lớp học thành công!', 'success');
       handleCloseDialog();
       fetchClasses(page); // Refresh class list
     } catch (err) {
       console.error('Update error:', err);
+      console.error('Error response:', err.response);
       showSnackbar(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học', 'error');
     } finally {
       setLoading(false);

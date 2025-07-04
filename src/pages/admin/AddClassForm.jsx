@@ -170,8 +170,13 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       [field]: true
     }));
 
+    // Skip validation for disabled fields in edit mode
+    if (classData && ['grade', 'section', 'name'].includes(field)) {
+      return;
+    }
+
     // Validate field on blur
-    const error = validateField(field, form[field]);
+    const error = validateField(field, form[field], !!classData);
     if (error) {
       setErrors(prev => ({
         ...prev,
@@ -187,7 +192,7 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
     }));
 
     // Validate field on blur
-    const error = validateField(`schedule.${field}`, form.schedule[field]);
+    const error = validateField(`schedule.${field}`, form.schedule[field], !!classData);
     if (error) {
       setErrors(prev => ({
         ...prev,
@@ -222,19 +227,38 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       e.preventDefault();
 
       // Prepare data for validation
-      const validationData = {
-        ...form,
-        schedule: {
-          ...form.schedule,
-          timeSlots: {
-            startTime: selectedTimeSlot.split(' - ')[0] || form.schedule.timeSlots.startTime,
-            endTime: selectedTimeSlot.split(' - ')[1] || form.schedule.timeSlots.endTime
+      let validationData;
+      if (classData) {
+        // EDIT MODE: chỉ validate các trường được phép chỉnh sửa
+        validationData = {
+          feePerLesson: form.feePerLesson,
+          maxStudents: form.maxStudents,
+          description: form.description,
+          room: form.room,
+          schedule: {
+            ...form.schedule,
+            timeSlots: {
+              startTime: selectedTimeSlot.split(' - ')[0] || form.schedule.timeSlots.startTime,
+              endTime: selectedTimeSlot.split(' - ')[1] || form.schedule.timeSlots.endTime
+            }
           }
-        }
-      };
+        };
+      } else {
+        // CREATE MODE: validate tất cả trường
+        validationData = {
+          ...form,
+          schedule: {
+            ...form.schedule,
+            timeSlots: {
+              startTime: selectedTimeSlot.split(' - ')[0] || form.schedule.timeSlots.startTime,
+              endTime: selectedTimeSlot.split(' - ')[1] || form.schedule.timeSlots.endTime
+            }
+          }
+        };
+      }
 
       // Validate all fields
-      const validationErrors = await validateClassData(validationData);
+      const validationErrors = await validateClassData(validationData, !!classData);
 
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
@@ -304,7 +328,10 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
       }
       if (onSubmit) {
         console.log('CALLING onSubmit in AddClassForm', submitData);
-        onSubmit(submitData);
+        console.log('onSubmit function:', onSubmit);
+        await onSubmit(submitData);
+      } else {
+        console.error('onSubmit is not provided');
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
