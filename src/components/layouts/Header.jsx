@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Avatar, Box, Badge, Typography, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Avatar, Box, Typography, Menu, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SchoolIcon from '@mui/icons-material/School';
@@ -65,11 +64,6 @@ const Header = ({ onMenuClick }) => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <IconButton color="default" sx={{ p: 1.2 }}>
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon fontSize="medium" />
-            </Badge>
-          </IconButton>
           <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
             <Avatar
               sx={{

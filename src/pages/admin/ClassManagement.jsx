@@ -64,6 +64,7 @@ const ClassManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   const [gradeFilter, setGradeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -220,6 +221,7 @@ const ClassManagement = () => {
       const params = { page: pageNum, limit: 10 };
       if (yearFilter) params.year = yearFilter;
       if (gradeFilter) params.grade = gradeFilter;
+      if (statusFilter) params.status = statusFilter;
       const res = await getAllClassesAPI(params);
       console.log('API getAllClassesAPI response:', res);
       console.log('Classes data:', res.data);
@@ -239,10 +241,10 @@ const ClassManagement = () => {
     }
   };
 
-  // Fetch classes on component mount and when page, year, or grade changes
+  // Fetch classes on component mount and when page, year, grade, or status changes
   useEffect(() => {
     fetchClasses(page);
-  }, [page, yearFilter, gradeFilter]);
+  }, [page, yearFilter, gradeFilter, statusFilter]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -330,7 +332,7 @@ const ClassManagement = () => {
 
           <Paper sx={commonStyles.searchContainer}>
         <Grid container spacing={2}>
-              <Grid item xs={12} md={7}>
+              <Grid item xs={12} md={4.5}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm lớp học..."
@@ -375,6 +377,21 @@ const ClassManagement = () => {
               {[1,2,3,4,5,6,7,8,9,10,11,12].map(grade => (
                 <MenuItem key={grade} value={grade}>{`Khối ${grade}`}</MenuItem>
               ))}
+            </TextField>
+          </Grid>
+              <Grid item xs={12} md={2.5}>
+            <TextField
+              select
+              fullWidth
+              label="Trạng thái"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              sx={commonStyles.filterSelect}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="active">Đang hoạt động</MenuItem>
+              <MenuItem value="upcoming">Sắp khai giảng</MenuItem>
+              <MenuItem value="closed">Đã đóng</MenuItem>
             </TextField>
           </Grid>
         </Grid>
