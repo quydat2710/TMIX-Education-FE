@@ -121,19 +121,24 @@ const FinancialStatisticsPanel = () => {
   };
 
   const paymentStatuses = [
+    { value: 'all', label: 'Tất cả trạng thái' },
     { value: 'paid', label: 'Đã thanh toán' },
     { value: 'partial', label: 'Đóng một phần' },
     { value: 'pending', label: 'Chờ thanh toán' },
   ];
-  const [paymentStatus, setPaymentStatus] = useState('paid');
+  const [paymentStatus, setPaymentStatus] = useState('all');
 
   const fetchStudentPayments = async (page = 1) => {
     setLoadingStudent(true);
     try {
       let params = { page, limit: 10 };
-      if (periodType === 'status') {
+
+      // Thêm filter trạng thái thanh toán nếu không phải "all"
+      if (paymentStatus !== 'all') {
         params = { ...params, status: paymentStatus };
-      } else if (periodType === 'month') {
+      }
+
+      if (periodType === 'month') {
         params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
@@ -167,9 +172,13 @@ const FinancialStatisticsPanel = () => {
     setLoadingTeacher(true);
     try {
       let params = { page, limit: 10 };
-      if (periodType === 'status') {
+
+      // Thêm filter trạng thái thanh toán nếu không phải "all"
+      if (paymentStatus !== 'all') {
         params = { ...params, status: paymentStatus };
-      } else if (periodType === 'month') {
+      }
+
+      if (periodType === 'month') {
         params = { ...params, year: selectedYear, month: selectedMonth };
       } else if (periodType === 'quarter') {
         const { startMonth, endMonth } = getQuarterMonths(selectedQuarter);
@@ -207,14 +216,14 @@ const FinancialStatisticsPanel = () => {
     setStudentPaymentsLoaded(false);
     setStudentPagination(prev => ({ ...prev, page: 1 }));
     setTeacherPagination(prev => ({ ...prev, page: 1 }));
-  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd, paymentStatus]);
 
   // Fetch student payments chỉ khi vào tab chi tiết học sinh
   useEffect(() => {
     if (tab === 1 && !studentPaymentsLoaded) {
       fetchStudentPayments(1); // Reset về page 1
     }
-  }, [tab, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+  }, [tab, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd, paymentStatus]);
 
   // Khi filter thay đổi, nếu đang ở tab chi tiết học sinh thì luôn fetch lại dữ liệu
   useEffect(() => {
@@ -222,7 +231,7 @@ const FinancialStatisticsPanel = () => {
       fetchStudentPayments(1);
       setStudentPagination(prev => ({ ...prev, page: 1 }));
     }
-  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
+  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd, paymentStatus]);
 
   // Lấy tổng lương giáo viên cố định khi mount
   useEffect(() => {
@@ -241,13 +250,13 @@ const FinancialStatisticsPanel = () => {
   }, []);
 
   useEffect(() => {
-    if (periodType === 'status') {
+    if (paymentStatus !== 'all') {
       fetchStudentPayments(1);
       fetchTeacherPayments(1);
       setStudentPagination(prev => ({ ...prev, page: 1 }));
       setTeacherPagination(prev => ({ ...prev, page: 1 }));
     }
-  }, [paymentStatus, periodType]);
+  }, [paymentStatus]);
 
   const handleStudentPageChange = (event, newPage) => {
     fetchStudentPayments(newPage);
@@ -480,38 +489,30 @@ const FinancialStatisticsPanel = () => {
       {/* Bộ lọc thời gian */}
       <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={2}>
             <TextField select fullWidth label="Loại thống kê" value={periodType} onChange={e => setPeriodType(e.target.value)}>
               <MenuItem value="month">Tháng</MenuItem>
               <MenuItem value="quarter">Quý</MenuItem>
               <MenuItem value="year">Năm</MenuItem>
               <MenuItem value="custom">Tùy chỉnh</MenuItem>
-              <MenuItem value="status">Trạng thái thanh toán</MenuItem>
             </TextField>
           </Grid>
-          {periodType === 'status' && (
-            <Grid item xs={12} sm={3}>
-              <TextField select fullWidth label="Trạng thái thanh toán" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}>
-                {paymentStatuses.map(s => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
-              </TextField>
-            </Grid>
-          )}
-          {periodType !== 'custom' && periodType !== 'status' && (
-            <Grid item xs={12} sm={3}>
+          {periodType !== 'custom' && (
+            <Grid item xs={12} sm={2}>
               <TextField select fullWidth label="Năm" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}>
                 {years.map(year => <MenuItem key={year} value={year}>{year}</MenuItem>)}
               </TextField>
             </Grid>
           )}
           {periodType === 'month' && (
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={2}>
               <TextField select fullWidth label="Tháng" value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))}>
                 {months.map(month => <MenuItem key={month} value={month}>{month}</MenuItem>)}
               </TextField>
             </Grid>
           )}
           {periodType === 'quarter' && (
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={2}>
               <TextField select fullWidth label="Quý" value={selectedQuarter} onChange={e => setSelectedQuarter(Number(e.target.value))}>
                 {quarters.map(q => <MenuItem key={q} value={q}>Quý {q}</MenuItem>)}
               </TextField>
@@ -519,7 +520,7 @@ const FinancialStatisticsPanel = () => {
           )}
           {periodType === 'custom' && (
             <>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   label="Từ ngày"
                   type="date"
@@ -534,7 +535,7 @@ const FinancialStatisticsPanel = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   label="Đến ngày"
                   type="date"
@@ -551,6 +552,11 @@ const FinancialStatisticsPanel = () => {
               </Grid>
             </>
           )}
+          <Grid item xs={12} sm={2}>
+            <TextField select fullWidth label="Trạng thái thanh toán" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}>
+              {paymentStatuses.map(s => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
+            </TextField>
+          </Grid>
         </Grid>
       </Paper>
 
