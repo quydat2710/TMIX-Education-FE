@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import { forgotPasswordAPI, verifyCodeAPI, resetPasswordAPI } from '../../services/api';
 import { validateForgotPassword, validateOtpCode } from '../../validations/forgotPasswordValidation';
+import { validateEmail, validatePassword } from '../../validations/commonValidation';
 import { validationRules } from '../../utils/validation';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
@@ -70,9 +71,10 @@ const ForgotPassword = () => {
     setIsSubmitting(true);
     setError('');
 
-    const errors = validateForgotPassword({ email: values.email });
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) {
+    // Chỉ validate email cho bước này
+    const emailError = validateEmail(values.email);
+    if (emailError) {
+      setFormErrors({ email: emailError });
       setIsSubmitting(false);
       return;
     }
@@ -136,12 +138,21 @@ const ForgotPassword = () => {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    const errors = validateForgotPassword({
-      email,
-      password: newPassword,
-      confirmPassword,
-      otpCode: verificationCode
-    });
+
+    // Validate các trường cần thiết cho bước reset password
+    const errors = {};
+
+    // Validate password
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) errors.password = passwordError;
+
+    // Validate confirm password
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Vui lòng nhập lại mật khẩu';
+    } else if (newPassword !== confirmPassword) {
+      errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+    }
+
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
       setError(Object.values(errors)[0]);
