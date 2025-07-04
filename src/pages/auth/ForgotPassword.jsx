@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import { forgotPasswordAPI, verifyCodeAPI, resetPasswordAPI } from '../../services/api';
 import { validateForgotPassword, validateOtpCode } from '../../validations/forgotPasswordValidation';
+import { validationRules } from '../../utils/validation';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 
 const ForgotPassword = () => {
@@ -315,8 +316,8 @@ const ForgotPassword = () => {
                   },
                   '&.Mui-autofill': {
                     backgroundColor: 'white !important',
-                    '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                    '-webkit-text-fill-color': 'inherit !important',
+                    WebkitBoxShadow: '0 0 0 100px white inset !important',
+                    WebkitTextFillColor: 'inherit !important',
                   },
                   '&.Mui-autofill:hover': {
                     backgroundColor: 'white !important',
@@ -328,8 +329,8 @@ const ForgotPassword = () => {
                 '& .MuiInputBase-input': {
                   '&:-webkit-autofill': {
                     backgroundColor: 'white !important',
-                    '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                    '-webkit-text-fill-color': 'inherit !important',
+                    WebkitBoxShadow: '0 0 0 100px white inset !important',
+                    WebkitTextFillColor: 'inherit !important',
                   }
                 }
               }}

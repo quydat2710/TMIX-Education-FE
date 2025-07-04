@@ -222,8 +222,8 @@ const Login = () => {
                     },
                     '&.Mui-autofill': {
                       backgroundColor: 'white !important',
-                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': '#222 !important',
+                      WebkitBoxShadow: '0 0 0 100px white inset !important',
+                      WebkitTextFillColor: '#222 !important',
                       'color': '#222 !important',
                     },
                     '&.Mui-autofill:hover': {
@@ -236,8 +236,8 @@ const Login = () => {
                   '& .MuiInputBase-input': {
                     '&:-webkit-autofill': {
                       backgroundColor: 'white !important',
-                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': '#222 !important',
+                      WebkitBoxShadow: '0 0 0 100px white inset !important',
+                      WebkitTextFillColor: '#222 !important',
                       'color': '#222 !important',
                     }
                   }
@@ -289,8 +289,8 @@ const Login = () => {
                     },
                     '&.Mui-autofill': {
                       backgroundColor: 'white !important',
-                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': '#222 !important',
+                      WebkitBoxShadow: '0 0 0 100px white inset !important',
+                      WebkitTextFillColor: '#222 !important',
                       'color': '#222 !important',
                     },
                     '&.Mui-autofill:hover': {
@@ -303,8 +303,8 @@ const Login = () => {
                   '& .MuiInputBase-input': {
                     '&:-webkit-autofill': {
                       backgroundColor: 'white !important',
-                      '-webkit-box-shadow': '0 0 0 100px white inset !important',
-                      '-webkit-text-fill-color': '#222 !important',
+                      WebkitBoxShadow: '0 0 0 100px white inset !important',
+                      WebkitTextFillColor: '#222 !important',
                       'color': '#222 !important',
                     }
                   },
