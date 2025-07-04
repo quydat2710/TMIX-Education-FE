@@ -134,7 +134,8 @@ const PaymentHistoryModal = ({
   onClose,
   paymentData, // Direct payment data instead of paymentId
   title = "Lịch sử thanh toán",
-  showPaymentDetails = true // Whether to show payment details at the top
+  showPaymentDetails = true, // Whether to show payment details at the top
+  teacherInfo // thêm prop này
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -143,6 +144,8 @@ const PaymentHistoryModal = ({
 
   useEffect(() => {
     if (open && paymentData) {
+      console.log('PaymentHistoryModal - paymentData:', paymentData);
+      console.log('PaymentHistoryModal - teacherInfo:', teacherInfo);
       // Extract data from paymentData
       let history = paymentData.paymentHistory || [];
       if (history && !Array.isArray(history) && typeof history === 'object') {
@@ -166,7 +169,7 @@ const PaymentHistoryModal = ({
         });
       }
     }
-  }, [open, paymentData, showPaymentDetails]);
+  }, [open, paymentData, showPaymentDetails, teacherInfo]);
 
   const handleClose = () => {
     setPaymentHistory([]);
@@ -277,10 +280,30 @@ const PaymentHistoryModal = ({
                               Giáo viên: {paymentData.teacherId.userId?.name || paymentData.teacherId.name}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              Email: {paymentData.teacherId.userId?.email || '-'}
+                              Email: {(() => {
+                                console.log('Rendering email - teacherInfo:', teacherInfo);
+                                console.log('Rendering email - paymentData.teacherId:', paymentData.teacherId);
+                                // Dựa trên cấu trúc dữ liệu thực tế: teacherInfo.userId.email
+                                const email = teacherInfo?.userId?.email ||
+                                            teacherInfo?.email ||
+                                            paymentData.teacherId?.userId?.email ||
+                                            paymentData.teacherId?.email || '-';
+                                console.log('Final email value:', email);
+                                return email;
+                              })()}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                              SĐT: {paymentData.teacherId.userId?.phone || '-'}
+                              SĐT: {(() => {
+                                console.log('Rendering phone - teacherInfo:', teacherInfo);
+                                console.log('Rendering phone - paymentData.teacherId:', paymentData.teacherId);
+                                // Dựa trên cấu trúc dữ liệu thực tế: teacherInfo.userId.phone
+                                const phone = teacherInfo?.userId?.phone ||
+                                            teacherInfo?.phone ||
+                                            paymentData.teacherId?.userId?.phone ||
+                                            paymentData.teacherId?.phone || '-';
+                                console.log('Final phone value:', phone);
+                                return phone;
+                              })()}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500, color: '#2c3e50' }}>
                               Tháng/Năm: {paymentData.month}/{paymentData.year}

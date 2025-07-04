@@ -49,6 +49,7 @@ import StatCard from '../../components/common/StatCard';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import { getPaymentsByStudentAPI, getParentByIdAPI, payTuitionAPI } from '../../services/api';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const Payments = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,6 +74,10 @@ const Payments = () => {
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // ConfirmDialog states for payment
+  const [paymentConfirmOpen, setPaymentConfirmOpen] = useState(false);
+  const [paymentConfirmData, setPaymentConfirmData] = useState(null);
 
   // Refactor fetchPaymentData để dùng useCallback, tránh closure
   const fetchPaymentData = useCallback(async () => {
@@ -238,16 +243,32 @@ const Payments = () => {
       setPaymentError('Số tiền thanh toán không được vượt quá số tiền còn lại');
       return;
     }
+
+    // Lưu dữ liệu thanh toán để xác nhận
+    const paymentData = {
+      paymentId: selectedInvoice.id,
+      amount,
+      method: paymentMethod,
+      note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
+    };
+
+    setPaymentConfirmData({
+      invoice: selectedInvoice,
+      paymentData
+    });
+    setPaymentConfirmOpen(true);
+  };
+
+  const handleConfirmPaymentFinal = async () => {
+    if (!paymentConfirmData) return;
+
     setPaymentLoading(true);
+    setPaymentConfirmOpen(false);
     setPaymentError('');
     setPaymentSuccess('');
+
     try {
-      const response = await payTuitionAPI({
-        paymentId: selectedInvoice.id,
-        amount,
-        method: paymentMethod,
-        note: paymentNote || `Thanh toán học phí tháng ${selectedInvoice.month}`
-      });
+      const response = await payTuitionAPI(paymentConfirmData.paymentData);
       setPaymentSuccess('Thanh toán thành công!');
       setSnackbar({ open: true, message: 'Thanh toán thành công!', severity: 'success' });
       handleClosePaymentDialog();
@@ -258,6 +279,7 @@ const Payments = () => {
       setSnackbar({ open: true, message: error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán', severity: 'error' });
     } finally {
       setPaymentLoading(false);
+      setPaymentConfirmData(null);
     }
   };
 
@@ -713,6 +735,18 @@ const Payments = () => {
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           message={snackbar.message}
           severity={snackbar.severity}
+        />
+
+        {/* Confirm Dialog for Payment */}
+        <ConfirmDialog
+          open={paymentConfirmOpen}
+          onClose={() => setPaymentConfirmOpen(false)}
+          onConfirm={handleConfirmPaymentFinal}
+          title="Xác nhận thanh toán học phí"
+          message={`Bạn có chắc chắn muốn thanh toán học phí cho ${paymentConfirmData?.invoice?.childName} - ${paymentConfirmData?.invoice?.className} tháng ${paymentConfirmData?.invoice?.month} với số tiền ${paymentConfirmData?.paymentData?.amount.toLocaleString()} ₫?`}
+          confirmText="Xác nhận"
+          cancelText="Hủy"
+          loading={paymentLoading}
         />
         </Box>
       </Box>

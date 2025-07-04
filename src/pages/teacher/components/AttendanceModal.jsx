@@ -397,8 +397,6 @@ const AttendanceModal = ({
         onClose={() => setNotification({ ...notification, open: false })}
         message={notification.message}
         severity={notification.severity}
-        autoHideDuration={6000}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       />
     </>
   );

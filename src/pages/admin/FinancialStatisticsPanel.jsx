@@ -3,9 +3,10 @@ import {
   Box, Typography, Paper, Grid, TextField, MenuItem, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Pagination, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, InputAdornment, Tooltip
 } from '@mui/material';
 import { History as HistoryIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
-import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI, getTotalPaymentsAPI } from '../../services/api';
+import { getPaymentsAPI, getTeacherPaymentsAPI, payTeacherAPI, getTotalPaymentsAPI, getTeacherByIdAPI } from '../../services/api';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -58,6 +59,10 @@ const FinancialStatisticsPanel = () => {
   const [teacherPaymentNote, setTeacherPaymentNote] = useState('');
   const [teacherPaymentLoading, setTeacherPaymentLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // ConfirmDialog states for teacher payment
+  const [teacherPaymentConfirmOpen, setTeacherPaymentConfirmOpen] = useState(false);
+  const [teacherPaymentConfirmData, setTeacherPaymentConfirmData] = useState(null);
 
   // Helper: Lấy tháng đầu/cuối quý
   const getQuarterMonths = (quarter) => {
@@ -252,9 +257,37 @@ const FinancialStatisticsPanel = () => {
     fetchTeacherPayments(newPage);
   };
 
-  const handleOpenPaymentHistory = (payment) => {
+  const handleOpenPaymentHistory = async (payment) => {
     setSelectedPaymentForHistory(payment);
     setPaymentHistoryModalOpen(true);
+    // Lấy id giáo viên
+    const teacherId = payment.teacherId?.id || payment.teacherId?.userId?.id;
+    console.log('Payment data:', payment);
+    console.log('Teacher ID:', teacherId);
+    if (teacherId) {
+      try {
+        const res = await getTeacherByIdAPI(teacherId);
+        console.log('Teacher API response:', res);
+        console.log('Teacher API response.data:', res.data);
+        console.log('Teacher API response.data structure:', JSON.stringify(res.data, null, 2));
+
+        // Đảm bảo set state đúng cách
+        const teacherData = res.data || res;
+        console.log('Setting teacherDetailInfo to:', teacherData);
+        setTeacherDetailInfo(teacherData);
+
+        // Debug: kiểm tra state sau khi set
+        setTimeout(() => {
+          console.log('teacherDetailInfo after timeout:', teacherData);
+        }, 100);
+
+      } catch (err) {
+        console.error('Error fetching teacher info:', err);
+        setTeacherDetailInfo(null);
+      }
+    } else {
+      setTeacherDetailInfo(null);
+    }
   };
 
   const handleClosePaymentHistory = () => {
@@ -306,19 +339,32 @@ const FinancialStatisticsPanel = () => {
       });
       return;
     }
-    setTeacherPaymentLoading(true);
 
+    // Lưu dữ liệu thanh toán để xác nhận
     const paymentData = {
       amount,
       method: teacherPaymentMethod,
       note: teacherPaymentNote || 'Thanh toán lương giáo viên'
     };
 
+    setTeacherPaymentConfirmData({
+      teacher: selectedTeacherPayment,
+      paymentData
+    });
+    setTeacherPaymentConfirmOpen(true);
+  };
+
+  const handleConfirmTeacherPaymentFinal = async () => {
+    if (!teacherPaymentConfirmData) return;
+
+    setTeacherPaymentLoading(true);
+    setTeacherPaymentConfirmOpen(false);
+
     try {
       await payTeacherAPI(
-        selectedTeacherPayment.teacherId?.id || selectedTeacherPayment.teacherId?.userId?.id,
-        paymentData,
-        { month: selectedTeacherPayment.month, year: selectedTeacherPayment.year }
+        teacherPaymentConfirmData.teacher.teacherId?.id || teacherPaymentConfirmData.teacher.teacherId?.userId?.id,
+        teacherPaymentConfirmData.paymentData,
+        { month: teacherPaymentConfirmData.teacher.month, year: teacherPaymentConfirmData.teacher.year }
       );
       setSnackbar({
         open: true,
@@ -337,12 +383,39 @@ const FinancialStatisticsPanel = () => {
       });
     } finally {
       setTeacherPaymentLoading(false);
+      setTeacherPaymentConfirmData(null);
     }
   };
 
-  const handleOpenTeacherDetail = (payment) => {
+  const handleOpenTeacherDetail = async (payment) => {
     setSelectedTeacherForDetail(payment);
     setTeacherDetailModalOpen(true);
+    // Lấy id giáo viên
+    const teacherId = payment.teacherId?.id || payment.teacherId?.userId?.id;
+    console.log('Payment data for detail:', payment);
+    console.log('Teacher ID for detail:', teacherId);
+    if (teacherId) {
+      try {
+        const res = await getTeacherByIdAPI(teacherId);
+        console.log('Teacher API response for detail:', res);
+
+        // Đảm bảo set state đúng cách
+        const teacherData = res.data || res;
+        console.log('Setting teacherDetailInfo for detail to:', teacherData);
+        setTeacherDetailInfo(teacherData);
+
+        // Debug: kiểm tra state sau khi set
+        setTimeout(() => {
+          console.log('teacherDetailInfo for detail after timeout:', teacherData);
+        }, 100);
+
+      } catch (err) {
+        console.error('Error fetching teacher info for detail:', err);
+        setTeacherDetailInfo(null);
+      }
+    } else {
+      setTeacherDetailInfo(null);
+    }
   };
 
   const handleCloseTeacherDetail = () => {
@@ -354,6 +427,14 @@ const FinancialStatisticsPanel = () => {
     if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
   };
+
+  // Thông tin chi tiết giáo viên
+  const [teacherDetailInfo, setTeacherDetailInfo] = useState(null);
+
+  // Debug: theo dõi thay đổi teacherDetailInfo
+  useEffect(() => {
+    console.log('teacherDetailInfo changed:', teacherDetailInfo);
+  }, [teacherDetailInfo]);
 
   // Bộ lọc thời gian
   return (
@@ -629,6 +710,7 @@ const FinancialStatisticsPanel = () => {
         paymentData={selectedPaymentForHistory}
         title="Lịch sử thanh toán học phí"
         showPaymentDetails={true}
+        teacherInfo={teacherDetailInfo}
       />
 
       {/* Teacher Payment Dialog */}
@@ -865,12 +947,33 @@ const FinancialStatisticsPanel = () => {
                           {selectedTeacherForDetail.teacherId?.userId?.name || selectedTeacherForDetail.teacherId?.name}
                         </span>
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>SĐT:</span>
-                        <span style={{ fontWeight: 500, color: '#2c3e50' }}>
-                          {selectedTeacherForDetail.teacherId?.userId?.phone || '-'}
-                        </span>
-                      </Typography>
+                      {/* Thêm email và số điện thoại nếu có */}
+                      {teacherDetailInfo && (
+                        <>
+                          {console.log('Teacher Detail Modal - teacherDetailInfo:', teacherDetailInfo)}
+                          {console.log('Teacher Detail Modal - teacherDetailInfo.userId:', teacherDetailInfo.userId)}
+                          <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#666' }}>Email:</span>
+                            <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                              {(() => {
+                                const email = teacherDetailInfo.userId?.email || teacherDetailInfo.email || '-';
+                                console.log('Teacher Detail Modal - Final email:', email);
+                                return email;
+                              })()}
+                            </span>
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#666' }}>SĐT:</span>
+                            <span style={{ fontWeight: 500, color: '#2c3e50' }}>
+                              {(() => {
+                                const phone = teacherDetailInfo.userId?.phone || teacherDetailInfo.phone || '-';
+                                console.log('Teacher Detail Modal - Final phone:', phone);
+                                return phone;
+                              })()}
+                            </span>
+                          </Typography>
+                        </>
+                      )}
                     </Box>
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -1006,6 +1109,18 @@ const FinancialStatisticsPanel = () => {
         onClose={handleCloseNotification}
         message={snackbar.message}
         severity={snackbar.severity}
+      />
+
+      {/* Confirm Dialog for Teacher Payment */}
+      <ConfirmDialog
+        open={teacherPaymentConfirmOpen}
+        onClose={() => setTeacherPaymentConfirmOpen(false)}
+        onConfirm={handleConfirmTeacherPaymentFinal}
+        title="Xác nhận thanh toán lương giáo viên"
+        message={`Bạn có chắc chắn muốn thanh toán lương cho giáo viên ${teacherPaymentConfirmData?.teacher?.teacherId?.userId?.name || teacherPaymentConfirmData?.teacher?.name} tháng ${teacherPaymentConfirmData?.teacher?.month}/${teacherPaymentConfirmData?.teacher?.year} với số tiền ${teacherPaymentConfirmData?.paymentData?.amount.toLocaleString()} ₫?`}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        loading={teacherPaymentLoading}
       />
     </Box>
   );
