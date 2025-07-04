@@ -75,7 +75,7 @@ const StudentManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 700);
+    }, 500);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 

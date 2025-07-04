@@ -31,7 +31,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
     grade: '',
     section: '',
     name: '',
-    year: new Date().getFullYear(),
     feePerLesson: '',
     maxStudents: '',
     description: '',
@@ -58,7 +57,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
         grade: classData.grade || '',
         section: classData.section || '',
         name: classData.name || '',
-        year: classData.year || new Date().getFullYear(),
         feePerLesson: classData.feePerLesson || '',
         maxStudents: classData.maxStudents || '',
         description: classData.description || '',
@@ -288,7 +286,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
           grade: form.grade,
           section: form.section,
           name: form.name,
-          year: parseInt(form.year),
           status: autoStatus, // Sử dụng trạng thái tự động
           feePerLesson: parseInt(form.feePerLesson),
           maxStudents: parseInt(form.maxStudents),
@@ -357,21 +354,6 @@ const AddClassForm = ({ classData, onSubmit, loading, id }) => {
             disabled={!!classData}
             error={!!errors.name}
             helperText={errors.name}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            label="Năm học"
-            name="year"
-            type="number"
-            value={form.year}
-            onChange={handleChange}
-            onBlur={() => handleBlur('year')}
-            fullWidth
-            required
-            disabled={!!classData}
-            error={!!errors.year}
-            helperText={errors.year}
           />
         </Grid>
         <Grid item xs={6}>

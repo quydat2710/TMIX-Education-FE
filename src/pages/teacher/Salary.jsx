@@ -98,7 +98,7 @@ const Salary = () => {
         {/* Stat Cards */}
         <Box sx={{ mb: 4 }}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Số tháng có lương"
                 value={payments.length}
@@ -106,15 +106,7 @@ const Salary = () => {
                 color="primary"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4}>
-              <StatCard
-                title="Tổng số buổi"
-                value={totalLessons}
-                icon={<PaymentIcon sx={{ fontSize: 40 }} />}
-                color="secondary"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng lương"
                 value={totalSalary.toLocaleString() + ' ₫'}
@@ -122,7 +114,7 @@ const Salary = () => {
                 color="success"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đã nhận"
                 value={totalPaid.toLocaleString() + ' ₫'}
@@ -130,7 +122,7 @@ const Salary = () => {
                 color="info"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Còn lại"
                 value={totalUnpaid.toLocaleString() + ' ₫'}
