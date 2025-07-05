@@ -140,12 +140,14 @@ const Payments = () => {
     let totalDiscount = 0;
     let unpaidInvoices = 0;
     let paidInvoices = 0;
+    let partialInvoices = 0;
 
     paymentData.forEach(invoice => {
       totalPaid += invoice.paidAmount ?? 0;
       totalUnpaid += invoice.remainingAmount ?? 0;
       totalDiscount += invoice.discountAmount ?? 0;
       if (invoice.status === 'paid') paidInvoices++;
+      else if (invoice.status === 'partial') partialInvoices++;
       else unpaidInvoices++;
     });
 
@@ -155,7 +157,8 @@ const Payments = () => {
       totalDiscount,
       unpaidInvoices,
       paidInvoices,
-      totalInvoices: unpaidInvoices + paidInvoices
+      partialInvoices,
+      totalInvoices: unpaidInvoices + paidInvoices + partialInvoices
     };
   }, [paymentData]);
 
@@ -166,8 +169,9 @@ const Payments = () => {
                          invoice.className.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedTab === 0) return matchesSearch; // Tất cả
-    if (selectedTab === 1) return matchesSearch && invoice.status !== 'paid'; // Chưa thanh toán (pending, unpaid, etc.)
-    if (selectedTab === 2) return matchesSearch && invoice.status === 'paid'; // Đã thanh toán
+    if (selectedTab === 1) return matchesSearch && invoice.status !== 'paid' && invoice.status !== 'partial'; // Chưa thanh toán (pending, unpaid, etc.)
+    if (selectedTab === 2) return matchesSearch && invoice.status === 'partial'; // Thanh toán một phần
+    if (selectedTab === 3) return matchesSearch && invoice.status === 'paid'; // Đã thanh toán
 
     return matchesSearch;
   });
@@ -180,7 +184,14 @@ const Payments = () => {
   };
 
   const getStatusColor = (status) => {
-    return status === 'paid' ? 'success' : 'error';
+    switch (status) {
+      case 'paid':
+        return 'success';
+      case 'partial':
+        return 'warning';
+      default:
+        return 'error';
+    }
   };
 
   const getStatusLabel = (status) => {
@@ -337,6 +348,7 @@ const Payments = () => {
         <Tabs value={selectedTab} onChange={handleTabChange} sx={{ mb: 3 }}>
           <Tab label={`Tất cả (${allInvoices.length})`} />
           <Tab label={`Chưa thanh toán (${summary.unpaidInvoices})`} />
+          <Tab label={`Thanh toán một phần (${summary.partialInvoices})`} />
           <Tab label={`Đã thanh toán (${summary.paidInvoices})`} />
         </Tabs>
 

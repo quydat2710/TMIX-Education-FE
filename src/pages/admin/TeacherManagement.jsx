@@ -251,6 +251,7 @@ const TeacherManagement = () => {
             qualifications: form.qualifications.split(',').map(q => q.trim()).filter(q => q),
             specialization: form.specialization.split(',').map(s => s.trim()).filter(s => s),
             description: form.description,
+            isActive: form.isActive,
           },
         };
         await updateTeacherAPI(selectedTeacher.id, body);
