@@ -382,9 +382,9 @@ const Payments = () => {
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi học</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tiền gốc</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tiền cuối</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Còn lại</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
