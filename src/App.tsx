@@ -50,6 +50,9 @@ import StudentDashboard from './pages/student/Dashboard';
 import StudentMyClasses from './pages/student/MyClasses';
 import StudentSchedule from './pages/student/Schedule';
 import StudentProfile from './pages/profile/StudentProfile';
+import StudentTestsList from './pages/student/TestsList';
+import TakeTest from './pages/student/TakeTest';
+import TestResults from './pages/student/TestResults';
 
 // Parent Pages
 import ParentDashboard from './pages/parent/Dashboard';
@@ -112,113 +115,117 @@ const AppContent: React.FC = () => {
           <Route path="/:slug" element={<DynamicMenuPage />} />
           <Route path="/:parentSlug/:childSlug" element={<DynamicMenuPage />} />
 
-                    <Route path="/profile" element={
+          <Route path="/profile" element={
             !user ? <Navigate to="/" replace /> : (
               <Navigate to={
                 user.role === USER_ROLES.ADMIN ? "/admin/profile" :
-                user.role === USER_ROLES.TEACHER ? "/teacher/profile" :
-                user.role === USER_ROLES.STUDENT ? "/student/profile" :
-                user.role === USER_ROLES.PARENT ? "/parent/profile" : "/"
+                  user.role === USER_ROLES.TEACHER ? "/teacher/profile" :
+                    user.role === USER_ROLES.STUDENT ? "/student/profile" :
+                      user.role === USER_ROLES.PARENT ? "/parent/profile" : "/"
               } replace />
             )
           } />
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-                  <Routes>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="advertisements" element={<AdvertisementManagement />} />
-                    <Route path="classes" element={<ClassManagement />} />
+          {/* Admin Routes */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <Routes>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="advertisements" element={<AdvertisementManagement />} />
+                  <Route path="classes" element={<ClassManagement />} />
 
-                    {/* New user management routes */}
-                    <Route path="users" element={<Navigate to="/admin/users/students" replace />} />
-                    <Route path="users/students" element={<StudentManagement />} />
-                    <Route path="users/teachers" element={<TeacherManagement />} />
-                    <Route path="users/parents" element={<ParentManagement />} />
+                  {/* New user management routes */}
+                  <Route path="users" element={<Navigate to="/admin/users/students" replace />} />
+                  <Route path="users/students" element={<StudentManagement />} />
+                  <Route path="users/teachers" element={<TeacherManagement />} />
+                  <Route path="users/parents" element={<ParentManagement />} />
 
-                    {/* Legacy routes with redirects for backward compatibility */}
-                    <Route path="students" element={<Navigate to="/admin/users/students" replace />} />
-                    <Route path="teachers" element={<Navigate to="/admin/users/teachers" replace />} />
-                    <Route path="parents" element={<Navigate to="/admin/users/parents" replace />} />
+                  {/* Legacy routes with redirects for backward compatibility */}
+                  <Route path="students" element={<Navigate to="/admin/users/students" replace />} />
+                  <Route path="teachers" element={<Navigate to="/admin/users/teachers" replace />} />
+                  <Route path="parents" element={<Navigate to="/admin/users/parents" replace />} />
 
-                    <Route path="statistics" element={<Statistics />} />
-                    <Route path="statistics/financial" element={<FinancialStatistics />} />
-                    <Route path="statistics/students" element={<StudentStatistics />} />
+                  <Route path="statistics" element={<Statistics />} />
+                  <Route path="statistics/financial" element={<FinancialStatistics />} />
+                  <Route path="statistics/students" element={<StudentStatistics />} />
                   <Route path="roles-management" element={<RoleManagement />} />
                   <Route path="registrations" element={<RegistrationManagement />} />
                   <Route path="audit-log" element={<AuditLog />} />
 
-                    {/* Testimonials Management Route */}
-                    <Route path="testimonials" element={<TestimonialsManagement />} />
+                  {/* Testimonials Management Route */}
+                  <Route path="testimonials" element={<TestimonialsManagement />} />
 
                   {/* Menu Management Routes */}
-                      <Route path="menu" element={<MenuManagement />} />
-                     <Route path="menu-management" element={<MenuManagement />} />
+                  <Route path="menu" element={<MenuManagement />} />
+                  <Route path="menu-management" element={<MenuManagement />} />
                   <Route path="layout-builder/:id" element={<LayoutBuilder />} />
-                     <Route path="layout-builder/:slug" element={<LayoutBuilder />} />
-                     <Route path="profile" element={<AdminProfile />} />
-                    <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-                    </Routes>
-                </ProtectedRoute>
-              }
-            />
+                  <Route path="layout-builder/:slug" element={<LayoutBuilder />} />
+                  <Route path="profile" element={<AdminProfile />} />
+                  <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                </Routes>
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Teacher Routes */}
-            <Route
-              path="/teacher/*"
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.TEACHER]}>
-                    <Routes>
-                    <Route path="dashboard" element={<TeacherDashboard />} />
-                    <Route path="classes" element={<TeacherMyClasses />} />
-                    <Route path="schedule" element={<TeacherSchedule />} />
-                    <Route path="salary" element={<Salary />} />
-                    <Route path="profile" element={<TeacherProfile />} />
-                    <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
-                    </Routes>
-                </ProtectedRoute>
-              }
-            />
+          {/* Teacher Routes */}
+          <Route
+            path="/teacher/*"
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.TEACHER]}>
+                <Routes>
+                  <Route path="dashboard" element={<TeacherDashboard />} />
+                  <Route path="classes" element={<TeacherMyClasses />} />
+                  <Route path="schedule" element={<TeacherSchedule />} />
+                  <Route path="salary" element={<Salary />} />
+                  <Route path="profile" element={<TeacherProfile />} />
+                  <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
+                </Routes>
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Student Routes */}
-            <Route
-              path="/student/*"
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.STUDENT]}>
-                    <Routes>
-                    <Route path="dashboard" element={<StudentDashboard />} />
-                    <Route path="classes" element={<StudentMyClasses />} />
-                    <Route path="schedule" element={<StudentSchedule />} />
-                    <Route path="profile" element={<StudentProfile />} />
-                    <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
-                    </Routes>
-                </ProtectedRoute>
-              }
-            />
+          {/* Student Routes */}
+          <Route
+            path="/student/*"
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.STUDENT]}>
+                <Routes>
+                  <Route path="dashboard" element={<StudentDashboard />} />
+                  <Route path="classes" element={<StudentMyClasses />} />
+                  <Route path="schedule" element={<StudentSchedule />} />
+                  <Route path="profile" element={<StudentProfile />} />
+                  {/* AI Test Routes */}
+                  <Route path="tests" element={<StudentTestsList />} />
+                  <Route path="tests/:testId/take" element={<TakeTest />} />
+                  <Route path="tests/results/:attemptId" element={<TestResults />} />
+                  <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
+                </Routes>
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Parent Routes */}
-            <Route
-              path="/parent/*"
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.PARENT]}>
-                    <Routes>
-                    <Route path="dashboard" element={<ParentDashboard />} />
-                    <Route path="children" element={<ParentChildren />} />
-                    <Route path="payments" element={<ParentPayments />} />
-                    <Route path="profile" element={<ParentProfile />} />
-                    <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
-                    </Routes>
-                </ProtectedRoute>
-              }
-            />
+          {/* Parent Routes */}
+          <Route
+            path="/parent/*"
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.PARENT]}>
+                <Routes>
+                  <Route path="dashboard" element={<ParentDashboard />} />
+                  <Route path="children" element={<ParentChildren />} />
+                  <Route path="payments" element={<ParentPayments />} />
+                  <Route path="profile" element={<ParentProfile />} />
+                  <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
+                </Routes>
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Catch all route - redirect to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+          {/* Catch all route - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 };
