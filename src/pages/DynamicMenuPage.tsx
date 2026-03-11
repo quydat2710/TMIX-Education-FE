@@ -1,166 +1,138 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Typography, Container, CircularProgress, Alert } from '@mui/material';
-import { getArticlesByMenuIdAPI } from '../services/articles';
-import { MenuItem } from '../types';
-import { useMenuItems } from '../hooks/features/useMenuItems';
+import { Box, Container, Typography, CircularProgress, Alert, Breadcrumbs, Link } from '@mui/material';
 import PublicLayout from '../components/layouts/PublicLayout';
+import { getArticlesByMenuIdAPI } from '../services/articles'; // Assuming this exists or similar
+import { getMenuBySlugAPI } from '../services/menus'; // Assuming this exists
 
+interface DynamicArticle {
+    id: string;
+    content: string;
+    [key: string]: any;
+}
 
-const DynamicMenuPage: React.FC = () => {
-  const { slug, parentSlug, childSlug } = useParams<{ slug?: string; parentSlug?: string; childSlug?: string }>();
-  const { menuItems } = useMenuItems();
-  const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [articles, setArticles] = useState<any[]>([]);
-  // We render all articles stacked; no selection needed
+interface DynamicMenu {
+    id: string;
+    title: string;
+    [key: string]: any;
+}
 
-  // Combine slug from params - support both /:slug and /:parentSlug/:childSlug
-  const fullSlug = childSlug ? `${parentSlug}/${childSlug}` : slug;
+const DynamicMenuPage = () => {
+    const { slug, parentSlug, childSlug } = useParams();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [articles, setArticles] = useState<DynamicArticle[]>([]);
+    const [menu, setMenu] = useState<DynamicMenu | null>(null);
 
-  useEffect(() => {
-    const fetchMenuItem = async () => {
-      if (!fullSlug) return;
+    // Determine current slug
+    const currentSlug = childSlug || slug;
 
-      // ✅ Nếu menuItems chưa load (array rỗng), giữ loading state và chờ
-      if (menuItems.length === 0) {
-        setLoading(true);
-        return;
-      }
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!currentSlug) return;
 
-      try {
-        setLoading(true);
+            setLoading(true);
+            setError(null);
+            try {
+                // 1. Get menu info to get title and ID
+                const menuResponse = await getMenuBySlugAPI(currentSlug);
+                const menuData = menuResponse.data?.data || menuResponse.data;
+                if (!menuData) {
+                    setError('Không tìm thấy trang này.');
+                    setLoading(false);
+                    return;
+                }
+                setMenu(menuData);
 
-        // Find menu item from existing menuItems data
-        const foundMenuItem = findMenuItemBySlug(menuItems, fullSlug);
+                // 2. Get articles
+                const articlesResponse = await getArticlesByMenuIdAPI(menuData.id);
+                const articlesData = articlesResponse.data?.data?.result || articlesResponse.data?.data || articlesResponse.data || [];
+                setArticles(Array.isArray(articlesData) ? articlesData : []);
 
-        if (foundMenuItem) {
-          setMenuItem(foundMenuItem);
-          setError(null); // Clear any previous error
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError('Có lỗi xảy ra khi tải dữ liệu.');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-          // Fetch articles for this menu using menuId
-          try {
-            const articlesResponse = await getArticlesByMenuIdAPI(foundMenuItem.id);
-            if (articlesResponse.data?.data?.result) {
-              // ✅ Sort articles by order, then by createdAt
-              const sortedArticles = articlesResponse.data.data.result
-                .filter((article: any) => article.isActive !== false) // Only active articles
-                .sort((a: any, b: any) => {
-                  if (a.order !== b.order) {
-                    return (a.order || 999) - (b.order || 999); // Articles without order go last
-                  }
-                  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                });
-              setArticles(sortedArticles);
-          }
-        } catch (articleError) {
-          console.log('No articles found for this menu, using mock content');
-          }
-        } else {
-          // ✅ menuItems đã load nhưng không tìm thấy → Đây mới là lỗi thật
-          setError('Không tìm thấy trang này');
-        }
+        fetchData();
+    }, [currentSlug]);
 
-      } catch (error) {
-        console.error('Error fetching menu item:', error);
-        setError('Không tìm thấy trang này');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMenuItem();
-  }, [fullSlug, menuItems]);
-
-  // Helper function to find menu item by slug recursively
-  const findMenuItemBySlug = (items: MenuItem[], targetSlug: string): MenuItem | null => {
-    for (const item of items) {
-      // Remove leading slash for comparison
-      const itemSlug = item.slug?.replace(/^\//, '') || '';
-      const cleanTargetSlug = targetSlug.replace(/^\//, '');
-
-      if (itemSlug === cleanTargetSlug) {
-        return item;
-      }
-
-      // Check children recursively
-      if (item.childrenMenu && item.childrenMenu.length > 0) {
-        const found = findMenuItemBySlug(item.childrenMenu, targetSlug);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-
-
-
-
-
-
-  const renderContent = () => {
-    // If we have articles, show them instead of mock content
-    if (articles.length > 0) {
-      if (articles.length === 1) {
-        return <div dangerouslySetInnerHTML={{ __html: articles[0].content }} />;
-      } else {
-        // Multiple articles - render stacked vertically in order
+    if (loading) {
         return (
-          <Box>
-            {articles.map((article, index) => (
-              <Box key={article.id || index} sx={{ mb: 6 }}>
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
-              </Box>
-            ))}
-          </Box>
+            <PublicLayout>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 10, minHeight: '60vh' }}>
+                    <CircularProgress />
+                </Box>
+            </PublicLayout>
         );
-      }
     }
 
-    // No articles found - show blank page (trắng tinh)
-    return null;
-  };
+    if (error || !menu) {
+        return (
+            <PublicLayout>
+                <Container maxWidth="lg" sx={{ py: 8, minHeight: '60vh' }}>
+                    <Alert severity="error">{error || 'Trang không tồn tại'}</Alert>
+                    <Box mt={2}>
+                        <Link href="/" underline="hover">Về trang chủ</Link>
+                    </Box>
+                </Container>
+            </PublicLayout>
+        );
+    }
 
-  // Show loading spinner while fetching data
-  if (loading || (menuItems.length === 0 && !error)) {
     return (
-      <PublicLayout>
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
-      </Container>
-      </PublicLayout>
-    );
-  }
+        <PublicLayout>
+            <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
+                {/* Hero Section */}
+                <Box
+                    sx={{
+                        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
+                        color: 'white',
+                        py: { xs: 4, md: 6 },
+                        mb: 0,
+                        position: 'relative',
+                        overflow: 'hidden',
+                    }}
+                >
+                    <Container maxWidth="lg">
+                        <Breadcrumbs aria-label="breadcrumb" sx={{ color: 'rgba(255,255,255,0.8)', mb: 2 }}>
+                            <Link color="inherit" href="/" underline="hover">Trang chủ</Link>
+                            {parentSlug && <Typography color="inherit">{parentSlug}</Typography>}
+                            <Typography color="white">{menu.title}</Typography>
+                        </Breadcrumbs>
+                        <Typography
+                            variant="h3"
+                            component="h1"
+                            sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.5rem' } }}
+                        >
+                            {menu.title}
+                        </Typography>
+                    </Container>
+                </Box>
 
-  // Only show error if: has explicit error OR (menuItems loaded but menuItem not found)
-  if (error || (!menuItem && menuItems.length > 0)) {
-    return (
-      <PublicLayout>
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || 'Không tìm thấy trang này'}
-        </Alert>
-        <Typography variant="h4" gutterBottom>
-          Trang không tồn tại
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
-        </Typography>
-      </Container>
-      </PublicLayout>
+                {/* Content */}
+                <Container maxWidth="lg" sx={{ py: 4 }}>
+                    {articles.length === 0 ? (
+                        <Box textAlign="center" py={4}>
+                            <Typography color="text.secondary">Nội dung đang được cập nhật...</Typography>
+                        </Box>
+                    ) : (
+                        <Box sx={{ bgcolor: 'white', borderRadius: '16px', p: { xs: 3, md: 5 }, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+                            {articles.map((article) => (
+                                <Box key={article.id} sx={{ mb: 4 }}>
+                                    {/* Render raw HTML content from LayoutBuilder/ArticleEditor */}
+                                    <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
+                </Container>
+            </Box>
+        </PublicLayout>
     );
-  }
-
-  return (
-    <PublicLayout>
-      {/* Hiển thị đúng content đã lưu: không thêm Container/margin/padding ngoài */}
-      <Box sx={{ width: '100%' }}>
-        {renderContent()}
-      </Box>
-    </PublicLayout>
-  );
 };
 
 export default DynamicMenuPage;

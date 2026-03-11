@@ -161,7 +161,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -204,7 +204,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({
             }}>
               <Box sx={{
                 p: 3,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
                 color: 'white'
               }}>
                 <Typography variant="h6" sx={{
@@ -357,7 +357,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({
           onClick={onClose}
           variant="contained"
           sx={{
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             '&:hover': { bgcolor: '#5a6fd8' },
             px: 3,
             py: 1,

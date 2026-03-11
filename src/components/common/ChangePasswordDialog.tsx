@@ -124,7 +124,34 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         handleClose();
       }, 100);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.');
+      console.error('Change password failed:', err);
+      let errorMessage = 'Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.';
+
+      const backendMessage = err.response?.data?.message;
+      if (backendMessage) {
+        // Dịch lỗi sang tiếng Việt
+        if (backendMessage === 'Old password is incorrect') {
+          errorMessage = 'Mật khẩu hiện tại không đúng';
+        } else if (backendMessage === 'Password not match') {
+          errorMessage = 'Mật khẩu xác nhận không khớp';
+        } else if (backendMessage === 'User not found') {
+          errorMessage = 'Không tìm thấy thông tin tài khoản. Vui lòng đăng nhập lại.';
+        } else if (Array.isArray(backendMessage)) {
+          // Trường hợp lỗi validation trả về mảng
+          errorMessage = backendMessage.join(', ');
+        } else {
+          errorMessage = backendMessage;
+        }
+      }
+
+      setError(errorMessage);
+
+      // Cũng hiện snackbar lỗi cho rõ ràng
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -145,197 +172,197 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
   return (
     <>
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-        }
-      }}
-    >
-      <DialogTitle
-        sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          py: 3,
-          px: 4,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
+            color: 'white',
+            py: 3,
+            px: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                p: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <LockIcon sx={{ fontSize: 24, color: 'white' }} />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Đổi mật khẩu
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Vui lòng nhập thông tin để đổi mật khẩu
+              </Typography>
+            </Box>
+          </Box>
+          {/* Đã có nút Hủy ở footer nên không cần nút đóng (X) trên header */}
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            px: 4,
+            pt: 3,
+            pb: 4,
+            bgcolor: '#f9fafb',
+          }}
+        >
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
           <Box
             sx={{
-              bgcolor: 'rgba(255,255,255,0.2)',
-              borderRadius: '50%',
-              p: 1,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              flexDirection: 'column',
+              gap: 2.5,
+              bgcolor: 'white',
+              borderRadius: 2,
+              p: 3,
+              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
             }}
           >
-            <LockIcon sx={{ fontSize: 24, color: 'white' }} />
+            <TextField
+              fullWidth
+              label="Mật khẩu hiện tại"
+              type={showPasswords.current ? 'text' : 'password'}
+              value={formData.current}
+              onChange={(e) => handleInputChange('current', e.target.value)}
+              error={!!errors.current}
+              helperText={errors.current}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handleTogglePasswordVisibility('current')}
+                      edge="end"
+                      disabled={loading}
+                    >
+                      {showPasswords.current ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Mật khẩu mới"
+              type={showPasswords.newPassword ? 'text' : 'password'}
+              value={formData.newPassword}
+              onChange={(e) => handleInputChange('newPassword', e.target.value)}
+              error={!!errors.newPassword}
+              helperText={errors.newPassword}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handleTogglePasswordVisibility('newPassword')}
+                      edge="end"
+                      disabled={loading}
+                    >
+                      {showPasswords.newPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Xác nhận mật khẩu mới"
+              type={showPasswords.confirm ? 'text' : 'password'}
+              value={formData.confirm}
+              onChange={(e) => handleInputChange('confirm', e.target.value)}
+              error={!!errors.confirm}
+              helperText={errors.confirm}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handleTogglePasswordVisibility('confirm')}
+                      edge="end"
+                      disabled={loading}
+                    >
+                      {showPasswords.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
           </Box>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-              Đổi mật khẩu
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Vui lòng nhập thông tin để đổi mật khẩu
-            </Typography>
-          </Box>
-        </Box>
-        {/* Đã có nút Hủy ở footer nên không cần nút đóng (X) trên header */}
-      </DialogTitle>
+        </DialogContent>
 
-      <DialogContent
-        sx={{
-          px: 4,
-          pt: 3,
-          pb: 4,
-          bgcolor: '#f9fafb',
-        }}
-      >
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2.5,
-            bgcolor: 'white',
-            borderRadius: 2,
-            p: 3,
-            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
-          }}
-        >
-          <TextField
-            fullWidth
-            label="Mật khẩu hiện tại"
-            type={showPasswords.current ? 'text' : 'password'}
-            value={formData.current}
-            onChange={(e) => handleInputChange('current', e.target.value)}
-            error={!!errors.current}
-            helperText={errors.current}
+        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa', gap: 2 }}>
+          <Button
+            onClick={handleClose}
             disabled={loading}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => handleTogglePasswordVisibility('current')}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showPasswords.current ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              borderColor: '#64748b',
+              color: '#64748b',
+              '&:hover': {
+                borderColor: '#475569',
+                bgcolor: '#f1f5f9'
+              }
             }}
-          />
-
-          <TextField
-            fullWidth
-            label="Mật khẩu mới"
-            type={showPasswords.newPassword ? 'text' : 'password'}
-            value={formData.newPassword}
-            onChange={(e) => handleInputChange('newPassword', e.target.value)}
-            error={!!errors.newPassword}
-            helperText={errors.newPassword}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleSubmit}
             disabled={loading}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => handleTogglePasswordVisibility('newPassword')}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showPasswords.newPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            variant="contained"
+            startIcon={loading ? <CircularProgress size={20} /> : <LockIcon />}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              bgcolor: '#3b82f6',
+              '&:hover': {
+                bgcolor: '#2563eb'
+              }
             }}
-          />
+          >
+            {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-          <TextField
-            fullWidth
-            label="Xác nhận mật khẩu mới"
-            type={showPasswords.confirm ? 'text' : 'password'}
-            value={formData.confirm}
-            onChange={(e) => handleInputChange('confirm', e.target.value)}
-            error={!!errors.confirm}
-            helperText={errors.confirm}
-            disabled={loading}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => handleTogglePasswordVisibility('confirm')}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showPasswords.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa', gap: 2 }}>
-        <Button
-          onClick={handleClose}
-          disabled={loading}
-          sx={{
-            borderRadius: 2,
-            px: 3,
-            py: 1,
-            borderColor: '#64748b',
-            color: '#64748b',
-            '&:hover': {
-              borderColor: '#475569',
-              bgcolor: '#f1f5f9'
-            }
-          }}
-        >
-          Hủy
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          variant="contained"
-          startIcon={loading ? <CircularProgress size={20} /> : <LockIcon />}
-          sx={{
-            borderRadius: 2,
-            px: 3,
-            py: 1,
-            bgcolor: '#3b82f6',
-            '&:hover': {
-              bgcolor: '#2563eb'
-            }
-          }}
-        >
-          {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
-        </Button>
-      </DialogActions>
-    </Dialog>
-
-    <NotificationSnackbar
-      open={snackbar.open}
-      onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-      message={snackbar.message}
-      severity={snackbar.severity}
-    />
+      <NotificationSnackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
     </>
   );
 };

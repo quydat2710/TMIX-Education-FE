@@ -105,7 +105,7 @@ const ParentViewDialog: React.FC<ParentViewDialogProps> = ({ open, onClose, sele
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -149,7 +149,7 @@ const ParentViewDialog: React.FC<ParentViewDialogProps> = ({ open, onClose, sele
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 3, borderRadius: 2, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', border: '1px solid #e0e6ed', height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#2c3e50', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <Box sx={{ width: 4, height: 20, bgcolor: '#667eea', borderRadius: 2 }} />
+                    <Box sx={{ width: 4, height: 20, bgcolor: '#D32F2F', borderRadius: 2 }} />
                     Thông tin cá nhân
                   </Typography>
                   <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
@@ -158,7 +158,7 @@ const ParentViewDialog: React.FC<ParentViewDialogProps> = ({ open, onClose, sele
                         <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                           Họ và tên
                         </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500, color: '#667eea' }}>
+                        <Typography variant="body1" sx={{ fontWeight: 500, color: '#D32F2F' }}>
                           {parentData.name || 'Chưa cập nhật'}
                         </Typography>
                       </Box>
@@ -209,7 +209,7 @@ const ParentViewDialog: React.FC<ParentViewDialogProps> = ({ open, onClose, sele
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 3, borderRadius: 2, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', border: '1px solid #e0e6ed', height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#2c3e50', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <Box sx={{ width: 4, height: 20, bgcolor: '#667eea', borderRadius: 2 }} />
+                    <Box sx={{ width: 4, height: 20, bgcolor: '#D32F2F', borderRadius: 2 }} />
                     Danh sách con
                   </Typography>
                   <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
@@ -243,7 +243,7 @@ const ParentViewDialog: React.FC<ParentViewDialogProps> = ({ open, onClose, sele
       <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa' }}>
         <Button
           onClick={handleClose}
-          sx={{ px: 3, py: 1, borderRadius: 2, textTransform: 'none', fontWeight: 600, bgcolor: '#667eea', color: 'white', '&:hover': { bgcolor: '#5a6fd8' } }}
+          sx={{ px: 3, py: 1, borderRadius: 2, textTransform: 'none', fontWeight: 600, bgcolor: '#D32F2F', color: 'white', '&:hover': { bgcolor: '#5a6fd8' } }}
         >
           Đóng
         </Button>

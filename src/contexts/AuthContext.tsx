@@ -149,9 +149,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (user.role && typeof user.role === 'object' && 'id' in user.role) {
           const roleId = (user.role as any).id;
           (user as any).role = roleId === 1 ? 'admin' :
-                    roleId === 2 ? 'teacher' :
-                    roleId === 3 ? 'parent' :
-                    roleId === 4 ? 'student' : 'unknown';
+            roleId === 2 ? 'teacher' :
+              roleId === 3 ? 'parent' :
+                roleId === 4 ? 'student' : 'unknown';
         }
 
         // Nếu là parent và thiếu permissions thì bổ sung mặc định
@@ -185,9 +185,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (user.role && typeof user.role === 'object' && 'id' in user.role) {
             const roleId = (user.role as any).id;
             (user as any).role = roleId === 1 ? 'admin' :
-                      roleId === 2 ? 'teacher' :
-                      roleId === 3 ? 'parent' :
-                      roleId === 4 ? 'student' : 'unknown';
+              roleId === 2 ? 'teacher' :
+                roleId === 3 ? 'parent' :
+                  roleId === 4 ? 'student' : 'unknown';
           }
 
           const response = await refreshTokenAPI();
@@ -288,9 +288,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (userData.role && typeof userData.role === 'object' && 'id' in userData.role) {
         const roleId = (userData.role as any).id;
         (userData as any).role = roleId === 1 ? 'admin' :
-                          roleId === 2 ? 'teacher' :
-                          roleId === 3 ? 'parent' :
-                          roleId === 4 ? 'student' : 'unknown';
+          roleId === 2 ? 'teacher' :
+            roleId === 3 ? 'parent' :
+              roleId === 4 ? 'student' : 'unknown';
       }
 
       localStorage.setItem('access_token', accessToken);
@@ -325,6 +325,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Account not found': 'Tài khoản không tồn tại',
           'Email not found': 'Email không tồn tại',
           'Password is incorrect': 'Mật khẩu không đúng',
+          'Old password is incorrect': 'Mật khẩu hiện tại không đúng',
+          'Password not match': 'Mật khẩu xác nhận không khớp',
           'Invalid credentials': 'Thông tin đăng nhập không hợp lệ',
           'Authentication failed': 'Xác thực thất bại',
           'Login failed': 'Đăng nhập thất bại',
@@ -333,7 +335,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Too many login attempts': 'Quá nhiều lần đăng nhập thất bại',
           'Please try again later': 'Vui lòng thử lại sau',
           'Server error': 'Lỗi server',
-          'Internal server error': 'Lỗi server nội bộ'
+          'Internal server error': 'Lỗi server nội bộ',
+          'Bad Request': 'Yêu cầu không hợp lệ',
+          'Unauthorized': 'Không có quyền truy cập'
         };
 
         errorMessage = errorTranslations[backendMessage] || backendMessage;
@@ -378,9 +382,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (userData.role && typeof userData.role === 'object' && 'id' in userData.role) {
           const roleId = (userData.role as any).id;
           (userData as any).role = roleId === 1 ? 'admin' :
-                        roleId === 2 ? 'teacher' :
-                        roleId === 3 ? 'parent' :
-                        roleId === 4 ? 'student' : 'unknown';
+            roleId === 2 ? 'teacher' :
+              roleId === 3 ? 'parent' :
+                roleId === 4 ? 'student' : 'unknown';
         }
         localStorage.setItem('userData', JSON.stringify(userData));
       }

@@ -40,7 +40,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -114,10 +114,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            border: '2px solid #667eea',
-            color: '#667eea',
+            border: '2px solid #D32F2F',
+            color: '#D32F2F',
             '&:hover': {
-              background: '#667eea',
+              background: '#D32F2F',
               color: 'white',
             },
             '&:disabled': {
@@ -139,7 +139,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             '&:hover': { bgcolor: '#5a6fd8' },
             '&:disabled': {
               background: '#ccc',

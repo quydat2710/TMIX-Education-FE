@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { getTypicalTeachersAPI } from '../../../services/teachers';
+import { getTypicalTeachersAPI, getAllTeachersAPI } from '../../../services/teachers';
 import { Teacher } from '../../../types';
 
 const FeaturedTeachersHome = () => {
@@ -27,39 +27,56 @@ const FeaturedTeachersHome = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
-
-  // Fetch typical teachers from API
+  // Fetch teachers: thử API /teachers/typical trước, nếu trống → fallback sang getAllTeachersAPI
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await getTypicalTeachersAPI(); // Get typical teachers
 
-        // Handle different response formats
-        let teachersData = [];
-        if (response.data?.data?.result) {
-          teachersData = response.data.data.result;
-        } else if (response.data?.data && Array.isArray(response.data.data)) {
-          // Handle case where response.data.data is an array directly
-          teachersData = response.data.data;
-        } else if (response.data && typeof response.data === 'object') {
-          teachersData = (response.data as any).result || (response.data as any).teachers || [];
-        } else if (Array.isArray(response.data)) {
-          teachersData = response.data;
+        let teachersData: any[] = [];
+
+        // 1. Thử lấy "giáo viên tiêu biểu" trước
+        try {
+          const response = await getTypicalTeachersAPI();
+          if (response.data?.data?.result) {
+            teachersData = response.data.data.result;
+          } else if (response.data?.data && Array.isArray(response.data.data)) {
+            teachersData = response.data.data;
+          } else if (Array.isArray(response.data)) {
+            teachersData = response.data;
+          }
+        } catch {
+          // API typical có thể lỗi → bỏ qua, sẽ fallback bên dưới
         }
 
-        // Filter active teachers only
-        const activeTeachers = teachersData.filter((teacher: any) => teacher.isActive !== false);
+        // Filter active + typical
+        let result = teachersData
+          .filter((t: any) => t.isActive !== false)
+          .filter((t: any) => t.typical === true);
 
-        // Filter typical teachers only
-        const typicalTeachers = activeTeachers.filter((teacher: any) => teacher.typical === true);
+        // 2. Nếu không có typical teachers → fallback lấy tất cả, slice 6 đầu
+        if (result.length === 0) {
+          try {
+            const allResponse = await getAllTeachersAPI({ page: 1, limit: 6 });
+            let allData: any[] = [];
+            if (allResponse.data?.data?.result) {
+              allData = allResponse.data.data.result;
+            } else if (allResponse.data?.data && Array.isArray(allResponse.data.data)) {
+              allData = allResponse.data.data;
+            } else if (Array.isArray(allResponse.data)) {
+              allData = allResponse.data;
+            }
+            result = allData.filter((t: any) => t.isActive !== false).slice(0, 6);
+          } catch {
+            result = [];
+          }
+        }
 
-        setTeachers(typicalTeachers);
+        setTeachers(result);
       } catch (err) {
-        console.error('Error fetching typical teachers:', err);
-        setError('Không thể tải dữ liệu giáo viên tiêu biểu');
+        console.error('Error fetching teachers:', err);
+        setError('Không thể tải dữ liệu giáo viên');
         setTeachers([]);
       } finally {
         setLoading(false);

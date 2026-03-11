@@ -2,13 +2,11 @@ import axiosInstance from '../utils/axios.customize';
 import { API_CONFIG } from '../config/api';
 import type { UserUpdateData } from './api';
 
+// Upload avatar - gửi JSON thay vì form-urlencoded
 export const uploadAvatarAPI = (data: { imageUrl: string; publicId: string }) => {
-  const formData = new URLSearchParams();
-  formData.append('imageUrl', data.imageUrl);
-  formData.append('publicId', data.publicId);
-  return axiosInstance.patch(API_CONFIG.ENDPOINTS.USERS.UPLOAD_AVATAR, formData, {
+  return axiosInstance.patch(API_CONFIG.ENDPOINTS.USERS.UPLOAD_AVATAR, data, {
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
     }
   });

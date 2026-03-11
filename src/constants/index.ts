@@ -1,5 +1,5 @@
 // App Constants
-export const APP_NAME = 'English Center Management';
+export const APP_NAME = 'TMix Education';
 export const VERSION = '1.0.0';
 
 // API Endpoints

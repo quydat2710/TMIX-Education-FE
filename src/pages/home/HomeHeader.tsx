@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  School as SchoolIcon,
   Person as PersonIcon,
   Dashboard as DashboardIcon,
   AccountCircle as AccountCircleIcon,
@@ -25,8 +24,16 @@ import { COLORS } from '../../utils/colors';
 import { useNavigate } from 'react-router-dom';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
-import { useMenuItems } from '../../hooks/features/useMenuItems';
 import { NavigationMenuItem } from '../../types';
+
+// ✅ Menu tĩnh cho public pages — tách biệt hoàn toàn với admin/staff routes
+const PUBLIC_MENU: NavigationMenuItem[] = [
+  { id: 'pub-1', title: 'Về chúng tôi', slug: '/ve-chung-toi', order: 1, isActive: true, childrenMenu: [] },
+  { id: 'pub-2', title: 'Giáo viên', slug: '/giao-vien', order: 2, isActive: true, childrenMenu: [] },
+  { id: 'pub-3', title: 'Các khóa học', slug: '/cac-khoa-hoc', order: 3, isActive: true, childrenMenu: [] },
+  { id: 'pub-4', title: 'Đánh giá', slug: '/danh-gia', order: 4, isActive: true, childrenMenu: [] },
+];
+import logoTMix from '../../assets/logo_tmix.png';
 
 const scrollToSection = (id: string): void => {
   const el = document.getElementById(id);
@@ -43,7 +50,8 @@ const HomeHeader: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, logout } = useAuth();
-  const { menuItems } = useMenuItems();
+  // ✅ Dùng menu tĩnh hardcoded cho public pages (không lấy từ API)
+  const menuItems = PUBLIC_MENU;
 
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [activeSection, setActiveSection] = useState<string>('hero-section');
@@ -77,7 +85,7 @@ const HomeHeader: React.FC = () => {
 
         // Check if mouse is on a menu button or menu item container
         const isOnMenuButton = target.closest('button') !== null &&
-                               Object.values(menuRefs.current).some(ref => ref && ref.contains(target));
+          Object.values(menuRefs.current).some(ref => ref && ref.contains(target));
 
         // Check if mouse is on any Box container that wraps menu items
         const isOnMenuContainer = Object.values(menuRefs.current).some(ref => ref && ref.contains(target));
@@ -108,9 +116,9 @@ const HomeHeader: React.FC = () => {
       const slug = item.slug?.toLowerCase().trim();
       const title = item.title?.toLowerCase().trim();
       return slug !== '/' &&
-             slug !== '/home' &&
-             title !== 'trang chủ' &&
-             title !== 'home';
+        slug !== '/home' &&
+        title !== 'trang chủ' &&
+        title !== 'home';
     })
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -315,9 +323,14 @@ const HomeHeader: React.FC = () => {
       }}>
         {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary.text, mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#111', fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
-            English Center
+          <Box
+            component="img"
+            src={logoTMix}
+            alt="TMix Education"
+            sx={{ height: 44, width: 'auto', mr: 1 }}
+          />
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+            <span style={{ color: '#D32F2F' }}>TMix</span> <span style={{ color: '#1E3A5F' }}>Education</span>
           </Typography>
         </Box>
 

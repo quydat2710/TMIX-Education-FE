@@ -1,4 +1,4 @@
-// Color palette cho English Center Application
+// Color palette cho TMix Education Application
 
 export interface ColorPalette {
   main: string;
@@ -64,20 +64,20 @@ export interface Colors {
 }
 
 export const COLORS: Colors = {
-  // Primary Colors
+  // TMix Primary Colors - Red (from logo)
   primary: {
-    main: '#1976d2',
-    light: '#42a5f5',
-    dark: '#1565c0',
+    main: '#D32F2F',
+    light: '#EF5350',
+    dark: '#B71C1C',
     contrastText: '#ffffff',
     text: '#1a1a1a'
   },
 
-  // Secondary Colors
+  // TMix Secondary Colors - Navy Blue (from logo)
   secondary: {
-    main: '#dc004e',
-    light: '#ff5983',
-    dark: '#9a0036',
+    main: '#1E3A5F',
+    light: '#2E5077',
+    dark: '#0F1F33',
     contrastText: '#ffffff'
   },
 
@@ -273,11 +273,11 @@ export const COMPONENT_COLORS: ComponentColors = {
     poor: COLORS.error.main         // 0-4
   },
 
-  // Chart Colors
+  // Chart Colors - TMix themed
   chart: {
     primary: [
-      '#1976d2', '#42a5f5', '#1565c0', '#0d47a1',
-      '#2196f3', '#64b5f6', '#1976d2', '#0277bd'
+      '#D32F2F', '#EF5350', '#E57373', '#FFCDD2',
+      '#1E3A5F', '#2E5077', '#4A6FA5', '#7B9BC9'
     ],
     success: [
       '#2e7d32', '#4caf50', '#66bb6a', '#81c784',
@@ -316,11 +316,11 @@ export const GRADIENTS: Gradients = {
   error: `linear-gradient(135deg, ${COLORS.error.main} 0%, ${COLORS.error.light} 100%)`,
   info: `linear-gradient(135deg, ${COLORS.info.main} 0%, ${COLORS.info.light} 100%)`,
 
-  // Special gradients
-  sunset: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
-  ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-  night: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)'
+  // Special gradients - TMix Education branded
+  sunset: 'linear-gradient(135deg, #D32F2F 0%, #EF5350 100%)',
+  ocean: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',  // TMix Signature Gradient
+  forest: 'linear-gradient(135deg, #1E3A5F 0%, #2E5077 100%)',
+  night: 'linear-gradient(135deg, #0F1F33 0%, #1E3A5F 100%)'
 };
 
 // Shadow variations

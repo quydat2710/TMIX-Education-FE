@@ -76,6 +76,27 @@ const Footer: React.FC = () => {
                 >
                   <YouTubeIcon fontSize="small" />
                 </IconButton>
+                <IconButton
+                  component={settings.zaloUrl ? "a" : "div"}
+                  href={settings.zaloUrl || undefined}
+                  target={settings.zaloUrl ? "_blank" : undefined}
+                  rel={settings.zaloUrl ? "noopener noreferrer" : undefined}
+                  sx={{
+                    color: 'white',
+                    bgcolor: settings.zaloUrl ? '#0068FF' : '#555',
+                    '&:hover': settings.zaloUrl ? { bgcolor: '#0052CC', transform: 'scale(1.1)' } : { bgcolor: '#555' },
+                    transition: 'all 0.3s',
+                    width: 40,
+                    height: 40,
+                    cursor: settings.zaloUrl ? 'pointer' : 'default',
+                    opacity: settings.zaloUrl ? 1 : 0.5,
+                    fontWeight: 700,
+                    fontSize: '0.75rem'
+                  }}
+                  title="Zalo"
+                >
+                  <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'white' }}>Z</Typography>
+                </IconButton>
               </Box>
             </Box>
           </Grid>
@@ -103,12 +124,28 @@ const Footer: React.FC = () => {
                   <LocationIcon sx={{ color: 'white', fontSize: 20 }} />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 600, mb: 0.5 }}>
-                    Địa chỉ
+                  <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 600, mb: 1 }}>
+                    Hệ thống cơ sở
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#ccc', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    {settings.address}
-                  </Typography>
+                  {/* Tách địa chỉ theo dấu | và hiển thị mỗi cơ sở trên 1 dòng */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {settings.address.split('|').map((branch, index) => (
+                      <Typography
+                        key={index}
+                        variant="body2"
+                        sx={{
+                          color: '#ccc',
+                          fontSize: '0.8rem',
+                          lineHeight: 1.5,
+                          pl: 0,
+                          '&:hover': { color: '#fff' },
+                          transition: 'color 0.2s'
+                        }}
+                      >
+                        📍 {branch.trim()}
+                      </Typography>
+                    ))}
+                  </Box>
                 </Box>
               </Box>
 

@@ -1,4 +1,4 @@
-// Utility functions for English Center Application
+// Utility functions for TMix Education Application
 import { USER_ROLES, UserRole } from '../constants';
 
 // Format currency (VND)

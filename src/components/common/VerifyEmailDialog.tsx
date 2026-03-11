@@ -184,7 +184,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
       >
         <DialogTitle
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
             color: 'white',
             py: 3,
             px: 4,
@@ -244,7 +244,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                <EmailIcon sx={{ color: '#667eea', fontSize: 28 }} />
+                <EmailIcon sx={{ color: '#D32F2F', fontSize: 28 }} />
                 <Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                     Email sẽ nhận mã xác thực:
@@ -304,14 +304,14 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <VerifiedUserIcon sx={{ color: '#667eea' }} />
+                      <VerifiedUserIcon sx={{ color: '#D32F2F' }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#D32F2F',
                     }
                   }
                 }}
@@ -327,7 +327,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
                   disabled={resendCountdown > 0 || sendingCode}
                   startIcon={<RefreshIcon />}
                   sx={{
-                    color: resendCountdown > 0 ? 'text.secondary' : '#667eea',
+                    color: resendCountdown > 0 ? 'text.secondary' : '#D32F2F',
                     textTransform: 'none',
                     minWidth: 'auto',
                     '&:hover': {

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -9,7 +8,6 @@ import {
   CardContent,
   Chip,
   CircularProgress,
-  Alert,
   Button,
 } from '@mui/material';
 import {
@@ -19,11 +17,8 @@ import {
 } from '@mui/icons-material';
 import PublicLayout from '../components/layouts/PublicLayout';
 import { getPublicClassesAPI } from '../services/classes';
-import { getArticlesByMenuIdAPI } from '../services/articles';
-import { useMenuItems } from '../hooks/features/useMenuItems';
-import { MenuItem } from '../types';
 
-interface Class {
+interface ClassItem {
   id: string;
   name: string;
   description?: string;
@@ -52,119 +47,35 @@ interface Class {
 }
 
 const CoursesPage: React.FC = () => {
-  const location = useLocation();
-  const { menuItems } = useMenuItems();
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [articles, setArticles] = useState<any[]>([]); // Articles from layoutBuilder
+  const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(false); // Control showing all classes or just first 2 rows
+  const [showAll, setShowAll] = useState(false);
 
-  // Get slug from current pathname (remove leading slash)
-  const fullSlug = location.pathname.replace(/^\//, '');
-
-  // Determine grade range based on slug
-  const getGradeRange = (slug: string): { gradeStart: number; gradeEnd: number; title: string } | null => {
-    const slugLower = slug.toLowerCase();
-
-    // Tiểu học patterns: tieu-hoc, cap-1, cap 1, cấp 1, lớp 1-5, grade 1-5
-    if (slugLower.match(/tieu[\s-]*hoc|cap[\s-]*1|lop[\s-]*[1-5]|grade[\s-]*[1-5]|primary|elementary/)) {
-      return { gradeStart: 1, gradeEnd: 5, title: 'Khóa học dành cho học sinh tiểu học (Lớp 1-5)' };
-    }
-    // Trung học cơ sở patterns: thcs, cap-2, cap 2, cấp 2, lớp 6-9, grade 6-9
-    else if (slugLower.match(/thcs|trung[\s-]*hoc[\s-]*co[\s-]*so|cap[\s-]*2|lop[\s-]*[6-9]|grade[\s-]*[6-9]|middle[\s-]*school|junior/)) {
-      return { gradeStart: 6, gradeEnd: 9, title: 'Khóa học dành cho học sinh trung học cơ sở (Lớp 6-9)' };
-    }
-    // Trung học phổ thông patterns: thpt, cap-3, cap 3, cấp 3, lớp 10-12, grade 10-12
-    else if (slugLower.match(/thpt|trung[\s-]*hoc[\s-]*pho[\s-]*thong|cap[\s-]*3|lop[\s-]*1[0-2]|grade[\s-]*1[0-2]|high[\s-]*school|senior/)) {
-      return { gradeStart: 10, gradeEnd: 12, title: 'Khóa học dành cho học sinh trung học phổ thông (Lớp 10-12)' };
-    }
-
-    return null;
-  };
-
-  // Find menu item by slug
-  const findMenuItemBySlug = (items: MenuItem[], targetSlug: string): MenuItem | null => {
-    for (const item of items) {
-      const itemSlug = item.slug?.replace(/^\//, '') || '';
-      const cleanTargetSlug = targetSlug.replace(/^\//, '');
-
-      if (itemSlug === cleanTargetSlug) {
-        return item;
-      }
-
-      if (item.childrenMenu && item.childrenMenu.length > 0) {
-        const found = findMenuItemBySlug(item.childrenMenu, targetSlug);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-
+  // ✅ Fetch tất cả lớp học trực tiếp từ DB — không phụ thuộc vào menu API
   useEffect(() => {
-    const fetchData = async () => {
-      if (!fullSlug || menuItems.length === 0) return;
-
+    const fetchClasses = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Find menu item
-        const foundMenuItem = findMenuItemBySlug(menuItems, fullSlug);
+        const response = await getPublicClassesAPI({
+          page: 1,
+          limit: 100,
+        });
 
-        // Fetch articles from layoutBuilder (banner/intro content)
-        if (foundMenuItem?.id) {
-          try {
-            const articlesResponse = await getArticlesByMenuIdAPI(foundMenuItem.id);
-            if (articlesResponse.data?.data?.result) {
-              const sortedArticles = articlesResponse.data.data.result
-                .filter((article: any) => article.isActive !== false)
-                .sort((a: any, b: any) => {
-                  if (a.order !== b.order) {
-                    return (a.order || 999) - (b.order || 999);
-                  }
-                  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                });
-              setArticles(sortedArticles);
-            }
-          } catch (articleError) {
-            console.log('No articles found for this menu, continuing without banner/intro');
-            setArticles([]);
-          }
-        }
-
-        // Fetch classes from API
-        const gradeRange = getGradeRange(fullSlug);
-        if (gradeRange) {
-          try {
-            const response = await getPublicClassesAPI({
-              page: 1,
-              limit: 100,
-              gradeStart: gradeRange.gradeStart,
-              gradeEnd: gradeRange.gradeEnd,
-            });
-
-            const classesData = response.data?.data?.result || response.data?.data || [];
-            setClasses(classesData);
-          } catch (classError) {
-            console.error('Error fetching classes:', classError);
-            setClasses([]);
-          }
-        } else {
-          // If no grade range detected, still show the page but with empty classes
-          // This allows the page to display articles or header even without classes
-          setClasses([]);
-        }
+        const classesData = response.data?.data?.result || response.data?.data || [];
+        setClasses(Array.isArray(classesData) ? classesData : []);
       } catch (err: any) {
-        console.error('Error fetching data:', err);
-        setError(err?.response?.data?.message || 'Không thể tải dữ liệu');
+        console.error('Error fetching classes:', err);
+        setError(err?.response?.data?.message || 'Không thể tải dữ liệu khóa học');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [fullSlug, menuItems]);
+    fetchClasses();
+  }, []);
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'Liên hệ';
@@ -179,7 +90,7 @@ const CoursesPage: React.FC = () => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const getDateRange = (classItem: Class): string => {
+  const getDateRange = (classItem: ClassItem): string => {
     if (!classItem.schedule) return '';
     const start = formatDate(classItem.schedule.start_date);
     const end = formatDate(classItem.schedule.end_date);
@@ -261,32 +172,45 @@ const CoursesPage: React.FC = () => {
     return (
       <PublicLayout>
         <Container maxWidth="lg" sx={{ py: 8 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
+          <Typography color="error" textAlign="center">{error}</Typography>
         </Container>
       </PublicLayout>
     );
   }
 
-  const gradeRange = fullSlug ? getGradeRange(fullSlug) : null;
-
   return (
     <PublicLayout>
-      <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
-        {/* Articles from layoutBuilder (Banner/Intro) */}
-        {articles.length > 0 && (
-          <Box sx={{ width: '100%' }}>
-            {articles.map((article, index) => (
-              <Box key={article.id || index}>
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
-              </Box>
-            ))}
-          </Box>
-        )}
+      {/* Hero Header — TMix Navy gradient */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #1E3A5F 0%, #0F1F33 100%)',
+          color: '#fff',
+          py: { xs: 8, md: 10 },
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'radial-gradient(circle at 80% 20%, rgba(211,47,47,0.12) 0%, transparent 50%)',
+          },
+        }}
+      >
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography variant="h3" fontWeight={800} gutterBottom sx={{ fontSize: { xs: '2rem', md: '3rem' }, letterSpacing: '-0.5px' }}>
+            Các Khóa Học
+          </Typography>
+          <Box sx={{ width: 60, height: 4, bgcolor: '#D32F2F', mx: 'auto', mb: 2, borderRadius: 2 }} />
+          <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400 }}>
+            Chương trình đào tạo tiếng Anh chất lượng cho mọi cấp độ
+          </Typography>
+        </Container>
+      </Box>
 
-        {/* Classes Grid - Always show container, even if no classes */}
-        <Container maxWidth="lg" sx={{ pb: 6, pt: articles.length > 0 ? 4 : 8 }}>
+      <Box sx={{ bgcolor: '#f8f9fc', minHeight: '60vh' }}>
+        {/* Classes Grid */}
+        <Container maxWidth="lg" sx={{ py: 6 }}>
           {classes.length === 0 ? (
             <Box textAlign="center" py={8}>
               <SchoolIcon sx={{ fontSize: 80, color: '#bbb', mb: 2 }} />
@@ -294,9 +218,7 @@ const CoursesPage: React.FC = () => {
                 Chưa có khóa học nào
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {gradeRange
-                  ? 'Hiện tại chưa có khóa học nào cho cấp học này. Vui lòng quay lại sau.'
-                  : 'Không tìm thấy khóa học phù hợp. Vui lòng liên hệ với chúng tôi để biết thêm thông tin.'}
+                Hiện tại chưa có khóa học nào. Vui lòng quay lại sau hoặc liên hệ với chúng tôi để biết thêm thông tin.
               </Typography>
             </Box>
           ) : (

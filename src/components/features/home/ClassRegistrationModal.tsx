@@ -210,7 +210,7 @@ const ClassRegistrationModal: React.FC<ClassRegistrationModalProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 1.5,
         px: 2,
@@ -511,7 +511,7 @@ const ClassRegistrationModal: React.FC<ClassRegistrationModalProps> = ({
                     borderRadius: 2,
                     fontWeight: 700,
                     fontSize: '0.95rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
                     boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                     '&:hover': {
                       background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',

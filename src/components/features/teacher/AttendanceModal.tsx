@@ -245,7 +245,7 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
         }}
       >
         <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
           color: 'white',
           py: 3,
           px: 4,
@@ -301,7 +301,7 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
                   <Box sx={{
                     width: 4,
                     height: 20,
-                    bgcolor: '#667eea',
+                    bgcolor: '#D32F2F',
                     borderRadius: 2
                   }} />
                   Tổng quan điểm danh
@@ -412,8 +412,8 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
             onClick={onClose}
             variant="outlined"
             sx={{
-              borderColor: '#667eea',
-              color: '#667eea',
+              borderColor: '#D32F2F',
+              color: '#D32F2F',
               '&:hover': {
                 borderColor: '#5a6fd8',
                 bgcolor: 'rgba(102, 126, 234, 0.04)'
@@ -431,7 +431,7 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
             variant="contained"
             startIcon={<SaveIcon />}
             sx={{
-              bgcolor: '#667eea',
+              bgcolor: '#D32F2F',
               '&:hover': { bgcolor: '#5a6fd8' },
               '&:disabled': { bgcolor: '#ccc' },
               px: 3,

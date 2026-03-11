@@ -13,7 +13,9 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Divider
+  Divider,
+  Autocomplete,
+  Chip
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -32,6 +34,16 @@ interface ClassFormProps {
   classItem?: Class | null;
   loading?: boolean;
 }
+
+const daysOfWeekOptions = [
+  { value: '1', label: 'Thứ 2' },
+  { value: '2', label: 'Thứ 3' },
+  { value: '3', label: 'Thứ 4' },
+  { value: '4', label: 'Thứ 5' },
+  { value: '5', label: 'Thứ 6' },
+  { value: '6', label: 'Thứ 7' },
+  { value: '0', label: 'Chủ nhật' }
+];
 
 const initialFormData: ClassFormData = {
   name: '',
@@ -121,16 +133,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
   }, [classItem, open]);
 
   const handleInputChange = (field: string, value: any) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev[parent as keyof ClassFormData] as any),
-          [child]: value
-        }
-      }));
-    } else if (field === 'schedule.time_slots.start_time' || field === 'schedule.time_slots.end_time') {
+    // Handle deeply nested time_slots fields FIRST (before generic dot handler)
+    if (field === 'schedule.time_slots.start_time' || field === 'schedule.time_slots.end_time') {
       const timeField = field.split('.')[2];
       setFormData(prev => ({
         ...prev,
@@ -140,6 +144,15 @@ const ClassForm: React.FC<ClassFormProps> = ({
             ...prev.schedule.time_slots,
             [timeField]: value
           }
+        }
+      }));
+    } else if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...(prev[parent as keyof ClassFormData] as any),
+          [child]: value
         }
       }));
     } else {
@@ -374,12 +387,36 @@ const ClassForm: React.FC<ClassFormProps> = ({
 
       {/* Ngày học trong tuần - Full width */}
       <Grid item xs={12}>
+        <Autocomplete
+          multiple
+          options={daysOfWeekOptions}
+          getOptionLabel={(option) => option.label}
+          value={daysOfWeekOptions.filter(day => formData.schedule.days_of_week.includes(day.value))}
+          onChange={(_, newValue) => {
+            handleInputChange('schedule', {
+              ...formData.schedule,
+              days_of_week: newValue.map(day => day.value)
+            });
+          }}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip
+                variant="outlined"
+                label={option.label}
+                {...getTagProps({ index })}
+                key={option.value}
+              />
+            ))
+          }
+          renderInput={(params) => (
             <TextField
-            fullWidth
+              {...params}
               label="Ngày học trong tuần"
               placeholder="Chọn ngày trong tuần"
               error={!!errors.days_of_week}
               helperText={errors.days_of_week}
+            />
+          )}
         />
       </Grid>
 
@@ -414,7 +451,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -465,7 +502,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
               <Box sx={{
                 width: 4,
                 height: 20,
-                bgcolor: '#667eea',
+                bgcolor: '#D32F2F',
                 borderRadius: 2
               }} />
               Thông tin lớp học
@@ -487,11 +524,11 @@ const ClassForm: React.FC<ClassFormProps> = ({
                       minHeight: 48,
                       color: '#666',
                       '&.Mui-selected': {
-                        color: '#667eea',
+                        color: '#D32F2F',
                       }
                     },
                     '& .MuiTabs-indicator': {
-                      backgroundColor: '#667eea',
+                      backgroundColor: '#D32F2F',
                       height: 3
                     }
                   }}
@@ -631,12 +668,36 @@ const ClassForm: React.FC<ClassFormProps> = ({
                         />
                       </Grid>
                       <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Ngày học trong tuần"
-                          placeholder="Chọn ngày trong tuần"
-                          error={!!errors.days_of_week}
-                          helperText={errors.days_of_week}
+                        <Autocomplete
+                          multiple
+                          options={daysOfWeekOptions}
+                          getOptionLabel={(option) => option.label}
+                          value={daysOfWeekOptions.filter(day => formData.schedule.days_of_week.includes(day.value))}
+                          onChange={(_, newValue) => {
+                            handleInputChange('schedule', {
+                              ...formData.schedule,
+                              days_of_week: newValue.map(day => day.value)
+                            });
+                          }}
+                          renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                              <Chip
+                                variant="outlined"
+                                label={option.label}
+                                {...getTagProps({ index })}
+                                key={option.value}
+                              />
+                            ))
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Ngày học trong tuần"
+                              placeholder="Chọn ngày trong tuần"
+                              error={!!errors.days_of_week}
+                              helperText={errors.days_of_week}
+                            />
+                          )}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -658,7 +719,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
                         teacherId: teacherInfo
                       }}
                       onUpdate={handleUpdateClass}
-                      onClose={() => {}}
+                      onClose={() => { }}
                     />
                   </Box>
                   <Box sx={{ display: activeTab === 2 ? 'block' : 'none' }}>
@@ -696,8 +757,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            border: '2px solid #667eea',
-            color: '#667eea',
+            border: '2px solid #D32F2F',
+            color: '#D32F2F',
             bgcolor: 'white',
             '&:hover': {
               bgcolor: '#f0f2ff',
@@ -716,7 +777,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             color: 'white',
             '&:hover': { bgcolor: '#5a6fd8' },
             '&:disabled': { bgcolor: '#ccc' }

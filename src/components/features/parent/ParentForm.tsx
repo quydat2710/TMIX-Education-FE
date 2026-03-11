@@ -356,7 +356,7 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -394,7 +394,7 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
           <Box sx={{ p: 4 }}>
             <Paper sx={{ p: 3, borderRadius: 2, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', border: '1px solid #e0e6ed' }}>
               <Typography variant="h6" gutterBottom sx={{ color: '#2c3e50', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Box sx={{ width: 4, height: 20, bgcolor: '#667eea', borderRadius: 2 }} />
+                <Box sx={{ width: 4, height: 20, bgcolor: '#D32F2F', borderRadius: 2 }} />
                 Thông tin cơ bản
               </Typography>
               <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
@@ -510,7 +510,7 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
           <Box sx={{ p: 4 }}>
             <Paper sx={{ p: 3, borderRadius: 2, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', border: '1px solid #e0e6ed' }}>
               <Typography variant="h6" gutterBottom sx={{ color: '#2c3e50', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Box sx={{ width: 4, height: 20, bgcolor: '#667eea', borderRadius: 2 }} />
+                <Box sx={{ width: 4, height: 20, bgcolor: '#D32F2F', borderRadius: 2 }} />
                 Quản lý con cái
               </Typography>
               <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
@@ -598,10 +598,10 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#667eea'
+                          borderColor: '#D32F2F'
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#667eea'
+                          borderColor: '#D32F2F'
                         }
                       }
                     }}
@@ -698,10 +698,10 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
             borderRadius: 2,
             px: 3,
             py: 1,
-            borderColor: '#667eea',
-            color: '#667eea',
+            borderColor: '#D32F2F',
+            color: '#D32F2F',
             '&:hover': {
-              bgcolor: '#667eea',
+              bgcolor: '#D32F2F',
               color: 'white'
             }
           }}
@@ -718,7 +718,7 @@ const ParentForm: React.FC<ParentFormProps> = ({ open, onClose, onSubmit, parent
             borderRadius: 2,
             px: 3,
             py: 1,
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             '&:hover': {
               bgcolor: '#5a6fd8'
             }

@@ -112,16 +112,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
       value = Number(value) || 0;
     }
 
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev[parent as keyof ClassFormData] as any),
-          [child]: value
-        }
-      }));
-    } else if (field === 'schedule.time_slots.start_time' || field === 'schedule.time_slots.end_time') {
+    // Handle deeply nested time_slots fields FIRST (before generic dot handler)
+    if (field === 'schedule.time_slots.start_time' || field === 'schedule.time_slots.end_time') {
       const timeField = field.split('.')[2];
       setFormData(prev => ({
         ...prev,
@@ -131,6 +123,15 @@ const ClassForm: React.FC<ClassFormProps> = ({
             ...prev.schedule.time_slots,
             [timeField]: value
           }
+        }
+      }));
+    } else if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...(prev[parent as keyof ClassFormData] as any),
+          [child]: value
         }
       }));
     } else {
@@ -211,15 +212,15 @@ const ClassForm: React.FC<ClassFormProps> = ({
       {/* Left Column */}
       <Grid item xs={12} md={6}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                     <TextField
-             fullWidth
-             label="Khối"
-             value={formData.grade}
-             onChange={(e) => handleInputChange('grade', e.target.value)}
-             error={!!errors.grade}
-             helperText={errors.grade}
-             required
-           />
+          <TextField
+            fullWidth
+            label="Khối"
+            value={formData.grade}
+            onChange={(e) => handleInputChange('grade', e.target.value)}
+            error={!!errors.grade}
+            helperText={errors.grade}
+            required
+          />
 
           <TextField
             fullWidth
@@ -231,16 +232,16 @@ const ClassForm: React.FC<ClassFormProps> = ({
             required
           />
 
-                     <TextField
-             fullWidth
-             label="Giờ bắt đầu"
-             placeholder="HH:MM"
-             value={formData.schedule.time_slots.start_time}
-             onChange={(e) => handleInputChange('schedule.time_slots.start_time', e.target.value)}
-             error={!!errors.start_time}
-             helperText={errors.start_time || "Định dạng: HH:MM (24 giờ)"}
-             required
-           />
+          <TextField
+            fullWidth
+            label="Giờ bắt đầu"
+            placeholder="HH:MM"
+            value={formData.schedule.time_slots.start_time}
+            onChange={(e) => handleInputChange('schedule.time_slots.start_time', e.target.value)}
+            error={!!errors.start_time}
+            helperText={errors.start_time || "Định dạng: HH:MM (24 giờ)"}
+            required
+          />
 
           <TextField
             fullWidth
@@ -272,36 +273,36 @@ const ClassForm: React.FC<ClassFormProps> = ({
       {/* Right Column */}
       <Grid item xs={12} md={6}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                     <TextField
-             fullWidth
-             label="Lớp"
-             value={formData.section}
-             onChange={(e) => handleInputChange('section', e.target.value)}
-             error={!!errors.section}
-             helperText={errors.section}
-             required
-           />
+          <TextField
+            fullWidth
+            label="Lớp"
+            value={formData.section}
+            onChange={(e) => handleInputChange('section', e.target.value)}
+            error={!!errors.section}
+            helperText={errors.section}
+            required
+          />
 
-                     <TextField
-             fullWidth
-             label="Học phí/buổi"
-             value={formData.feePerLesson}
-             onChange={(e) => handleInputChange('feePerLesson', e.target.value)}
-             error={!!errors.feePerLesson}
-             helperText={errors.feePerLesson}
-             required
-           />
+          <TextField
+            fullWidth
+            label="Học phí/buổi"
+            value={formData.feePerLesson}
+            onChange={(e) => handleInputChange('feePerLesson', e.target.value)}
+            error={!!errors.feePerLesson}
+            helperText={errors.feePerLesson}
+            required
+          />
 
-                     <TextField
-             fullWidth
-             label="Giờ kết thúc"
-             placeholder="HH:MM"
-             value={formData.schedule.time_slots.end_time}
-             onChange={(e) => handleInputChange('schedule.time_slots.end_time', e.target.value)}
-             error={!!errors.end_time}
-             helperText={errors.end_time || "Định dạng: HH:MM (24 giờ)"}
-             required
-           />
+          <TextField
+            fullWidth
+            label="Giờ kết thúc"
+            placeholder="HH:MM"
+            value={formData.schedule.time_slots.end_time}
+            onChange={(e) => handleInputChange('schedule.time_slots.end_time', e.target.value)}
+            error={!!errors.end_time}
+            helperText={errors.end_time || "Định dạng: HH:MM (24 giờ)"}
+            required
+          />
 
           <TextField
             fullWidth
@@ -440,7 +441,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -491,7 +492,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
               <Box sx={{
                 width: 4,
                 height: 20,
-                bgcolor: '#667eea',
+                bgcolor: '#D32F2F',
                 borderRadius: 2
               }} />
               Thông tin lớp học
@@ -513,11 +514,11 @@ const ClassForm: React.FC<ClassFormProps> = ({
                       minHeight: 48,
                       color: '#666',
                       '&.Mui-selected': {
-                        color: '#667eea',
+                        color: '#D32F2F',
                       }
                     },
                     '& .MuiTabs-indicator': {
-                      backgroundColor: '#667eea',
+                      backgroundColor: '#D32F2F',
                       height: 3
                     }
                   }}
@@ -559,8 +560,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            border: '2px solid #667eea',
-            color: '#667eea',
+            border: '2px solid #D32F2F',
+            color: '#D32F2F',
             bgcolor: 'white',
             '&:hover': {
               bgcolor: '#f0f2ff',
@@ -579,7 +580,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             color: 'white',
             '&:hover': { bgcolor: '#5a6fd8' },
             '&:disabled': { bgcolor: '#ccc' }

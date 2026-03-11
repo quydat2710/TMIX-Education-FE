@@ -1,5 +1,5 @@
 // App Information
-export const APP_NAME = 'English Center';
+export const APP_NAME = 'TMix Education';
 export const APP_VERSION = '1.0.0';
 
 // User Roles

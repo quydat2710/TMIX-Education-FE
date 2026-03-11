@@ -516,7 +516,7 @@ const OtherTransactionsTab: React.FC<Props> = () => {
       {/* Dialog quản lý danh mục - beautiful UI */}
       <Dialog open={openCategoryManagementDialog} onClose={handleCloseCategoryManagementDialog} maxWidth="md" fullWidth
         PaperProps={{ sx: { borderRadius: 4, boxShadow: '0 20px 60px rgba(0,0,0,0.15)', overflow: 'hidden' } }}>
-        <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', py: 4, px: 4 }}>
+        <DialogTitle sx={{ background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)', color: 'white', py: 4, px: 4 }}>
           <Box>
             <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>Quản lý danh mục</Typography>
             <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 300 }}>Quản lý các danh mục thu chi của hệ thống</Typography>
@@ -526,7 +526,7 @@ const OtherTransactionsTab: React.FC<Props> = () => {
           <Box sx={{ p: 4 }}>
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} sm={6} md={4}>
-                <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', borderRadius: 3, boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)' }}>
+                <Card sx={{ background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)', color: 'white', borderRadius: 3, boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)' }}>
                   <CardContent sx={{ p: 3 }}>
                     <Typography variant="h3" fontWeight={700} sx={{ mb: 1 }}>{Array.isArray(categories) ? categories.length : 0}</Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9 }}>Tổng số danh mục</Typography>
@@ -558,7 +558,7 @@ const OtherTransactionsTab: React.FC<Props> = () => {
                   <Typography variant="body2" color="text.secondary">Quản lý và chỉnh sửa các danh mục thu chi</Typography>
                 </Box>
                 <Button variant="contained" onClick={handleOpenCreateCategoryFromManagement}
-                  sx={{ borderRadius: 3, bgcolor: '#667eea', px: 3, py: 1, fontWeight: 600, '&:hover': { bgcolor: '#5a6fd8', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)' }, transition: 'all 0.2s ease' }}>
+                  sx={{ borderRadius: 3, bgcolor: '#D32F2F', px: 3, py: 1, fontWeight: 600, '&:hover': { bgcolor: '#5a6fd8', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)' }, transition: 'all 0.2s ease' }}>
                   Tạo danh mục
                 </Button>
               </Box>

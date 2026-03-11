@@ -108,7 +108,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -176,7 +176,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
                   <Box sx={{
                     width: 4,
                     height: 20,
-                    bgcolor: '#667eea',
+                    bgcolor: '#D32F2F',
                     borderRadius: 2
                   }} />
                   Thông tin cá nhân
@@ -192,7 +192,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
                       <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                         Họ và tên
                       </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#667eea' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#D32F2F' }}>
                           {studentData.userId?.name || studentData.name || 'Chưa cập nhật'}
                       </Typography>
                     </Box>
@@ -266,7 +266,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
                   <Box sx={{
                     width: 4,
                     height: 20,
-                    bgcolor: '#667eea',
+                    bgcolor: '#D32F2F',
                     borderRadius: 2
                   }} />
                   Thông tin gia đình & học tập
@@ -358,7 +358,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
                     <Box sx={{
                       width: 4,
                       height: 20,
-                      bgcolor: '#667eea',
+                      bgcolor: '#D32F2F',
                       borderRadius: 2
                     }} />
                     Danh sách lớp học
@@ -402,7 +402,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
                                 py: 0.5,
                                 borderRadius: 1,
                                 bgcolor: 'rgba(102, 126, 234, 0.1)',
-                                color: '#667eea',
+                                color: '#D32F2F',
                                 fontWeight: 600
                               }}>
                                   Giảm {cls.discountPercent || cls.discount}%
@@ -429,7 +429,7 @@ const StudentViewDialog: React.FC<StudentViewDialogProps> = ({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             color: 'white',
             '&:hover': { bgcolor: '#5a6fd8' }
           }}

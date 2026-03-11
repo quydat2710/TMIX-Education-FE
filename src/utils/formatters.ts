@@ -1,4 +1,4 @@
-// Centralized formatting utilities for English Center Application
+// Centralized formatting utilities for TMix Education Application
 
 import { formatCurrency as baseCurrency } from './helpers';
 

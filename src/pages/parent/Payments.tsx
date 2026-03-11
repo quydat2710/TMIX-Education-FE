@@ -573,7 +573,7 @@ const Payments: React.FC = () => {
         }}
       >
         <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
           color: 'white',
           py: 3,
           px: 4,
@@ -650,7 +650,7 @@ const Payments: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&.Mui-focused fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#D32F2F',
                       }
                     }
                   }}
@@ -676,8 +676,8 @@ const Payments: React.FC = () => {
               borderRadius: 2,
               fontWeight: 600,
               textTransform: 'none',
-              borderColor: '#667eea',
-              color: '#667eea',
+              borderColor: '#D32F2F',
+              color: '#D32F2F',
               '&:hover': {
                 borderColor: '#5a6fd8',
                 bgcolor: 'rgba(102, 126, 234, 0.04)'
@@ -697,7 +697,7 @@ const Payments: React.FC = () => {
               borderRadius: 2,
               fontWeight: 600,
               textTransform: 'none',
-              bgcolor: '#667eea',
+              bgcolor: '#D32F2F',
               boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
               '&:hover': {
                 bgcolor: '#5a6fd8',
@@ -730,7 +730,7 @@ const Payments: React.FC = () => {
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
             p: 3,
             color: 'white',
             display: 'flex',
@@ -800,7 +800,7 @@ const Payments: React.FC = () => {
               px: 4,
               py: 1.2,
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
               '&:hover': {
                 background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
               }

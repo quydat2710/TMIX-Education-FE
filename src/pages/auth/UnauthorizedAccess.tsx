@@ -24,7 +24,7 @@ const UnauthorizedAccess: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
       py: 3
     }}>
       <Container maxWidth="sm">

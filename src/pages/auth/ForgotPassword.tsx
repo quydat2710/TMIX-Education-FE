@@ -203,7 +203,7 @@ const ForgotPassword: React.FC = () => {
       <Box sx={{
         minHeight: '100vh',
         display: 'flex',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         position: 'relative',
         '&::before': {
           content: '""',
@@ -308,7 +308,7 @@ const ForgotPassword: React.FC = () => {
                   borderRadius: 2,
                   backgroundColor: 'white',
                   '&.Mui-focused fieldset': {
-                    borderColor: '#764ba2',
+                    borderColor: '#1E3A5F',
                     boxShadow: 'none',
                   },
                   '&.Mui-focused': {
@@ -391,7 +391,7 @@ const ForgotPassword: React.FC = () => {
                   borderRadius: 2,
                   backgroundColor: 'white',
                   '&.Mui-focused fieldset': {
-                    borderColor: '#764ba2',
+                    borderColor: '#1E3A5F',
                     boxShadow: 'none',
                   },
                   '&.Mui-focused': {
@@ -480,7 +480,7 @@ const ForgotPassword: React.FC = () => {
                   borderRadius: 2,
                   backgroundColor: 'white',
                   '&.Mui-focused fieldset': {
-                    borderColor: '#764ba2',
+                    borderColor: '#1E3A5F',
                     boxShadow: 'none',
                   },
                   '&.Mui-focused': {
@@ -526,7 +526,7 @@ const ForgotPassword: React.FC = () => {
                   borderRadius: 2,
                   backgroundColor: 'white',
                   '&.Mui-focused fieldset': {
-                    borderColor: '#764ba2',
+                    borderColor: '#1E3A5F',
                     boxShadow: 'none',
                   },
                   '&.Mui-focused': {
@@ -584,7 +584,7 @@ const ForgotPassword: React.FC = () => {
                   borderRadius: 2,
                   backgroundColor: 'white',
                   '&.Mui-focused fieldset': {
-                    borderColor: '#764ba2',
+                    borderColor: '#1E3A5F',
                     boxShadow: 'none',
                   },
                   '&.Mui-focused': {
@@ -646,7 +646,7 @@ const ForgotPassword: React.FC = () => {
     <Box sx={{
       minHeight: '100vh',
       display: 'flex',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
       position: 'relative',
       '&::before': {
         content: '""',

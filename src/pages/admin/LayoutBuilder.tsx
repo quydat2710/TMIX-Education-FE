@@ -60,15 +60,15 @@ const LayoutBuilder: React.FC = () => {
   const { menuItems } = useMenuItems();
   const menuTitle = !isEditMode && menuId
     ? (function findTitle(items: any[]): string | null {
-        for (const item of items) {
-          if (item.id === menuId) return item.title;
-          if (item.childrenMenu && item.childrenMenu.length) {
-            const t = findTitle(item.childrenMenu);
-            if (t) return t;
-          }
+      for (const item of items) {
+        if (item.id === menuId) return item.title;
+        if (item.childrenMenu && item.childrenMenu.length) {
+          const t = findTitle(item.childrenMenu);
+          if (t) return t;
         }
-        return null;
-      })(menuItems)
+      }
+      return null;
+    })(menuItems)
     : null;
 
   const [layouts, setLayouts] = useState<{ lg: LayoutItem[] }>({ lg: [] });
@@ -140,22 +140,22 @@ const LayoutBuilder: React.FC = () => {
 
     if (!isEditing) {
       // Creating new item
-    itemRefs.current[id] = React.createRef();
+      itemRefs.current[id] = React.createRef();
       const nextY = (layouts.lg || []).reduce((maxY, item) => Math.max(maxY, item.y + item.h), 0);
 
-    setLayouts(prev => ({
-      ...prev,
-      lg: [
+      setLayouts(prev => ({
+        ...prev,
+        lg: [
           ...(prev.lg || []),
-        {
-          i: id,
-          x: 0,
-          y: nextY,
+          {
+            i: id,
+            x: 0,
+            y: nextY,
             w: 6, // Default width (6/12 = 50% of container)
             h: 4, // Default height
-        }
-      ]
-    }));
+          }
+        ]
+      }));
     }
 
     // Update items (both create and edit)
@@ -170,12 +170,12 @@ const LayoutBuilder: React.FC = () => {
       } else {
         // Add new item
         return [
-      ...prev,
-      {
-        i: id,
-        type: newItem.type,
-        content: newItem.type === 'text' ? editorContent : newItem.content
-      }
+          ...prev,
+          {
+            i: id,
+            type: newItem.type,
+            content: newItem.type === 'text' ? editorContent : newItem.content
+          }
         ];
       }
     });
@@ -530,11 +530,11 @@ const LayoutBuilder: React.FC = () => {
 
         await createArticleAPI(articleData);
 
-      setSnackbar({
-        open: true,
+        setSnackbar({
+          open: true,
           message: 'Tạo bài viết thành công!',
-        severity: 'success'
-      });
+          severity: 'success'
+        });
       }
 
       // Stay on Layout Builder after save; optionally refresh data if editing
@@ -669,268 +669,268 @@ const LayoutBuilder: React.FC = () => {
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
         <Box sx={{ ...commonStyles.contentContainer, p: 3 }}> {/* ✅ Giảm padding từ 5 xuống 3 */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-            <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
-              {isEditMode
-                ? `Chỉnh sửa Bài viết: ${title || 'Đang tải...'}`
-                : `Tạo Layout cho Menu: ${menuTitle || menuId}`}
-          </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<PreviewIcon />}
-              onClick={async () => {
-                await fetchPreviewArticles();
-                setPreviewOpen(true);
-              }}
-              color="info"
-              disabled={previewLoading}
-              sx={{ whiteSpace: 'nowrap' }}
-            >
-              {previewLoading ? 'Đang tải...' : 'Xem trước'}
-            </Button>
-          </Box>
-          <Typography variant="body1" color="text.secondary">
-            {isEditMode
-              ? 'Chỉnh sửa nội dung và layout của bài viết này'
-              : 'Kéo thả và tùy chỉnh các thành phần để tạo giao diện cho trang này'
-            }
-          </Typography>
-        </Box>
-
-      {/* Form Controls */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Tiêu đề bài viết"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setDialogOpen(true)}
-              fullWidth
-            >
-              Thêm thành phần
-            </Button>
-          </Grid>
-        </Grid>
-
-        {/* Order + Background + Radius + Header Image Upload */}
-        <Grid container spacing={3} alignItems="center" sx={{ mt: 2 }}>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Thứ tự hiển thị"
-              type="number"
-              value={articleOrder}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === '') { setArticleOrder(''); return; }
-                const digits = v.replace(/\D/g, '');
-                setArticleOrder(digits);
-              }}
-              helperText="Số nhỏ hơn sẽ hiển thị trước"
-              inputProps={{ min: 1 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Màu nền nội dung"
-              type="color"
-              value={contentBackground}
-              onChange={(e) => setContentBackground(e.target.value)}
-              helperText="Màu nền cho nội dung"
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Bo góc (px)"
-              type="number"
-              value={contentBorderRadius}
-              onChange={(e) => setContentBorderRadius(Number(e.target.value))}
-              helperText="Độ bo góc"
-              inputProps={{ min: 0, max: 50 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="image-upload"
-              type="file"
-              onChange={async (e) => {
-                const file = e.target.files?.[0] || null;
-                setFileList(file ? [file] : []);
-                if (file) {
-                  try {
-                    setImageUploading(true);
-                    const uploadRes = await uploadFileAPI(file);
-                    setUploadedImageUrl(uploadRes.data.data.url);
-                    setUploadedPublicId(uploadRes.data.data.public_id);
-                  } catch (err) {
-                    setSnackbar({
-                      open: true,
-                      message: 'Tải ảnh thất bại, vui lòng thử lại',
-                      severity: 'error'
-                    });
-                    setUploadedImageUrl(undefined);
-                    setUploadedPublicId(undefined);
-                  } finally {
-                    setImageUploading(false);
-                  }
-                } else {
-                  setUploadedImageUrl(undefined);
-                  setUploadedPublicId(undefined);
-                }
-              }}
-            />
-            <label htmlFor="image-upload">
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+                {isEditMode
+                  ? `Chỉnh sửa Bài viết: ${title || 'Đang tải...'}`
+                  : `Tạo Layout cho Menu: ${menuTitle || menuId}`}
+              </Typography>
               <Button
                 variant="outlined"
-                component="span"
-                startIcon={<UploadIcon />}
-                fullWidth
-                disabled={imageUploading}
+                startIcon={<PreviewIcon />}
+                onClick={async () => {
+                  await fetchPreviewArticles();
+                  setPreviewOpen(true);
+                }}
+                color="info"
+                disabled={previewLoading}
+                sx={{ whiteSpace: 'nowrap' }}
               >
-                {imageUploading
-                  ? 'Đang tải ảnh...'
-                  : uploadedImageUrl
-                    ? 'Ảnh đã tải thành công'
-                    : fileList.length > 0
-                      ? `${fileList.length} file đã chọn`
-                      : 'Chọn ảnh tiêu đề'
-                }
+                {previewLoading ? 'Đang tải...' : 'Xem trước'}
               </Button>
-            </label>
-          </Grid>
-          {/* Đã bỏ tùy chọn đổ bóng */}
-        </Grid>
-      </Paper>
-
-      {/* Layout Preview */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>Xem trước Layout</Typography>
+            </Box>
+            <Typography variant="body1" color="text.secondary">
+              {isEditMode
+                ? 'Chỉnh sửa nội dung và layout của bài viết này'
+                : 'Kéo thả và tùy chỉnh các thành phần để tạo giao diện cho trang này'
+              }
+            </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={saveLayout}
-            color="success"
-            disabled={loading}
-            size="large"
-          >
-            {isEditMode ? 'Cập nhật Bài viết' : 'Lưu Layout'}
-          </Button>
-        </Box>
 
-        {/* Canvas Container - Responsive như các trang khác */}
-        <Box ref={containerRef} sx={{
-          border: '2px solid #e0e0e0',
-          borderRadius: 0,
-          p: 0,
-          minHeight: '600px',
-          width: '100%',
-          backgroundColor: contentBackground,
-          overflow: 'auto',
-          boxSizing: 'border-box'
-        }}>
-          <ResponsiveGridLayout
-            className="layout"
-            layouts={layouts}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
-            rowHeight={30}
-            onLayoutChange={onLayoutChange}
-            isDraggable={true}
-            isResizable={true}
-            margin={[10, 10]}
-            containerPadding={[0, 0]}
-          >
-            {(layouts.lg || []).map(layoutItem => (
-              <div key={layoutItem.i} style={{ position: 'relative' }}>
-                {/* Edit Button */}
-                <IconButton
-                  size="small"
-                  onClick={() => editItem(layoutItem.i)}
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)'
+          {/* Form Controls */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Grid container spacing={3} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Tiêu đề bài viết"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setDialogOpen(true)}
+                  fullWidth
+                >
+                  Thêm thành phần
+                </Button>
+              </Grid>
+            </Grid>
+
+            {/* Order + Background + Radius + Header Image Upload */}
+            <Grid container spacing={3} alignItems="center" sx={{ mt: 2 }}>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Thứ tự hiển thị"
+                  type="number"
+                  value={articleOrder}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') { setArticleOrder(''); return; }
+                    const digits = v.replace(/\D/g, '');
+                    setArticleOrder(digits);
+                  }}
+                  helperText="Số nhỏ hơn sẽ hiển thị trước"
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Màu nền nội dung"
+                  type="color"
+                  value={contentBackground}
+                  onChange={(e) => setContentBackground(e.target.value)}
+                  helperText="Màu nền cho nội dung"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Bo góc (px)"
+                  type="number"
+                  value={contentBorderRadius}
+                  onChange={(e) => setContentBorderRadius(Number(e.target.value))}
+                  helperText="Độ bo góc"
+                  inputProps={{ min: 0, max: 50 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="image-upload"
+                  type="file"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0] || null;
+                    setFileList(file ? [file] : []);
+                    if (file) {
+                      try {
+                        setImageUploading(true);
+                        const uploadRes = await uploadFileAPI(file);
+                        setUploadedImageUrl(uploadRes.data.data.url);
+                        setUploadedPublicId(uploadRes.data.data.public_id);
+                      } catch (err) {
+                        setSnackbar({
+                          open: true,
+                          message: 'Tải ảnh thất bại, vui lòng thử lại',
+                          severity: 'error'
+                        });
+                        setUploadedImageUrl(undefined);
+                        setUploadedPublicId(undefined);
+                      } finally {
+                        setImageUploading(false);
+                      }
+                    } else {
+                      setUploadedImageUrl(undefined);
+                      setUploadedPublicId(undefined);
                     }
                   }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-
-                {/* Delete Button */}
-                <IconButton
-                  size="small"
-                  onClick={() => removeItem(layoutItem.i)}
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                />
+                <label htmlFor="image-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    startIcon={<UploadIcon />}
+                    fullWidth
+                    disabled={imageUploading}
+                  >
+                    {imageUploading
+                      ? 'Đang tải ảnh...'
+                      : uploadedImageUrl
+                        ? 'Ảnh đã tải thành công'
+                        : fileList.length > 0
+                          ? `${fileList.length} file đã chọn`
+                          : 'Chọn ảnh tiêu đề'
                     }
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-                {renderItemContent(layoutItem)}
-              </div>
-            ))}
-          </ResponsiveGridLayout>
-        </Box>
-      </Paper>
+                  </Button>
+                </label>
+              </Grid>
+              {/* Đã bỏ tùy chọn đổ bóng */}
+            </Grid>
+          </Paper>
 
-      <AddItemDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onAdd={addItem}
-        newItem={newItem}
-        setNewItem={(updater) => setNewItem(prev => updater(prev))}
-        editorContent={editorContent}
-        setEditorContent={setEditorContent}
-        onUploadImage={async (file) => {
-          try { const res = await uploadFileAPI(file); return res.data?.data?.url || ''; } catch { setSnackbar({ open: true, message: 'Tải ảnh thất bại, vui lòng thử lại', severity: 'error' }); return ''; }
-        }}
-        uploading={imageUploading}
-      />
+          {/* Layout Preview */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>Xem trước Layout</Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<SaveIcon />}
+                onClick={saveLayout}
+                color="success"
+                disabled={loading}
+                size="large"
+              >
+                {isEditMode ? 'Cập nhật Bài viết' : 'Lưu Layout'}
+              </Button>
+            </Box>
 
-      <PreviewDialog open={previewOpen} onClose={() => setPreviewOpen(false)} articles={previewArticles} loading={previewLoading} />
+            {/* Canvas Container - Responsive như các trang khác */}
+            <Box ref={containerRef} sx={{
+              border: '2px solid #e0e0e0',
+              borderRadius: 0,
+              p: 0,
+              minHeight: '600px',
+              width: '100%',
+              backgroundColor: contentBackground,
+              overflow: 'auto',
+              boxSizing: 'border-box'
+            }}>
+              <ResponsiveGridLayout
+                className="layout"
+                layouts={layouts}
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
+                cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
+                rowHeight={30}
+                onLayoutChange={onLayoutChange}
+                isDraggable={true}
+                isResizable={true}
+                margin={[10, 10]}
+                containerPadding={[0, 0]}
+              >
+                {(layouts.lg || []).map(layoutItem => (
+                  <div key={layoutItem.i} style={{ position: 'relative' }}>
+                    {/* Edit Button */}
+                    <IconButton
+                      size="small"
+                      onClick={() => editItem(layoutItem.i)}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1000,
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                        }
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-      >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+                    {/* Delete Button */}
+                    <IconButton
+                      size="small"
+                      onClick={() => removeItem(layoutItem.i)}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        zIndex: 1000,
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                        }
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                    {renderItemContent(layoutItem)}
+                  </div>
+                ))}
+              </ResponsiveGridLayout>
+            </Box>
+          </Paper>
+
+          <AddItemDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            onAdd={addItem}
+            newItem={newItem}
+            setNewItem={(updater) => setNewItem(prev => updater(prev))}
+            editorContent={editorContent}
+            setEditorContent={setEditorContent}
+            onUploadImage={async (file) => {
+              try { const res = await uploadFileAPI(file); return res.data?.data?.url || ''; } catch { setSnackbar({ open: true, message: 'Tải ảnh thất bại, vui lòng thử lại', severity: 'error' }); return ''; }
+            }}
+            uploading={imageUploading}
+          />
+
+          <PreviewDialog open={previewOpen} onClose={() => setPreviewOpen(false)} articles={previewArticles} loading={previewLoading} />
+
+          {/* Snackbar */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          >
+            <Alert
+              onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+              severity={snackbar.severity}
+              sx={{ width: '100%' }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
         </Box>
       </Box>
     </DashboardLayout>

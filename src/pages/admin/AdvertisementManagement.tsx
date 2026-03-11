@@ -498,7 +498,7 @@ const AdvertisementManagement: React.FC = () => {
             }}
           >
             <DialogTitle sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
               color: 'white',
               py: 3,
               px: 4,
@@ -548,7 +548,7 @@ const AdvertisementManagement: React.FC = () => {
                     <Box sx={{
                       width: 4,
                       height: 20,
-                      bgcolor: '#667eea',
+                      bgcolor: '#D32F2F',
                       borderRadius: 2
                     }} />
                     Thông tin quảng cáo
@@ -570,7 +570,7 @@ const AdvertisementManagement: React.FC = () => {
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
+                                borderColor: '#D32F2F',
                               },
                             },
                           }}
@@ -588,7 +588,7 @@ const AdvertisementManagement: React.FC = () => {
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
+                                borderColor: '#D32F2F',
                               },
                             },
                           }}
@@ -608,7 +608,7 @@ const AdvertisementManagement: React.FC = () => {
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
+                                borderColor: '#D32F2F',
                               },
                             },
                           }}
@@ -632,7 +632,7 @@ const AdvertisementManagement: React.FC = () => {
                             '& .MuiOutlinedInput-root': {
                               borderRadius: 2,
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#667eea',
+                                borderColor: '#D32F2F',
                               },
                             },
                           }}
@@ -671,7 +671,7 @@ const AdvertisementManagement: React.FC = () => {
                       <Grid item xs={12}>
                         <Box
                           sx={{
-                            border: '2px dashed #667eea',
+                            border: '2px dashed #D32F2F',
                             borderRadius: 0,
                             minHeight: 300,
                             minWidth: '100%',
@@ -683,7 +683,7 @@ const AdvertisementManagement: React.FC = () => {
                             background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%)',
                             transition: 'all 0.2s',
                             '&:hover': {
-                              borderColor: '#764ba2',
+                              borderColor: '#1E3A5F',
                               background: 'linear-gradient(135deg, #e3f2fd 0%, #f5f7fa 100%)'
                             }
                           }}
@@ -722,7 +722,7 @@ const AdvertisementManagement: React.FC = () => {
                               }}
                             />
                           ) : (
-                            <Box sx={{ textAlign: 'center', color: '#667eea' }}>
+                            <Box sx={{ textAlign: 'center', color: '#D32F2F' }}>
                               <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
                               <Typography variant="body2" color="inherit" sx={{ fontWeight: 600 }}>
                                 Tải ảnh quảng cáo
@@ -748,10 +748,10 @@ const AdvertisementManagement: React.FC = () => {
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
-                  border: '2px solid #667eea',
-                  color: '#667eea',
+                  border: '2px solid #D32F2F',
+                  color: '#D32F2F',
                   '&:hover': {
-                    background: '#667eea',
+                    background: '#D32F2F',
                     color: 'white',
                   }
                 }}
@@ -768,7 +768,7 @@ const AdvertisementManagement: React.FC = () => {
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
-                  bgcolor: '#667eea',
+                  bgcolor: '#D32F2F',
                   '&:hover': { bgcolor: '#5a6fd8' },
                   '&:disabled': {
                     background: '#ccc',

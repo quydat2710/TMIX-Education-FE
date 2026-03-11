@@ -492,7 +492,7 @@ const TestimonialsManagement: React.FC = () => {
                 <Grid item xs={12}>
                   <Box
                     sx={{
-                      border: '2px dashed #667eea',
+                      border: '2px dashed #D32F2F',
                       borderRadius: 2,
                       minHeight: 400,
                       display: 'flex',
@@ -503,7 +503,7 @@ const TestimonialsManagement: React.FC = () => {
                       background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%)',
                       transition: 'all 0.2s',
                       '&:hover': {
-                        borderColor: '#764ba2',
+                        borderColor: '#1E3A5F',
                         background: 'linear-gradient(135deg, #e3f2fd 0%, #f5f7fa 100%)'
                       }
                     }}
@@ -542,7 +542,7 @@ const TestimonialsManagement: React.FC = () => {
                         }}
                       />
                     ) : (
-                      <Box sx={{ textAlign: 'center', color: '#667eea' }}>
+                      <Box sx={{ textAlign: 'center', color: '#D32F2F' }}>
                         <CloudUploadIcon sx={{ fontSize: 48, mb: 1 }} />
                         <Typography variant="body2" color="inherit" sx={{ fontWeight: 600 }}>
                           Tải ảnh đại diện

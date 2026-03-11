@@ -9,11 +9,6 @@ interface PublicLayoutProps {
   showFooter?: boolean;
 }
 
-/**
- * PublicLayout - Layout dùng chung cho các trang public
- * Header: Dùng HomeHeader mặc định (đã lấy menu từ API)
- * Footer: Bố cục tĩnh, nội dung động (email, phone, address)
- */
 const PublicLayout: React.FC<PublicLayoutProps> = ({
   children,
   showHeader = true,

@@ -10,114 +10,59 @@ import {
   Container,
   Grid,
 } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getAllTeachersAPI } from '../services/teachers';
-import { getArticlesByMenuIdAPI } from '../services/articles';
-import { useMenuItems } from '../hooks/features/useMenuItems';
-import { Teacher, MenuItem } from '../types';
+import { Teacher } from '../types';
 import PublicLayout from '../components/layouts/PublicLayout';
+
+// TMix brand colors
+const NAVY = '#1E3A5F';
+const NAVY_DARK = '#0F1F33';
+const RED = '#D32F2F';
 
 const AllTeachersPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { menuItems } = useMenuItems();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  const INITIAL_DISPLAY_COUNT = 8; // 2 hàng x 4 cột
+  const INITIAL_DISPLAY_COUNT = 8;
 
-  const fullSlug = location.pathname.replace(/^\//, '');
-
-  const findMenuItemBySlug = (items: MenuItem[], targetSlug: string): MenuItem | null => {
-    for (const item of items) {
-      const itemSlug = item.slug?.replace(/^\//, '') || '';
-      const cleanTargetSlug = targetSlug.replace(/^\//, '');
-
-      if (itemSlug === cleanTargetSlug) {
-        return item;
-      }
-
-      if (item.childrenMenu && item.childrenMenu.length > 0) {
-        const found = findMenuItemBySlug(item.childrenMenu, targetSlug);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-
-  // Fetch data from API
+  // ✅ Fetch teachers trực tiếp từ DB
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTeachers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch articles from layoutBuilder if menu items are available
-        if (fullSlug && menuItems.length > 0) {
-          const foundMenuItem = findMenuItemBySlug(menuItems, fullSlug);
+        const response = await getAllTeachersAPI({
+          page: 1,
+          limit: 100,
+        });
 
-          if (foundMenuItem?.id) {
-            try {
-              const articlesResponse = await getArticlesByMenuIdAPI(foundMenuItem.id);
-              if (articlesResponse.data?.data?.result) {
-                const sortedArticles = articlesResponse.data.data.result
-                  .filter((article: any) => article.isActive !== false)
-                  .sort((a: any, b: any) => {
-                    if (a.order !== b.order) {
-                      return (a.order || 999) - (b.order || 999);
-                    }
-                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                  });
-                setArticles(sortedArticles);
-              }
-            } catch (articleError) {
-              console.log('No articles found for this menu');
-              setArticles([]);
-            }
-          }
+        let teachersData = [];
+        if (response.data?.data?.result) {
+          teachersData = response.data.data.result;
+        } else if (response.data?.data && Array.isArray(response.data.data)) {
+          teachersData = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          teachersData = response.data;
         }
 
-        // Always fetch teachers from API
-        try {
-          const response = await getAllTeachersAPI({
-            page: 1,
-            limit: 100, // Lấy nhiều để hiển thị tất cả khi cần
-          });
-
-          // Handle different response formats
-          let teachersData = [];
-          if (response.data?.data?.result) {
-            teachersData = response.data.data.result;
-          } else if (response.data?.data && Array.isArray(response.data.data)) {
-            teachersData = response.data.data;
-          } else if (response.data && typeof response.data === 'object') {
-            teachersData = (response.data as any).result || (response.data as any).teachers || [];
-          } else if (Array.isArray(response.data)) {
-            teachersData = response.data;
-          }
-
-          // Filter active teachers only
-          const activeTeachers = teachersData.filter((teacher: any) => teacher.isActive !== false);
-
-          setTeachers(activeTeachers);
-        } catch (teacherError) {
-          console.error('Error fetching teachers:', teacherError);
-          setError('Không thể tải dữ liệu giáo viên');
-          setTeachers([]);
-        }
+        const activeTeachers = teachersData.filter((teacher: any) => teacher.isActive !== false);
+        setTeachers(activeTeachers);
       } catch (err: any) {
-        console.error('Error fetching data:', err);
-        setError(err?.response?.data?.message || 'Không thể tải dữ liệu');
+        console.error('Error fetching teachers:', err);
+        setError('Không thể tải dữ liệu giáo viên');
+        setTeachers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [fullSlug, menuItems]);
+    fetchTeachers();
+  }, []);
 
   // Function to convert name to URL-friendly slug
   const createSlug = (name: string): string => {
@@ -192,172 +137,198 @@ const AllTeachersPage = () => {
 
   return (
     <PublicLayout>
-      <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
-        {/* Articles from layoutBuilder */}
-        {articles.length > 0 && (
-          <Box sx={{ width: '100%' }}>
-            {articles.map((article, index) => (
-              <Box key={article.id || index}>
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
-              </Box>
-            ))}
-          </Box>
-        )}
+      {/* Hero Header */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_DARK} 100%)`,
+          color: '#fff',
+          py: { xs: 8, md: 10 },
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'radial-gradient(circle at 20% 80%, rgba(211,47,47,0.15) 0%, transparent 50%)',
+          },
+        }}
+      >
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography
+            variant="h3"
+            fontWeight={800}
+            gutterBottom
+            sx={{
+              fontSize: { xs: '2rem', md: '3rem' },
+              letterSpacing: '-0.5px',
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            }}
+          >
+            Đội Ngũ Giáo Viên
+          </Typography>
+          <Box sx={{ width: 60, height: 4, bgcolor: RED, mx: 'auto', mb: 2, borderRadius: 2 }} />
+          <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400, lineHeight: 1.7, maxWidth: 600, mx: 'auto' }}>
+            Những giáo viên tâm huyết, giàu kinh nghiệm của TMix Education
+          </Typography>
+        </Container>
+      </Box>
 
-        <Container maxWidth="lg" sx={{ pb: 6, pt: articles.length > 0 ? 4 : 8 }}>
+      <Box sx={{ bgcolor: '#fafafa', minHeight: '60vh' }}>
+        <Container maxWidth="lg" sx={{ py: 6 }}>
           {/* Grid hiển thị giáo viên */}
-        <Grid container spacing={3}>
-          {displayedTeachers.map((teacher) => (
-            <Grid item xs={12} sm={6} md={3} key={teacher.id}>
-              <Card
-                onClick={() => handleTeacherClick(teacher)}
+          <Grid container spacing={3}>
+            {displayedTeachers.map((teacher) => (
+              <Grid item xs={12} sm={6} md={3} key={teacher.id}>
+                <Card
+                  onClick={() => handleTeacherClick(teacher)}
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
+                    }
+                  }}
+                >
+                  {/* Avatar */}
+                  <Box sx={{ position: 'relative', paddingTop: '100%' }}>
+                    {teacher.avatar ? (
+                      <CardMedia
+                        component="img"
+                        image={teacher.avatar}
+                        alt={teacher.name}
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'grey.100',
+                          color: 'grey.500',
+                          fontSize: '3rem',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {teacher.name.charAt(0).toUpperCase()}
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Content */}
+                  <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Typography
+                      gutterBottom
+                      variant="h6"
+                      component="h3"
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#000',
+                        fontSize: '1.1rem',
+                        mb: 1
+                      }}
+                    >
+                      {teacher.name}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="primary"
+                      gutterBottom
+                      sx={{ fontWeight: 600, mb: 1.5 }}
+                    >
+                      {formatSpecializations(teacher.specializations)}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 1, fontSize: '0.85rem' }}
+                    >
+                      <strong>Bằng cấp:</strong> {formatQualifications(teacher.qualifications)}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: 2,
+                        fontSize: '0.85rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {teacher.description || 'Chưa có mô tả'}
+                    </Typography>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        mt: 'auto',
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: 'primary.main',
+                          color: 'white'
+                        }
+                      }}
+                    >
+                      Xem chi tiết
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Nút "Xem thêm" hoặc "Thu gọn" */}
+          {hasMore && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => setShowAll(!showAll)}
                 sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
+                  px: 5,
+                  py: 1.5,
                   borderRadius: 3,
-                  overflow: 'hidden',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
                   }
                 }}
               >
-                {/* Avatar */}
-                <Box sx={{ position: 'relative', paddingTop: '100%' }}>
-                  {teacher.avatar ? (
-                    <CardMedia
-                      component="img"
-                      image={teacher.avatar}
-                      alt={teacher.name}
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: 'grey.100',
-                        color: 'grey.500',
-                        fontSize: '3rem',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      {teacher.name.charAt(0).toUpperCase()}
-                    </Box>
-                  )}
-                </Box>
-
-                {/* Content */}
-                <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Typography
-                    gutterBottom
-                    variant="h6"
-                    component="h3"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#000',
-                      fontSize: '1.1rem',
-                      mb: 1
-                    }}
-                  >
-                    {teacher.name}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="primary"
-                    gutterBottom
-                    sx={{ fontWeight: 600, mb: 1.5 }}
-                  >
-                    {formatSpecializations(teacher.specializations)}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1, fontSize: '0.85rem' }}
-                  >
-                    <strong>Bằng cấp:</strong> {formatQualifications(teacher.qualifications)}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      mb: 2,
-                      fontSize: '0.85rem',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                    }}
-                  >
-                    {teacher.description || 'Chưa có mô tả'}
-                  </Typography>
-
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      mt: 'auto',
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&:hover': {
-                        backgroundColor: 'primary.main',
-                        color: 'white'
-                      }
-                    }}
-                  >
-                    Xem chi tiết
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Nút "Xem thêm" hoặc "Thu gọn" */}
-        {hasMore && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => setShowAll(!showAll)}
-              sx={{
-                px: 5,
-                py: 1.5,
-                borderRadius: 3,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '1rem',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                '&:hover': {
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
-                }
-              }}
-            >
-              {showAll ? 'Thu gọn' : `Xem thêm (${teachers.length - INITIAL_DISPLAY_COUNT} giáo viên)`}
-            </Button>
-          </Box>
-        )}
+                {showAll ? 'Thu gọn' : `Xem thêm (${teachers.length - INITIAL_DISPLAY_COUNT} giáo viên)`}
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
     </PublicLayout>
