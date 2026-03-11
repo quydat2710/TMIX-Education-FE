@@ -120,7 +120,7 @@ const MyClasses = () => {
           const schedule = classInfo.schedule;
 
           // Format lịch học
-          const weekdays = ['CN','T2','T3','T4','T5','T6','T7'];
+          const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
           const dayText = schedule?.days_of_week?.length > 0
             ? schedule.days_of_week.map((d: string) => weekdays[Number(d)]).join(', ')
             : 'Chưa có lịch';
@@ -138,10 +138,10 @@ const MyClasses = () => {
           return {
             id: classInfo.id,
             name: classInfo.name,
-            teacher: 'Chưa phân công', // API không có thông tin giáo viên
+            teacher: classInfo.teacher?.name || 'Chưa phân công',
             scheduleDays,
             scheduleTime,
-            status: 'active', // Tất cả lớp trong schedule đều đang hoạt động
+            status: classInfo.status || 'active',
             enrollStatus: 'active',
             room: classInfo.room || 'Chưa phân phòng',
             startDate: schedule?.start_date,
@@ -422,9 +422,9 @@ const MyClasses = () => {
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                   <Typography variant="h6" color="text.secondary" gutterBottom>
                     {searchQuery ? 'Không tìm thấy lớp học phù hợp' :
-                     selectedTab === 0 ? 'Chưa có lớp học nào đang diễn ra' :
-                     selectedTab === 1 ? 'Chưa có lớp học nào đã kết thúc' :
-                     'Chưa có lớp học nào sắp khai giảng'}
+                      selectedTab === 0 ? 'Chưa có lớp học nào đang diễn ra' :
+                        selectedTab === 1 ? 'Chưa có lớp học nào đã kết thúc' :
+                          'Chưa có lớp học nào sắp khai giảng'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {searchQuery ? 'Hãy thử tìm kiếm với từ khóa khác' : 'Vui lòng liên hệ admin để được phân lớp'}
@@ -596,14 +596,14 @@ const MyClasses = () => {
                                 {selectedClass.name}
                               </Typography>
                             </Grid>
-                                                         <Grid item xs={12} sm={6}>
-                               <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
-                                 Giáo viên:
-                               </Typography>
-                               <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
-                                 {selectedClass.teacher?.name || selectedClass.teacher || 'Chưa phân công'}
-                               </Typography>
-                             </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
+                                Giáo viên:
+                              </Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 500, color: '#2c3e50' }}>
+                                {selectedClass.teacher?.name || selectedClass.teacher || 'Chưa phân công'}
+                              </Typography>
+                            </Grid>
                             <Grid item xs={12} sm={6}>
                               <Typography variant="subtitle2" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>
                                 Phòng học:
