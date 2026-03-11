@@ -26,7 +26,6 @@ import WarningIcon from '@mui/icons-material/Warning';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
 import { getParentDashboardAPI } from '../../services/dashboard';
-import { getStudentScheduleAPI } from '../../services/students';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -63,41 +62,19 @@ const Dashboard = () => {
         return;
       }
 
-      // Call parent dashboard API
+      // Call parent dashboard API (now includes schedules and class data)
       const parentDashboardRes = await getParentDashboardAPI(parentId);
       const dash = (parentDashboardRes as any)?.data?.data || (parentDashboardRes as any)?.data || {};
 
-      // Fetch schedules for each child in payment list (if available)
+      // studentPayments now includes schedules and totalActiveClasses from the backend
       const studentPayments: any[] = dash.studentPayments || [];
-      const schedulesPromises = studentPayments.map(async (studentPayment: any) => {
-        try {
-          const scheduleRes = await getStudentScheduleAPI(studentPayment.studentId);
-          const scheduleData = (scheduleRes as any)?.data?.data || (scheduleRes as any)?.data || {};
-          // Normalize to array of schedules; support both array and object shapes
-          const schedules = (scheduleData as any).schedules || (Array.isArray(scheduleData) ? scheduleData : []);
-          const totalActiveClasses = (scheduleData as any).totalActiveClasses || 0;
-          return {
-            ...studentPayment,
-            schedules,
-            totalActiveClasses,
-          };
-        } catch (err) {
-          return {
-            ...studentPayment,
-            schedules: [],
-            totalActiveClasses: 0,
-          };
-        }
-      });
-
-      const childrenWithSchedules = await Promise.all(schedulesPromises);
-      setChildrenSchedules(childrenWithSchedules);
+      setChildrenSchedules(studentPayments);
 
       // Calculate statistics from dashboard data
       const paymentInfo = dash.paymentInfo || {};
       const calculatedStats = {
-        totalChildren: dash.totalChildren || childrenWithSchedules.length || 0,
-        totalClasses: childrenWithSchedules.reduce((total: number, child: any) => total + (child.totalActiveClasses || 0), 0),
+        totalChildren: dash.totalChildren || studentPayments.length || 0,
+        totalClasses: studentPayments.reduce((total: number, child: any) => total + (child.totalActiveClasses || 0), 0),
         totalFees: paymentInfo.totalRevenue || 0,
         paidFees: paymentInfo.totalPaidAmount || 0,
         pendingPayments: paymentInfo.totalUnPaidAmount || 0,
@@ -285,10 +262,10 @@ const Dashboard = () => {
                                       : scheduleItem.isActive === false
                                         ? 'Ngừng học'
                                         : scheduleItem.class?.status === 'active'
-                                      ? 'Đang học'
-                                      : scheduleItem.class?.status === 'completed'
-                                        ? 'Đã hoàn thành'
-                                        : scheduleItem.class?.status || 'N/A'
+                                          ? 'Đang học'
+                                          : scheduleItem.class?.status === 'completed'
+                                            ? 'Đã hoàn thành'
+                                            : scheduleItem.class?.status || 'N/A'
                                   }
                                   color={
                                     scheduleItem.isActive === true
@@ -296,10 +273,10 @@ const Dashboard = () => {
                                       : scheduleItem.isActive === false
                                         ? 'error'
                                         : scheduleItem.class?.status === 'active'
-                                      ? 'success'
-                                      : scheduleItem.class?.status === 'completed'
-                                        ? 'default'
-                                        : 'default'
+                                          ? 'success'
+                                          : scheduleItem.class?.status === 'completed'
+                                            ? 'default'
+                                            : 'default'
                                   }
                                   size="small"
                                 />
