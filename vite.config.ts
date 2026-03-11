@@ -8,7 +8,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   // Extract backend URL from env, fallback to default
-  const backendUrl = env.VITE_API_BASE_URL || 'http://103.199.18.103:8080/api/v1';
+  // const backendUrl = env.VITE_API_BASE_URL || 'http://103.199.18.103:8080/api/v1';
+  const backendUrl = env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
   // Get base URL without /api/v1 for proxy target
   const proxyTarget = backendUrl.replace(/\/api\/v1$/, '');
 

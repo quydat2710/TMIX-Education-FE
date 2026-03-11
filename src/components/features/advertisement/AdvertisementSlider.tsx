@@ -110,17 +110,17 @@ const AdvertisementSlider: React.FC<AdvertisementSliderProps> = ({
   });
 
   const settings = {
-    dots: showDots,
-    infinite: true,
+    dots: showDots && sortedAds.length > 1,
+    infinite: sortedAds.length > 1, // ⚠️ Tắt infinite khi chỉ có 1 slide để tránh clone gây lặp
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: showArrows,
-    autoplay: autoPlay,
+    arrows: showArrows && sortedAds.length > 1,
+    autoplay: autoPlay && sortedAds.length > 1,
     autoplaySpeed: interval,
     cssEase: 'ease' as const,
-    nextArrow: showArrows ? <NextArrow /> : undefined,
-    prevArrow: showArrows ? <PrevArrow /> : undefined,
+    nextArrow: showArrows && sortedAds.length > 1 ? <NextArrow /> : undefined,
+    prevArrow: showArrows && sortedAds.length > 1 ? <PrevArrow /> : undefined,
   };
 
   return (

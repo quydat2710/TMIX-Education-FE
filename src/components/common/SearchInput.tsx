@@ -53,10 +53,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
         '& .MuiOutlinedInput-root': {
           borderRadius: 2,
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#667eea',
+            borderColor: '#D32F2F',
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#667eea',
+            borderColor: '#D32F2F',
           },
         },
         ...sx

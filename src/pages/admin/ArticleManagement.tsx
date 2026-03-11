@@ -242,236 +242,242 @@ const ArticleManagement: React.FC = () => {
 
   return (
     <Box>
-          {/* Header */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-              Quản lý Bài viết
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/admin/menu')}
-            >
-              Tạo Bài viết Mới
-            </Button>
-          </Box>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+          Quản lý Bài viết
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => {
+            if (selectedMenu) {
+              navigate(`/admin/layout-builder/${selectedMenu}?mode=create`);
+            }
+          }}
+          disabled={!selectedMenu}
+          title={!selectedMenu ? 'Vui lòng chọn Menu trước' : 'Tạo bài viết mới'}
+        >
+          Tạo Bài viết Mới
+        </Button>
+      </Box>
 
-          {/* Menu Selector */}
+      {/* Menu Selector */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel>Chọn Menu</InputLabel>
+          <Select
+            value={selectedMenu}
+            onChange={(e) => setSelectedMenu(e.target.value)}
+            label="Chọn Menu"
+          >
+            {renderMenuOptions(menuItems)}
+          </Select>
+        </FormControl>
+      </Paper>
+
+      {selectedMenu && (
+        <>
+          {/* Article List - Full Width */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <FormControl fullWidth>
-              <InputLabel>Chọn Menu</InputLabel>
-              <Select
-                value={selectedMenu}
-                onChange={(e) => setSelectedMenu(e.target.value)}
-                label="Chọn Menu"
-              >
-                {renderMenuOptions(menuItems)}
-              </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Danh sách Bài viết - {selectedMenuTitle}
+              </Typography>
+              <Chip
+                label={`${articles.length} bài viết`}
+                color="primary"
+                variant="outlined"
+              />
+            </Box>
+
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography>Đang tải...</Typography>
+              </Box>
+            ) : articles.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography color="text.secondary">
+                  Chưa có bài viết nào cho menu này
+                </Typography>
+              </Box>
+            ) : (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="articles">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      {articles.map((article, index) => (
+                        <Draggable key={article.id} draggableId={article.id} index={index}>
+                          {(provided, snapshot) => (
+                            <Card
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              sx={{
+                                mb: 2,
+                                p: 2,
+                                opacity: snapshot.isDragging ? 0.8 : 1,
+                                transform: snapshot.isDragging ? 'rotate(5deg)' : 'none'
+                              }}
+                            >
+                              <CardContent>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <div {...provided.dragHandleProps}>
+                                    <DragIcon color="action" />
+                                  </div>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="h6" gutterBottom>
+                                      {article.title}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                      <Chip
+                                        label={`Thứ tự: ${article.order}`}
+                                        size="small"
+                                        color="primary"
+                                        variant="outlined"
+                                      />
+                                      <Chip
+                                        label={article.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                                        size="small"
+                                        color={article.isActive ? 'success' : 'default'}
+                                        variant={article.isActive ? 'filled' : 'outlined'}
+                                      />
+                                    </Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                      Tạo: {new Date(article.createdAt).toLocaleDateString('vi-VN')}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </CardContent>
+                              <CardActions>
+                                <Button
+                                  size="small"
+                                  startIcon={<ViewIcon />}
+                                  onClick={() => {
+                                    setSelectedArticle(article);
+                                    setPreviewOpen(true);
+                                  }}
+                                >
+                                  Xem trước
+                                </Button>
+                                <Button
+                                  size="small"
+                                  startIcon={<EditIcon />}
+                                  onClick={() => navigate(`/admin/layout-builder/${article.id}?mode=edit`)}
+                                >
+                                  Chỉnh sửa
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color={article.isActive ? 'warning' : 'success'}
+                                  onClick={() => handleToggleActive(article)}
+                                >
+                                  {article.isActive ? 'Ẩn' : 'Hiện'}
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  startIcon={<DeleteIcon />}
+                                  onClick={() => {
+                                    setArticleToDelete(article);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  Xóa
+                                </Button>
+                              </CardActions>
+                            </Card>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
           </Paper>
 
-          {selectedMenu && (
-            <>
-              {/* Article List - Full Width */}
-              <Paper sx={{ p: 3, mb: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">
-                    Danh sách Bài viết - {selectedMenuTitle}
-                  </Typography>
-                  <Chip
-                    label={`${articles.length} bài viết`}
-                    color="primary"
-                    variant="outlined"
-                  />
-                </Box>
-
-                  {loading ? (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography>Đang tải...</Typography>
-                    </Box>
-                  ) : articles.length === 0 ? (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography color="text.secondary">
-                        Chưa có bài viết nào cho menu này
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <DragDropContext onDragEnd={handleDragEnd}>
-                      <Droppable droppableId="articles">
-                        {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef}>
-                            {articles.map((article, index) => (
-                              <Draggable key={article.id} draggableId={article.id} index={index}>
-                                {(provided, snapshot) => (
-                                  <Card
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    sx={{
-                                      mb: 2,
-                                      p: 2,
-                                      opacity: snapshot.isDragging ? 0.8 : 1,
-                                      transform: snapshot.isDragging ? 'rotate(5deg)' : 'none'
-                                    }}
-                                  >
-                                    <CardContent>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <div {...provided.dragHandleProps}>
-                                          <DragIcon color="action" />
-                                        </div>
-                                        <Box sx={{ flex: 1 }}>
-                                          <Typography variant="h6" gutterBottom>
-                                            {article.title}
-                                          </Typography>
-                                          <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                                            <Chip
-                                              label={`Thứ tự: ${article.order}`}
-                                              size="small"
-                                              color="primary"
-                                              variant="outlined"
-                                            />
-                                            <Chip
-                                              label={article.isActive ? 'Hoạt động' : 'Không hoạt động'}
-                                              size="small"
-                                              color={article.isActive ? 'success' : 'default'}
-                                              variant={article.isActive ? 'filled' : 'outlined'}
-                                            />
-                                          </Box>
-                                          <Typography variant="body2" color="text.secondary">
-                                            Tạo: {new Date(article.createdAt).toLocaleDateString('vi-VN')}
-                                          </Typography>
-                                        </Box>
-                                      </Box>
-                                    </CardContent>
-                                    <CardActions>
-                                      <Button
-                                        size="small"
-                                        startIcon={<ViewIcon />}
-                                        onClick={() => {
-                                          setSelectedArticle(article);
-                                          setPreviewOpen(true);
-                                        }}
-                                      >
-                                        Xem trước
-                                      </Button>
-                                      <Button
-                                        size="small"
-                                        startIcon={<EditIcon />}
-                                        onClick={() => navigate(`/admin/layout-builder/${article.id}?mode=edit`)}
-                                      >
-                                        Chỉnh sửa
-                                      </Button>
-                                      <Button
-                                        size="small"
-                                        color={article.isActive ? 'warning' : 'success'}
-                                        onClick={() => handleToggleActive(article)}
-                                      >
-                                        {article.isActive ? 'Ẩn' : 'Hiện'}
-                                      </Button>
-                                      <Button
-                                        size="small"
-                                        color="error"
-                                        startIcon={<DeleteIcon />}
-                                        onClick={() => {
-                                          setArticleToDelete(article);
-                                          setDeleteDialogOpen(true);
-                                        }}
-                                      >
-                                        Xóa
-                                      </Button>
-                                    </CardActions>
-                                  </Card>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-                )}
-              </Paper>
-
-              {/* Preview Panel - Below Article List */}
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Xem trước Trang
+          {/* Preview Panel - Below Article List */}
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Xem trước Trang
+            </Typography>
+            <Box sx={{
+              border: '1px solid #ddd',
+              borderRadius: 1,
+              p: 2,
+              minHeight: '400px',
+              maxHeight: '600px',
+              overflow: 'auto'
+            }}>
+              {articles.length > 0 ? (
+                <div dangerouslySetInnerHTML={{
+                  __html: articles.find(a => a.isActive)?.content || articles[0].content
+                }} />
+              ) : (
+                <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                  Chưa có bài viết nào
                 </Typography>
-                <Box sx={{
-                  border: '1px solid #ddd',
-                  borderRadius: 1,
-                  p: 2,
-                  minHeight: '400px',
-                  maxHeight: '600px',
-                  overflow: 'auto'
-                }}>
-                  {articles.length > 0 ? (
-                    <div dangerouslySetInnerHTML={{
-                      __html: articles.find(a => a.isActive)?.content || articles[0].content
-                    }} />
-                  ) : (
-                    <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-                      Chưa có bài viết nào
-                    </Typography>
-                  )}
-                </Box>
-              </Paper>
-            </>
-          )}
-
-          {/* Preview Dialog */}
-          <Dialog
-            open={previewOpen}
-            onClose={() => setPreviewOpen(false)}
-            maxWidth="md"
-            fullWidth
-          >
-            <DialogTitle>
-              Xem trước: {selectedArticle?.title}
-            </DialogTitle>
-            <DialogContent>
-              {selectedArticle && (
-                <div dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
               )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setPreviewOpen(false)}>Đóng</Button>
-            </DialogActions>
-          </Dialog>
+            </Box>
+          </Paper>
+        </>
+      )}
 
-          {/* Delete Confirmation Dialog */}
-          <Dialog
-            open={deleteDialogOpen}
-            onClose={() => setDeleteDialogOpen(false)}
-          >
-            <DialogTitle>Xác nhận xóa</DialogTitle>
-            <DialogContent>
-              <Typography>
-                Bạn có chắc chắn muốn xóa bài viết "{articleToDelete?.title}"?
-                Hành động này không thể hoàn tác.
-              </Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setDeleteDialogOpen(false)}>Hủy</Button>
-              <Button onClick={handleDelete} color="error" variant="contained">
-                Xóa
-              </Button>
-            </DialogActions>
-          </Dialog>
+      {/* Preview Dialog */}
+      <Dialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Xem trước: {selectedArticle?.title}
+        </DialogTitle>
+        <DialogContent>
+          {selectedArticle && (
+            <div dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewOpen(false)}>Đóng</Button>
+        </DialogActions>
+      </Dialog>
 
-          {/* Notification Snackbar */}
-          <Snackbar
-            open={notification.open}
-            autoHideDuration={6000}
-            onClose={handleNotificationClose}
-          >
-            <Alert
-              onClose={handleNotificationClose}
-              severity={notification.severity}
-              sx={{ width: '100%' }}
-            >
-              {notification.message}
-            </Alert>
-          </Snackbar>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Bạn có chắc chắn muốn xóa bài viết "{articleToDelete?.title}"?
+            Hành động này không thể hoàn tác.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Hủy</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleNotificationClose}
+      >
+        <Alert
+          onClose={handleNotificationClose}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

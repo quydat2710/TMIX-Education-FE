@@ -46,11 +46,37 @@ const ConsultationRegistration: React.FC = () => {
     <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: '#fff' }}>
       <Grid container maxWidth="lg" sx={{ mx: 'auto' }} spacing={4} alignItems="center">
         <Grid item xs={12} md={7}>
-          <Box component="img" src="/images/regist.JPG" alt="consultation" sx={{ width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }} />
+          <Box sx={{
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1E3A5F 0%, #0F1F33 100%)',
+            borderRadius: 3,
+            p: 5,
+            minHeight: 340,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              background: 'radial-gradient(circle at 30% 70%, rgba(211,47,47,0.15) 0%, transparent 60%)',
+            },
+          }}>
+            <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+              <Typography variant="h3" fontWeight={800} gutterBottom sx={{ color: '#fff', letterSpacing: '-0.5px' }}>
+                TMix Education
+              </Typography>
+              <Box sx={{ width: 50, height: 4, bgcolor: '#D32F2F', mx: 'auto', mb: 2, borderRadius: 2 }} />
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.85)', maxWidth: 420, mx: 'auto', lineHeight: 1.9 }}>
+                Đăng ký tư vấn để được hỗ trợ tìm khóa học phù hợp nhất với trình độ và mục tiêu của bạn.
+              </Typography>
+            </Box>
+          </Box>
         </Grid>
         <Grid item xs={12} md={5}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h4" color="error" fontWeight={800} sx={{ mb: 2, textAlign: 'center' }}>
+          <Paper elevation={4} sx={{ p: 3, borderRadius: 3, borderTop: '4px solid #D32F2F' }}>
+            <Typography variant="h5" fontWeight={800} sx={{ mb: 2, textAlign: 'center', color: '#D32F2F' }}>
               ĐĂNG KÝ NHẬN TƯ VẤN
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

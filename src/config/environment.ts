@@ -10,7 +10,7 @@ export const config = {
   isProduction: import.meta.env.PROD,
 
   // App Configuration
-  appName: import.meta.env.VITE_APP_NAME || 'English Center Management',
+  appName: import.meta.env.VITE_APP_NAME || 'TMix Education',
   appVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
   appDescription: import.meta.env.VITE_APP_DESCRIPTION || 'Hệ thống quản lý trung tâm tiếng Anh',
 

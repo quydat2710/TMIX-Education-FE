@@ -15,14 +15,15 @@ import {
 import {
   Visibility,
   VisibilityOff,
-  AdminPanelSettings,
   Email,
   Lock,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
 import { adminLoginValidationSchema } from '../../validations/loginValidation';
+import logoTMix from '../../assets/logo_tmix.png';
 
 interface StaffLoginFormData {
   email: string;
@@ -153,7 +154,7 @@ const StaffLogin: React.FC = () => {
 
   return (
     <>
-      {/* CSS for autofill detection */}
+      {/* CSS for autofill detection and animations */}
       <style>
         {`
           @keyframes onAutoFillStart {
@@ -164,13 +165,29 @@ const StaffLogin: React.FC = () => {
             animation-name: onAutoFillStart;
             animation-duration: 0.001s;
           }
+          @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+          }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+          }
         `}
       </style>
 
       <Box sx={{
         minHeight: '100vh',
         display: 'flex',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(-45deg, #1E3A5F, #0F1F33, #D32F2F, #B71C1C)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientShift 15s ease infinite',
         position: 'relative',
         '&::before': {
           content: '""',
@@ -179,10 +196,17 @@ const StaffLogin: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'url(/images/login-bg.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.1,
+          background: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+          zIndex: 0
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 50%)',
           zIndex: 0
         }
       }}>
@@ -197,9 +221,22 @@ const StaffLogin: React.FC = () => {
             maxWidth: 450,
             mx: 'auto',
             borderRadius: 4,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
             backdropFilter: 'blur(20px)',
-            background: 'rgba(255, 255, 255, 0.95)'
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            overflow: 'hidden',
+            position: 'relative',
+            animation: (authError || loginError) ? 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both' : 'none',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #1E3A5F 0%, #D32F2F 100%)'
+            }
           }}>
             <CardContent sx={{ p: 5 }}>
               <Box
@@ -210,22 +247,56 @@ const StaffLogin: React.FC = () => {
                   mb: 4,
                 }}
               >
-                <AdminPanelSettings sx={{
-                  fontSize: 64,
-                  color: 'primary.text',
-                  mb: 2,
-                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
-                }} />
-                <Typography component="h1" variant="h3" fontWeight="bold" gutterBottom>
-                  Đăng nhập Nhân sự
+                {/* TMix Logo */}
+                <Box
+                  component="img"
+                  src={logoTMix}
+                  alt="TMix Education"
+                  sx={{
+                    height: 70,
+                    width: 'auto',
+                    mb: 2,
+                    filter: 'drop-shadow(0 4px 12px rgba(30, 58, 95, 0.3))'
+                  }}
+                />
+                {/* Admin Badge */}
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 1,
+                  px: 2,
+                  py: 0.5,
+                  bgcolor: 'rgba(30, 58, 95, 0.1)',
+                  borderRadius: 2
+                }}>
+                  <AdminPanelSettings sx={{ color: '#1E3A5F', fontSize: 20 }} />
+                  <Typography variant="caption" fontWeight="bold" color="#1E3A5F">
+                    QUẢN TRỊ VIÊN
+                  </Typography>
+                </Box>
+                <Typography
+                  component="h1"
+                  variant="h4"
+                  fontWeight="bold"
+                  gutterBottom
+                  sx={{
+                    background: 'linear-gradient(135deg, #1E3A5F 0%, #D32F2F 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textAlign: 'center'
+                  }}
+                >
+                  TMix Education
                 </Typography>
-                <Typography variant="body1" color="textSecondary" align="center" sx={{ maxWidth: 300 }}>
+                <Typography variant="body2" color="textSecondary" align="center">
                   Dành cho quản trị viên và giáo viên
                 </Typography>
               </Box>
 
               {(authError || loginError) && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
                   {authError || loginError}
                 </Alert>
               )}
@@ -300,7 +371,7 @@ const StaffLogin: React.FC = () => {
                       borderRadius: 2,
                       backgroundColor: 'white',
                       '&.Mui-focused fieldset': {
-                        borderColor: '#764ba2',
+                        borderColor: '#1E3A5F',
                         boxShadow: 'none',
                       },
                       '&.Mui-focused': {
@@ -367,7 +438,7 @@ const StaffLogin: React.FC = () => {
                       borderRadius: 2,
                       backgroundColor: 'white',
                       '&.Mui-focused fieldset': {
-                        borderColor: '#764ba2',
+                        borderColor: '#1E3A5F',
                         boxShadow: 'none',
                       },
                       '&.Mui-focused': {

@@ -604,7 +604,7 @@ const Children: React.FC = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
               color: 'white',
               p: 2,
               display: 'flex',

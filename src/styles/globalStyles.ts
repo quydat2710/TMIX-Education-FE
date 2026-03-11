@@ -1,4 +1,4 @@
-// Global styles for English Center Application
+// Global styles for TMix Education Application
 import { COLORS, SHADOWS, BORDER_RADIUS } from '../utils/colors';
 
 // CSS-in-JS global styles that can be used with makeStyles or styled components

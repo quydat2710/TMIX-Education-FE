@@ -52,7 +52,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#667eea',
+                  borderColor: '#D32F2F',
                 },
               },
             }}
@@ -70,7 +70,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#667eea',
+                borderColor: '#D32F2F',
               },
             },
           }}>
@@ -92,7 +92,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#667eea',
+                borderColor: '#D32F2F',
               },
             },
           }}>
@@ -123,7 +123,7 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#667eea',
+                borderColor: '#D32F2F',
               },
             },
           }}>
@@ -146,8 +146,8 @@ const ClassFilters: React.FC<ClassFiltersProps> = ({
             startIcon={<ClearIcon />}
             sx={{
               borderRadius: 2,
-              borderColor: '#667eea',
-              color: '#667eea',
+              borderColor: '#D32F2F',
+              color: '#D32F2F',
               '&:hover': {
                 borderColor: '#5a6fd8',
                 backgroundColor: 'rgba(102, 126, 234, 0.04)',

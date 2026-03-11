@@ -11,7 +11,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import theme from './theme';
 
 // Pages
-import Home from './pages/home/InteractiveHome';
+import Home from './pages/home/InteractiveHome'
 import TestDemo from './pages/TestDemo';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
@@ -45,6 +45,9 @@ import TeacherSchedule from './pages/teacher/Schedule';
 import TeacherProfile from './pages/profile/TeacherProfile';
 import TeacherDetail from './pages/teacher/TeacherDetail';
 import Salary from './pages/teacher/Salary';
+import TeacherTestManagement from './pages/teacher/TestManagement';
+import TeacherCreateEditTest from './pages/teacher/CreateEditTest';
+import TeacherTestStatistics from './pages/teacher/TestStatistics';
 
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard';
@@ -67,6 +70,7 @@ import { USER_ROLES } from './constants';
 import DynamicMenuPage from './pages/DynamicMenuPage';
 import LayoutBuilder from './pages/admin/LayoutBuilder';
 import AllTeachersPage from './pages/AllTeachersPage';
+import AboutPage from './pages/AboutPage';
 import CoursesPage from './pages/CoursesPage';
 import SchedulePage from './pages/SchedulePage';
 import TestimonialsPage from './pages/TestimonialsPage';
@@ -91,18 +95,22 @@ const AppContent: React.FC = () => {
           <Route path="/auth/verify-email" element={<VerifyEmail />} />
           <Route path="/unauthorized" element={<UnauthorizedAccess />} />
 
-          {/* All Teachers Page - Must be before dynamic routes */}
+          {/* ===== PUBLIC PAGES — tách biệt với admin/staff ===== */}
+          {/* Về chúng tôi */}
+          <Route path="/ve-chung-toi" element={<AboutPage />} />
+
+          {/* Giáo viên */}
           <Route path="/giao-vien" element={<AllTeachersPage />} />
           <Route path="/gioi-thieu/doi-ngu-giang-vien" element={<AllTeachersPage />} />
 
           {/* Teacher Detail Route - Must be before dynamic menu routes */}
           <Route path="/gioi-thieu/doi-ngu-giang-vien/:slug" element={<TeacherDetail />} />
 
-          {/* Courses Pages - Must be before dynamic menu routes */}
+          {/* Các khóa học */}
+          <Route path="/cac-khoa-hoc" element={<CoursesPage />} />
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-1" element={<CoursesPage />} />
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-2" element={<CoursesPage />} />
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-3" element={<CoursesPage />} />
-          {/* Additional course routes with different slug patterns */}
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-tieu-hoc" element={<CoursesPage />} />
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-thcs" element={<CoursesPage />} />
           <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-thpt" element={<CoursesPage />} />
@@ -112,7 +120,8 @@ const AppContent: React.FC = () => {
           {/* Schedule Page - Upcoming classes */}
           <Route path="/lich-khai-giang" element={<SchedulePage />} />
 
-          {/* Testimonials Page - Student feedback */}
+          {/* Đánh giá */}
+          <Route path="/danh-gia" element={<TestimonialsPage />} />
           <Route path="/cam-nhan-hoc-vien" element={<TestimonialsPage />} />
 
           {/* Dynamic Menu Routes - Support nested paths */}
@@ -183,6 +192,10 @@ const AppContent: React.FC = () => {
                   <Route path="classes" element={<TeacherMyClasses />} />
                   <Route path="schedule" element={<TeacherSchedule />} />
                   <Route path="salary" element={<Salary />} />
+                  <Route path="tests" element={<TeacherTestManagement />} />
+                  <Route path="tests/create" element={<TeacherCreateEditTest />} />
+                  <Route path="tests/:id/edit" element={<TeacherCreateEditTest />} />
+                  <Route path="tests/:id/stats" element={<TeacherTestStatistics />} />
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                 </Routes>

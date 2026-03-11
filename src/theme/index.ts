@@ -1,7 +1,7 @@
 import { createTheme, Theme } from '@mui/material/styles';
 import { COLORS, GRADIENTS, SHADOWS } from '../utils/colors';
 
-// Create custom theme for English Center
+// Create custom theme for TMix Education
 const createCustomTheme = (mode: 'light' | 'dark' = 'light'): Theme => {
   return createTheme({
     palette: {
@@ -50,6 +50,7 @@ const createCustomTheme = (mode: 'light' | 'dark' = 'light'): Theme => {
     },
     typography: {
       fontFamily: [
+        '"Inter"',
         '"Roboto"',
         '"Helvetica Neue"',
         'Arial',

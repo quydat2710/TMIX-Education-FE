@@ -4,7 +4,6 @@
 import axiosInstance from '../utils/axios.customize';
 import { ApiParams } from './api';
 import {
-    Test,
     TestFormData,
     TestsListResponse,
     TestResponse,
@@ -80,6 +79,19 @@ export const unpublishTest = async (id: string): Promise<TestResponse> => {
  */
 export const archiveTest = async (id: string): Promise<TestResponse> => {
     const response = await axiosInstance.patch(`/tests/${id}/archive`);
+    return response.data;
+};
+
+/**
+ * Duplicate a test (optionally for a different class)
+ */
+export const duplicateTest = async (
+    id: string,
+    newClassId?: string
+): Promise<TestResponse> => {
+    const response = await axiosInstance.post(`/tests/${id}/duplicate`, {
+        classId: newClassId,
+    });
     return response.data;
 };
 

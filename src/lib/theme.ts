@@ -1,17 +1,19 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
 
-// Define theme colors
+// TMix Education — Brand colors from logo
 const colors = {
+  // Navy Blue (logo) — headings, hero backgrounds, navigation
   primary: {
-    main: '#1976d2',
-    light: '#42a5f5',
-    dark: '#1565c0',
+    main: '#1E3A5F',
+    light: '#2E5077',
+    dark: '#0F1F33',
     contrastText: '#ffffff',
   },
+  // Red (logo) — CTAs, accents, highlights
   secondary: {
-    main: '#dc004e',
-    light: '#f5325c',
-    dark: '#9a0036',
+    main: '#D32F2F',
+    light: '#EF5350',
+    dark: '#B71C1C',
     contrastText: '#ffffff',
   },
   error: {
@@ -27,9 +29,9 @@ const colors = {
     contrastText: '#ffffff',
   },
   info: {
-    main: '#0288d1',
-    light: '#03a9f4',
-    dark: '#01579b',
+    main: '#1E3A5F',
+    light: '#2E5077',
+    dark: '#0F1F33',
     contrastText: '#ffffff',
   },
   success: {
@@ -40,48 +42,86 @@ const colors = {
   },
 };
 
+// Inter — The gold standard for modern UI, flawless Vietnamese support
+const FONT_FAMILY = '"Inter", "Roboto", "Helvetica", "Arial", sans-serif';
+
 // Base theme options
 const baseTheme: ThemeOptions = {
   palette: {
     ...colors,
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: FONT_FAMILY,
     h1: {
-      fontSize: '2.5rem',
-      fontWeight: 600,
+      fontSize: '2.75rem',
+      fontWeight: 800,
+      lineHeight: 1.2,
+      letterSpacing: '-0.5px',
     },
     h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
+      fontSize: '2.25rem',
+      fontWeight: 700,
+      lineHeight: 1.25,
+      letterSpacing: '-0.3px',
     },
     h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
+      fontSize: '1.875rem',
+      fontWeight: 700,
+      lineHeight: 1.3,
+      letterSpacing: '-0.2px',
     },
     h4: {
       fontSize: '1.5rem',
-      fontWeight: 600,
+      fontWeight: 700,
+      lineHeight: 1.35,
     },
     h5: {
       fontSize: '1.25rem',
       fontWeight: 600,
+      lineHeight: 1.4,
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: '1.05rem',
       fontWeight: 600,
+      lineHeight: 1.5,
+    },
+    subtitle1: {
+      fontSize: '1rem',
+      fontWeight: 500,
+      lineHeight: 1.6,
+    },
+    subtitle2: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      lineHeight: 1.6,
     },
     body1: {
       fontSize: '1rem',
-      lineHeight: 1.6,
+      fontWeight: 400,
+      lineHeight: 1.7,
     },
     body2: {
       fontSize: '0.875rem',
-      lineHeight: 1.6,
+      fontWeight: 400,
+      lineHeight: 1.7,
+    },
+    button: {
+      fontWeight: 600,
+      letterSpacing: '0.3px',
+    },
+    caption: {
+      fontSize: '0.75rem',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    overline: {
+      fontSize: '0.75rem',
+      fontWeight: 600,
+      letterSpacing: '1px',
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 10,
   },
   spacing: 8,
   components: {

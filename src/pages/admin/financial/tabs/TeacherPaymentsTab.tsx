@@ -439,7 +439,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
       {/* Payment Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
           color: 'white',
           py: 3,
           px: 4,
@@ -514,7 +514,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#D32F2F',
                     }
                   }
                 }}
@@ -531,7 +531,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
                   sx={{
                     borderRadius: 2,
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#667eea',
+                      borderColor: '#D32F2F',
                     }
                   }}
                 >
@@ -555,7 +555,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#D32F2F',
                     }
                   }
                 }}
@@ -574,8 +574,8 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
               borderRadius: 2,
               fontWeight: 600,
               textTransform: 'none',
-              borderColor: '#667eea',
-              color: '#667eea',
+              borderColor: '#D32F2F',
+              color: '#D32F2F',
               '&:hover': {
                 borderColor: '#5a6fd8',
                 bgcolor: 'rgba(102, 126, 234, 0.04)'
@@ -594,7 +594,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
               borderRadius: 2,
               fontWeight: 600,
               textTransform: 'none',
-              bgcolor: '#667eea',
+              bgcolor: '#D32F2F',
               boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
               '&:hover': {
                 bgcolor: '#5a6fd8',

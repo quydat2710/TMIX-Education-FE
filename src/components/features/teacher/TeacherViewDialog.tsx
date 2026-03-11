@@ -74,7 +74,7 @@ const TeacherViewDialog: React.FC<TeacherViewDialogProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -127,7 +127,7 @@ const TeacherViewDialog: React.FC<TeacherViewDialogProps> = ({
                     <Box sx={{
                       width: 4,
                       height: 20,
-                      bgcolor: '#667eea',
+                      bgcolor: '#D32F2F',
                       borderRadius: 2
                     }} />
                     Thông tin cá nhân
@@ -218,7 +218,7 @@ const TeacherViewDialog: React.FC<TeacherViewDialogProps> = ({
                     <Box sx={{
                       width: 4,
                       height: 20,
-                      bgcolor: '#667eea',
+                      bgcolor: '#D32F2F',
                       borderRadius: 2
                     }} />
                     Thông tin chuyên môn
@@ -398,7 +398,7 @@ const TeacherViewDialog: React.FC<TeacherViewDialogProps> = ({
                       <Box sx={{
                         width: 4,
                         height: 20,
-                        bgcolor: '#667eea',
+                        bgcolor: '#D32F2F',
                         borderRadius: 2
                       }} />
                       Chuyên môn

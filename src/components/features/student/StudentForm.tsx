@@ -277,7 +277,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       gap: 1,
       mb: 2
     }}>
-      <Box sx={{ width: 4, height: 20, bgcolor: '#667eea', borderRadius: 2 }} />
+      <Box sx={{ width: 4, height: 20, bgcolor: '#D32F2F', borderRadius: 2 }} />
       {title}
     </Typography>
   );
@@ -297,7 +297,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,

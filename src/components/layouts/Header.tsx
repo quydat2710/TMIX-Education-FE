@@ -3,10 +3,10 @@ import { AppBar, Toolbar, IconButton, Avatar, Box, Typography, Menu, MenuItem } 
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
-import SchoolIcon from '@mui/icons-material/School';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { COLORS } from '../../utils/colors';
+import logoTMix from '../../assets/logo_tmix.png';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -64,9 +64,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <MenuIcon fontSize="medium" />
           </IconButton>
           <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
-            <SchoolIcon sx={{ fontSize: 32, color: COLORS.primary.text, mr: 1 }} />
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#111', fontSize: '1.25rem' }}>
-              English Center
+            <Box
+              component="img"
+              src={logoTMix}
+              alt="TMix Education"
+              sx={{ height: 40, width: 'auto', mr: 1 }}
+            />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
+              <span style={{ color: '#D32F2F' }}>TMix</span> <span style={{ color: '#1E3A5F' }}>Education</span>
             </Typography>
           </Box>
         </Box>
@@ -87,10 +92,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               {user?.avatar ? null : (user?.name?.charAt(0) || user?.username?.charAt(0) || '?')}
             </Avatar>
           </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             sx={{ mt: 1 }}
@@ -103,12 +108,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <MenuItem onClick={handleProfile}>
               <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
               Trang cá nhân
-          </MenuItem>
+            </MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
               Đăng xuất
-          </MenuItem>
-        </Menu>
+            </MenuItem>
+          </Menu>
         </Box>
       </Toolbar>
     </AppBar>

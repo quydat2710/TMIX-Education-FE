@@ -322,7 +322,7 @@ const RegistrationManagement: React.FC = () => {
       >
         <DialogTitle
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
             color: 'white',
             display: 'flex',
             justifyContent: 'space-between',
@@ -347,7 +347,7 @@ const RegistrationManagement: React.FC = () => {
             <Box>
               {/* Header Section with Avatar */}
               <Box sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
                 p: 3,
                 color: 'white',
                 display: 'flex',

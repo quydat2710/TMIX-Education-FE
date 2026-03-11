@@ -372,7 +372,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
       }}
     >
       <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
         color: 'white',
         py: 3,
         px: 4,
@@ -442,7 +442,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
                     <Box sx={{
                       width: 4,
                       height: 20,
-                      bgcolor: '#667eea',
+                      bgcolor: '#D32F2F',
                       borderRadius: 2
                     }} />
                     Thông tin thanh toán
@@ -606,7 +606,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
                   <Box sx={{
                     width: 4,
                     height: 20,
-                    bgcolor: '#667eea',
+                    bgcolor: '#D32F2F',
                     borderRadius: 2
                   }} />
                   Lịch sử giao dịch
@@ -855,7 +855,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
                   <Box sx={{
                     width: 4,
                     height: 20,
-                    bgcolor: '#667eea',
+                    bgcolor: '#D32F2F',
                     borderRadius: 2
                   }} />
                   Tổng kết
@@ -870,7 +870,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
                     <Grid item xs={12} md={4}>
                       <Box>
                         <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-                          Tổng giao dịch: <Typography variant="h6" component="span" sx={{ fontWeight: 600, color: '#667eea' }}>
+                          Tổng giao dịch: <Typography variant="h6" component="span" sx={{ fontWeight: 600, color: '#D32F2F' }}>
                             {paymentHistory.length}
                           </Typography>
                         </Typography>
@@ -909,7 +909,7 @@ const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
           onClick={handleClose}
           variant="contained"
           sx={{
-            bgcolor: '#667eea',
+            bgcolor: '#D32F2F',
             '&:hover': { bgcolor: '#5a6fd8' },
             px: 3,
             py: 1,
