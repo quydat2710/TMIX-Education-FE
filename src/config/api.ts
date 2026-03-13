@@ -1,5 +1,6 @@
 export interface ApiEndpoints {
   AUTH: {
+    LOGIN: string;
     USER_LOGIN: string;
     ADMIN_LOGIN: string;
     REFRESH_TOKEN: string;
@@ -208,6 +209,7 @@ export const API_CONFIG: ApiConfig = {
   ENDPOINTS: {
     // Auth endpoints
     AUTH: {
+      LOGIN: '/auth/login',
       USER_LOGIN: '/auth/user/login',
       ADMIN_LOGIN: '/auth/admin/login',
       REFRESH_TOKEN: '/auth/refresh',
@@ -231,7 +233,7 @@ export const API_CONFIG: ApiConfig = {
       GET_ALL: '/users',
       GET_BY_ID: (id: string) => `/users/${id}`,
       CREATE: '/users',
-      UPDATE: (id: string) => `/users/${id}`,
+      UPDATE: (id: string) => `/user/${id}`,
       DELETE: (id: string) => `/users/${id}`,
       UPLOAD_AVATAR: '/user/avatar',
     },

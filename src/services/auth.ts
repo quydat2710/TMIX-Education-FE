@@ -6,6 +6,17 @@ export interface LoginData { email: string; password: string; }
 export const registerAPI = (data: any) => axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, data);
 export const registerAdminAPI = (data: any) => axiosInstance.post(API_CONFIG.ENDPOINTS.ADMIN.CREATE, data);
 
+// Unified login API - for all roles
+export const loginAPI = (data: LoginData) => {
+  const formData = new URLSearchParams();
+  formData.append('email', data.email);
+  formData.append('password', data.password);
+  return axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+};
+
+// Legacy login APIs - kept for backward compatibility
 export const loginUserAPI = (data: LoginData) => {
   const formData = new URLSearchParams();
   formData.append('email', data.email);

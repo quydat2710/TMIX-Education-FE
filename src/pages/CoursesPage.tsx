@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import PublicLayout from '../components/layouts/PublicLayout';
 import { getPublicClassesAPI } from '../services/classes';
+import ClassRegistrationModal from '../components/features/home/ClassRegistrationModal';
 
 interface ClassItem {
   id: string;
@@ -51,6 +52,8 @@ const CoursesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
   // ✅ Fetch tất cả lớp học trực tiếp từ DB — không phụ thuộc vào menu API
   useEffect(() => {
@@ -350,6 +353,10 @@ const CoursesPage: React.FC = () => {
                         <Button
                           variant="contained"
                           fullWidth
+                          onClick={() => {
+                            setSelectedClassId(classItem.id);
+                            setRegistrationModalOpen(true);
+                          }}
                           sx={{
                             bgcolor: '#1976d2',
                             '&:hover': {
@@ -397,6 +404,15 @@ const CoursesPage: React.FC = () => {
           )}
         </Container>
       </Box>
+      {/* Registration Modal */}
+      <ClassRegistrationModal
+        open={registrationModalOpen}
+        onClose={() => {
+          setRegistrationModalOpen(false);
+          setSelectedClassId(null);
+        }}
+        classId={selectedClassId}
+      />
     </PublicLayout>
   );
 };
