@@ -5,3 +5,5 @@ export const getAdminDashboardAPI = () => axiosInstance.get(API_CONFIG.ENDPOINTS
 export const getTeacherDashboardAPI = (id: string) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.TEACHER(id));
 export const getParentDashboardAPI = (id: string) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.PARENT(id));
 export const getStudentDashboardAPI = (id: string) => axiosInstance.get(API_CONFIG.ENDPOINTS.DASHBOARD.STUDENT(id));
+export const getMonthlyRevenueAPI = (params?: { year?: number }) =>
+    axiosInstance.get('/dashboard/monthly-revenue', { params });

@@ -14,7 +14,6 @@ interface TotalStatistics {
 
 const FinancialStatisticsPanel: React.FC = () => {
   const [tab, setTab] = useState<number>(0);
-  const [fixedTotalTeacherSalary] = useState<number>(0);
   const [totalStatistics, setTotalStatistics] = useState<TotalStatistics>({
     totalStudentFees: 0,
     totalPaidAmount: 0,
@@ -33,6 +32,13 @@ const FinancialStatisticsPanel: React.FC = () => {
     }));
   }, []);
 
+  const handleTeacherTotalChange = useCallback((totalSalary: number) => {
+    setTotalStatistics(prev => ({
+      ...prev,
+      totalTeacherSalary: totalSalary
+    }));
+  }, []);
+
   return (
     <Box>
       <Box sx={commonStyles.pageHeader}>
@@ -45,7 +51,7 @@ const FinancialStatisticsPanel: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>Tổng lương giáo viên</Typography>
-                <Typography variant="h5" color="error.main" fontWeight="bold">{fixedTotalTeacherSalary.toLocaleString()} ₫</Typography>
+                <Typography variant="h5" color="error.main" fontWeight="bold">{totalStatistics.totalTeacherSalary.toLocaleString()} ₫</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -84,7 +90,7 @@ const FinancialStatisticsPanel: React.FC = () => {
         </Tabs>
         <Box sx={{ p: 2 }}>
           {tab === 0 && (
-            <TeacherPaymentsTab />
+            <TeacherPaymentsTab onTotalSalaryChange={handleTeacherTotalChange} />
           )}
           {tab === 1 && (
             <StudentPaymentsTab onTotalsChange={handleStudentTotalsChange} />

@@ -55,7 +55,7 @@ const StudentStatisticsPanel: React.FC = () => {
       const params = { year: selectedYear };
       const res: ApiResponse = await getMonthlyStudentChangeAPI(params);
       console.log('API response:', res.data);
-      const apiData = res.data || {};
+      const apiData = res.data?.data || res.data || {};
       console.log('apiData.increase:', apiData.increase);
 
       const months: MonthlyData[] = [];
@@ -186,57 +186,57 @@ const StudentStatisticsPanel: React.FC = () => {
       {/* Summary Cards */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng học sinh mới</Typography>
-              <Typography variant="h5" color="primary.main" fontWeight="bold">
-                {loading ? <CircularProgress size={20} /> : summaryData.totalNewEnrollments}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tổng học sinh rời đi</Typography>
-              <Typography variant="h5" color="warning.main" fontWeight="bold">
-                {loading ? <CircularProgress size={20} /> : summaryData.totalCompletions}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                {summaryData.netChange >= 0 ? 'Tăng' : 'Giảm'}
-              </Typography>
-              <Typography
-                variant="h5"
-                color={summaryData.netChange >= 0 ? 'success.main' : 'error.main'}
-                fontWeight="bold"
-              >
-                {loading ? <CircularProgress size={20} /> : `${summaryData.netChange >= 0 ? '+' : ''}${summaryData.netChange}`}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>Tăng trưởng tháng này</Typography>
-              <Typography
-                variant="h5"
-                color={growthPercent === null ? 'text.disabled' : growthPercent >= 0 ? 'success.main' : 'error.main'}
-                fontWeight="bold"
-              >
-                {loading ? <CircularProgress size={20} /> :
-                  growthPercent === null ? 'N/A' : `${growthPercent > 0 ? '+' : ''}${growthPercent.toFixed(1)}%`}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>Tổng học sinh mới</Typography>
+                <Typography variant="h5" color="primary.main" fontWeight="bold">
+                  {loading ? <CircularProgress size={20} /> : summaryData.totalNewEnrollments}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>Tổng học sinh rời đi</Typography>
+                <Typography variant="h5" color="warning.main" fontWeight="bold">
+                  {loading ? <CircularProgress size={20} /> : summaryData.totalCompletions}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>
+                  {summaryData.netChange >= 0 ? 'Tăng' : 'Giảm'}
+                </Typography>
+                <Typography
+                  variant="h5"
+                  color={summaryData.netChange >= 0 ? 'success.main' : 'error.main'}
+                  fontWeight="bold"
+                >
+                  {loading ? <CircularProgress size={20} /> : `${summaryData.netChange >= 0 ? '+' : ''}${summaryData.netChange}`}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>Tăng trưởng tháng này</Typography>
+                <Typography
+                  variant="h5"
+                  color={growthPercent === null ? 'text.disabled' : growthPercent >= 0 ? 'success.main' : 'error.main'}
+                  fontWeight="bold"
+                >
+                  {loading ? <CircularProgress size={20} /> :
+                    growthPercent === null ? 'N/A' : `${growthPercent > 0 ? '+' : ''}${growthPercent.toFixed(1)}%`}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
       </Paper>
 

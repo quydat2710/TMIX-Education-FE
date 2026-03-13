@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 
-import { loginUserAPI as loginAPI, loginAdminAPI, refreshTokenAPI } from '../services/auth';
+import { loginAPI, refreshTokenAPI } from '../services/auth';
 import { User } from '../types';
 
 interface AuthState {
@@ -251,15 +251,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [state.user, state.token, state.loading]);
 
-  const login = async (credentials: LoginCredentials, isAdmin: boolean = false): Promise<LoginResponse | null> => {
+  const login = async (credentials: LoginCredentials, _isAdmin: boolean = false): Promise<LoginResponse | null> => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
       const apiResponse = await Promise.race([
-        isAdmin ? loginAdminAPI({
-          email: credentials.email,
-          password: credentials.password
-        }) : loginAPI({
+        loginAPI({
           email: credentials.email,
           password: credentials.password
         }),

@@ -13,8 +13,18 @@ import {
   Chip,
   LinearProgress,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Divider,
+  TextField,
+  MenuItem,
 } from '@mui/material';
 import {
+  Close as CloseIcon,
   School as SchoolIcon,
   Person as PersonIcon,
   Class as ClassIcon,
@@ -22,11 +32,12 @@ import {
   Payment as PaymentIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAuth } from '../../contexts/AuthContext';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
-import { getAdminDashboardAPI } from '../../services/dashboard';
+import { getAdminDashboardAPI, getMonthlyRevenueAPI } from '../../services/dashboard';
 
 interface PaymentInfo {
   totalRevenue: number;
@@ -41,9 +52,21 @@ interface TeacherPaymentInfo {
 }
 
 interface RecentPayment {
+  id?: string;
   name: string;
   paidAmount: number;
+  totalAmount?: number;
   status: string;
+  month?: number;
+  year?: number;
+  totalLessons?: number;
+  discountPercent?: number;
+  className?: string;
+  parentName?: string;
+  parentPhone?: string;
+  parentEmail?: string;
+  studentEmail?: string;
+  studentPhone?: string;
 }
 
 interface RecentSalary {
@@ -68,6 +91,10 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [selectedPayment, setSelectedPayment] = useState<RecentPayment | null>(null);
+  const [revenueYear, setRevenueYear] = useState<number>(new Date().getFullYear());
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [revenueSummary, setRevenueSummary] = useState<{ totalRevenue: number; totalExpense: number; profit: number }>({ totalRevenue: 0, totalExpense: 0, profit: 0 });
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalStudent: 0,
     totalTeacher: 0,
@@ -94,7 +121,22 @@ const Dashboard: React.FC = () => {
     }
   }, [user]);
 
-    const fetchDashboardData = async (): Promise<void> => {
+  useEffect(() => {
+    fetchRevenueData();
+  }, [revenueYear]);
+
+  const fetchRevenueData = async () => {
+    try {
+      const res = await getMonthlyRevenueAPI({ year: revenueYear });
+      const data = res?.data?.data || res?.data || {};
+      setRevenueData(data.monthlyData || []);
+      setRevenueSummary(data.summary || { totalRevenue: 0, totalExpense: 0, profit: 0 });
+    } catch (err) {
+      console.error('Error fetching revenue data:', err);
+    }
+  };
+
+  const fetchDashboardData = async (): Promise<void> => {
     setLoading(true);
     setError('');
 
@@ -298,6 +340,80 @@ const Dashboard: React.FC = () => {
             </Grid>
           </Grid>
 
+          {/* Revenue Chart */}
+          <Paper sx={{ p: 3, mb: 4, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="h6" fontWeight={600}>
+                  Biểu đồ doanh thu & chi phí theo tháng
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  So sánh học phí thu được và lương giáo viên đã trả
+                </Typography>
+              </Box>
+              <TextField
+                select
+                label="Năm"
+                value={revenueYear}
+                onChange={(e) => setRevenueYear(Number(e.target.value))}
+                sx={{ minWidth: 120 }}
+                size="small"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                  <MenuItem key={y} value={y}>{y}</MenuItem>
+                ))}
+              </TextField>
+            </Box>
+
+            {/* Summary mini cards */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ p: 2, bgcolor: '#e8f5e9', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">Tổng thu ({revenueYear})</Typography>
+                  <Typography variant="h6" fontWeight={700} color="success.main">
+                    {formatCurrency(revenueSummary.totalRevenue)}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ p: 2, bgcolor: '#ffebee', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">Tổng chi ({revenueYear})</Typography>
+                  <Typography variant="h6" fontWeight={700} color="error.main">
+                    {formatCurrency(revenueSummary.totalExpense)}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ p: 2, bgcolor: revenueSummary.profit >= 0 ? '#e3f2fd' : '#fff3e0', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">Lợi nhuận ({revenueYear})</Typography>
+                  <Typography variant="h6" fontWeight={700} color={revenueSummary.profit >= 0 ? 'primary.main' : 'warning.main'}>
+                    {formatCurrency(revenueSummary.profit)}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {/* Chart */}
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="monthName" />
+                <YAxis
+                  tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(0)}tr` : value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
+                />
+                <Tooltip
+                  formatter={(value: number, name: string) => [
+                    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value),
+                    name
+                  ]}
+                />
+                <Legend />
+                <Bar dataKey="revenue" name="Doanh thu (học phí)" fill="#4caf50" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expense" name="Chi phí (lương GV)" fill="#f44336" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+
           {/* Content Sections */}
           <Grid container spacing={3}>
             {/* Recent Payments */}
@@ -318,7 +434,11 @@ const Dashboard: React.FC = () => {
                       </TableHead>
                       <TableBody>
                         {dashboardData.recentlyPayment.map((payment, index) => (
-                          <TableRow key={index} sx={commonStyles.tableRow}>
+                          <TableRow
+                            key={index}
+                            sx={{ ...commonStyles.tableRow, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+                            onClick={() => setSelectedPayment(payment)}
+                          >
                             <TableCell>
                               <Typography variant="body2" fontWeight="medium">
                                 {payment.name}
@@ -398,6 +518,113 @@ const Dashboard: React.FC = () => {
               </Paper>
             </Grid>
           </Grid>
+
+          {/* Payment Detail Dialog */}
+          <Dialog
+            open={!!selectedPayment}
+            onClose={() => setSelectedPayment(null)}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle sx={{
+              background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              py: 2
+            }}>
+              <Typography variant="h6" fontWeight={700}>Chi tiết thanh toán</Typography>
+              <IconButton onClick={() => setSelectedPayment(null)} sx={{ color: 'white' }}>
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3, mt: 1 }}>
+              {selectedPayment && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {/* Học viên */}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>👨‍🎓 Thông tin học viên</Typography>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                      <Typography variant="body1" fontWeight={600}>{selectedPayment.name}</Typography>
+                      {selectedPayment.studentEmail && selectedPayment.studentEmail !== 'N/A' && (
+                        <Typography variant="body2" color="text.secondary">Email: {selectedPayment.studentEmail}</Typography>
+                      )}
+                      {selectedPayment.studentPhone && selectedPayment.studentPhone !== 'N/A' && (
+                        <Typography variant="body2" color="text.secondary">SĐT: {selectedPayment.studentPhone}</Typography>
+                      )}
+                    </Paper>
+                  </Box>
+
+                  {/* Phụ huynh */}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>👪 Thông tin phụ huynh</Typography>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                      <Typography variant="body1" fontWeight={600}>{selectedPayment.parentName || 'Chưa có'}</Typography>
+                      {selectedPayment.parentEmail && selectedPayment.parentEmail !== 'N/A' && (
+                        <Typography variant="body2" color="text.secondary">Email: {selectedPayment.parentEmail}</Typography>
+                      )}
+                      {selectedPayment.parentPhone && selectedPayment.parentPhone !== 'N/A' && (
+                        <Typography variant="body2" color="text.secondary">SĐT: {selectedPayment.parentPhone}</Typography>
+                      )}
+                    </Paper>
+                  </Box>
+
+                  {/* Lớp học */}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>📚 Lớp học</Typography>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                      <Typography variant="body1" fontWeight={600}>Lớp {selectedPayment.className || 'N/A'}</Typography>
+                      {selectedPayment.month && selectedPayment.year && (
+                        <Typography variant="body2" color="text.secondary">Tháng {selectedPayment.month}/{selectedPayment.year}</Typography>
+                      )}
+                      {selectedPayment.totalLessons !== undefined && (
+                        <Typography variant="body2" color="text.secondary">Số buổi học: {selectedPayment.totalLessons}</Typography>
+                      )}
+                    </Paper>
+                  </Box>
+
+                  {/* Thanh toán */}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>💰 Chi tiết thanh toán</Typography>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">Tổng học phí:</Typography>
+                        <Typography variant="body2" fontWeight={600}>{formatCurrency(selectedPayment.totalAmount || 0)}</Typography>
+                      </Box>
+                      {(selectedPayment.discountPercent || 0) > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2">Giảm giá:</Typography>
+                          <Typography variant="body2" fontWeight={600} color="success.main">{selectedPayment.discountPercent}%</Typography>
+                        </Box>
+                      )}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">Đã thanh toán:</Typography>
+                        <Typography variant="body2" fontWeight={600} color="primary.main">{formatCurrency(selectedPayment.paidAmount)}</Typography>
+                      </Box>
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" fontWeight={600}>Còn lại:</Typography>
+                        <Typography variant="body2" fontWeight={700} color="error.main">
+                          {formatCurrency((selectedPayment.totalAmount || 0) - selectedPayment.paidAmount)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ mt: 1.5 }}>
+                        <Chip
+                          label={getStatusLabel(selectedPayment.status)}
+                          color={getStatusColor(selectedPayment.status)}
+                          sx={{ fontWeight: 600 }}
+                        />
+                      </Box>
+                    </Paper>
+                  </Box>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ px: 3, py: 2 }}>
+              <Button onClick={() => setSelectedPayment(null)} variant="contained">Đóng</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Box>
     </DashboardLayout>

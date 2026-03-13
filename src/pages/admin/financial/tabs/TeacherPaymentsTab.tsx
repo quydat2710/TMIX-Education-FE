@@ -56,9 +56,11 @@ interface TeacherPayment {
   classes?: Array<{ classId?: { name: string }; totalLessons?: number }>;
 }
 
-interface Props {}
+interface Props {
+  onTotalSalaryChange?: (totalSalary: number) => void;
+}
 
-const TeacherPaymentsTab: React.FC<Props> = () => {
+const TeacherPaymentsTab: React.FC<Props> = ({ onTotalSalaryChange }) => {
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const quarters = [1, 2, 3, 4];
@@ -110,6 +112,12 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
     const meta = (res as any)?.data?.data?.meta || (res as any)?.data?.meta || { page, totalPages: 1 };
     setPayments(Array.isArray(data) ? data : []);
     setPagination({ page: meta.page || page, totalPages: meta.totalPages || 1 });
+
+    // Tính tổng lương và gửi lên parent
+    if (onTotalSalaryChange && Array.isArray(data)) {
+      const total = data.reduce((sum: number, p: TeacherPayment) => sum + (p.totalAmount || 0), 0);
+      onTotalSalaryChange(total);
+    }
   }, [paymentStatus, periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd]);
 
   React.useEffect(() => {
@@ -174,7 +182,7 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'ChiTietGiaoVien');
       const now = new Date();
-      XLSX.writeFile(wb, `BaoCao_GiaoVien_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`);
+      XLSX.writeFile(wb, `BaoCao_GiaoVien_${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}.xlsx`);
     } catch (e) {
       console.error('Export teacher payments error:', e);
     }
@@ -268,28 +276,28 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
           : [],
         teacherId: payload.teacher
           ? {
+            id: payload.teacher.id,
+            name: payload.teacher.name,
+            email: payload.teacher.email,
+            phone: payload.teacher.phone,
+            userId: {
               id: payload.teacher.id,
               name: payload.teacher.name,
               email: payload.teacher.email,
               phone: payload.teacher.phone,
-              userId: {
-                id: payload.teacher.id,
-                name: payload.teacher.name,
-                email: payload.teacher.email,
-                phone: payload.teacher.phone,
-              },
-            }
+            },
+          }
           : undefined,
         // PaymentHistoryModal reads paymentData.paymentHistory
         paymentHistory: Array.isArray(payload.histories)
           ? payload.histories.map((h: any, idx: number) => ({
-              id: String(idx),
-              amount: h.amount,
-              method: h.method,
-              note: h.note,
-              date: h.date,
-              status: 'completed',
-            }))
+            id: String(idx),
+            amount: h.amount,
+            method: h.method,
+            note: h.note,
+            date: h.date,
+            status: 'completed',
+          }))
           : [],
       };
 
@@ -308,51 +316,51 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
     <>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        <TextField select label="Trạng thái" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} sx={{ minWidth: 150 }}>
-          <MenuItem value="all">Tất cả</MenuItem>
-          <MenuItem value="paid">Đã thanh toán</MenuItem>
-          <MenuItem value="pending">Chờ thanh toán</MenuItem>
-          <MenuItem value="partial">Nhận một phần</MenuItem>
-        </TextField>
-        <TextField select label="Thời gian" value={periodType} onChange={(e) => setPeriodType(e.target.value)} sx={{ minWidth: 150 }}>
-          <MenuItem value="year">Năm</MenuItem>
-          <MenuItem value="month">Tháng</MenuItem>
-          <MenuItem value="quarter">Quý</MenuItem>
-          <MenuItem value="custom">Tùy chọn</MenuItem>
-        </TextField>
-        {periodType === 'year' && (
-          <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-            {years.map((y) => (
-              <MenuItem key={y} value={y}>{y}</MenuItem>
-            ))}
+          <TextField select label="Trạng thái" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} sx={{ minWidth: 150 }}>
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="paid">Đã thanh toán</MenuItem>
+            <MenuItem value="pending">Chờ thanh toán</MenuItem>
+            <MenuItem value="partial">Nhận một phần</MenuItem>
           </TextField>
-        )}
-        {periodType === 'month' && (
-          <>
+          <TextField select label="Thời gian" value={periodType} onChange={(e) => setPeriodType(e.target.value)} sx={{ minWidth: 150 }}>
+            <MenuItem value="year">Năm</MenuItem>
+            <MenuItem value="month">Tháng</MenuItem>
+            <MenuItem value="quarter">Quý</MenuItem>
+            <MenuItem value="custom">Tùy chọn</MenuItem>
+          </TextField>
+          {periodType === 'year' && (
             <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-              {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
+              {years.map((y) => (
+                <MenuItem key={y} value={y}>{y}</MenuItem>
+              ))}
             </TextField>
-            <TextField select label="Tháng" value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} sx={{ minWidth: 120 }}>
-              {months.map((m) => (<MenuItem key={m} value={m}>{m}</MenuItem>))}
-            </TextField>
-          </>
-        )}
-        {periodType === 'quarter' && (
-          <>
-            <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-              {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
-            </TextField>
-            <TextField select label="Quý" value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} sx={{ minWidth: 120 }}>
-              {quarters.map((q) => (<MenuItem key={q} value={q}>Quý {q}</MenuItem>))}
-            </TextField>
-          </>
-        )}
-        {periodType === 'custom' && (
-          <>
-            <TextField label="Từ ngày" type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} sx={{ minWidth: 150 }} InputLabelProps={{ shrink: true }} />
-            <TextField label="Đến ngày" type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} sx={{ minWidth: 150 }} InputLabelProps={{ shrink: true }} />
-          </>
-        )}
+          )}
+          {periodType === 'month' && (
+            <>
+              <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
+                {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
+              </TextField>
+              <TextField select label="Tháng" value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} sx={{ minWidth: 120 }}>
+                {months.map((m) => (<MenuItem key={m} value={m}>{m}</MenuItem>))}
+              </TextField>
+            </>
+          )}
+          {periodType === 'quarter' && (
+            <>
+              <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
+                {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
+              </TextField>
+              <TextField select label="Quý" value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} sx={{ minWidth: 120 }}>
+                {quarters.map((q) => (<MenuItem key={q} value={q}>Quý {q}</MenuItem>))}
+              </TextField>
+            </>
+          )}
+          {periodType === 'custom' && (
+            <>
+              <TextField label="Từ ngày" type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} sx={{ minWidth: 150 }} InputLabelProps={{ shrink: true }} />
+              <TextField label="Đến ngày" type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} sx={{ minWidth: 150 }} InputLabelProps={{ shrink: true }} />
+            </>
+          )}
         </Box>
         <Box>
           <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportToExcel}>Xuất Excel</Button>
@@ -500,68 +508,68 @@ const TeacherPaymentsTab: React.FC<Props> = () => {
 
           <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Số tiền thanh toán"
-                type="number"
-                value={formData.paidAmount}
-                onChange={(e) => setFormData({ ...formData, paidAmount: Number(e.target.value) })}
-                inputProps={{ min: 0 }}
-                InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment> }}
-                helperText={dialogSummary ? `Tối đa: ${dialogSummary.remainingAmount.toLocaleString()} ₫` : undefined}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#D32F2F',
-                    }
-                  }
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Phương thức thanh toán</InputLabel>
-                <Select
-                  value={formData.method}
-                  onChange={(e) => setFormData({ ...formData, method: e.target.value })}
-                  label="Phương thức thanh toán"
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Số tiền thanh toán"
+                  type="number"
+                  value={formData.paidAmount}
+                  onChange={(e) => setFormData({ ...formData, paidAmount: Number(e.target.value) })}
+                  inputProps={{ min: 0 }}
+                  InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment> }}
+                  helperText={dialogSummary ? `Tối đa: ${dialogSummary.remainingAmount.toLocaleString()} ₫` : undefined}
                   sx={{
-                    borderRadius: 2,
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#D32F2F',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#D32F2F',
+                      }
                     }
                   }}
-                >
-                  <MenuItem value="banking">Chuyển khoản</MenuItem>
-                  <MenuItem value="cash">Tiền mặt</MenuItem>
-                  <MenuItem value="check">Séc</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                />
+              </Grid>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Ghi chú"
-                multiline
-                rows={3}
-                value={formData.note}
-                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                placeholder="Nhập ghi chú về khoản thanh toán này..."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#D32F2F',
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Phương thức thanh toán</InputLabel>
+                  <Select
+                    value={formData.method}
+                    onChange={(e) => setFormData({ ...formData, method: e.target.value })}
+                    label="Phương thức thanh toán"
+                    sx={{
+                      borderRadius: 2,
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#D32F2F',
+                      }
+                    }}
+                  >
+                    <MenuItem value="banking">Chuyển khoản</MenuItem>
+                    <MenuItem value="cash">Tiền mặt</MenuItem>
+                    <MenuItem value="check">Séc</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Ghi chú"
+                  multiline
+                  rows={3}
+                  value={formData.note}
+                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                  placeholder="Nhập ghi chú về khoản thanh toán này..."
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#D32F2F',
+                      }
                     }
-                  }
-                }}
-              />
+                  }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
           </Paper>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'flex-end', p: 3, borderTop: '1px solid #e0e6ed', backgroundColor: '#f8f9fa', gap: 2 }}>

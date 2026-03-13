@@ -23,7 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm } from '../../hooks/useForm';
-import { loginValidationSchema } from '../../validations/loginValidation';
+import { adminLoginValidationSchema } from '../../validations/loginValidation';
 import { getDashboardPath } from '../../utils/helpers';
 import logoTMix from '../../assets/logo_tmix.png';
 
@@ -52,7 +52,7 @@ const Login: React.FC = () => {
       email: '',
       password: ''
     },
-    loginValidationSchema
+    adminLoginValidationSchema
   );
 
   // Simple autofill detection
@@ -115,18 +115,6 @@ const Login: React.FC = () => {
 
       // Nếu login thành công, result sẽ có user data
       if (result && result.user) {
-        // Only allow student (role id 4) and parent (role id 3)
-        const roleId = typeof result.user.role === 'object' ? (result.user.role as any)?.id :
-          (result.user.role === 'student') ? 4 :
-            (result.user.role === 'parent') ? 3 : 0;
-
-        if (roleId !== 3 && roleId !== 4) {
-          setIsSubmitting(false);
-          // Don't set error message, just show admin login option
-          console.log('User role not allowed on regular login:', result.user.role);
-          return;
-        }
-
         const userRole = result.user.role;
         console.log('Login successful, navigating to:', userRole);
         if (userRole) {
@@ -273,9 +261,6 @@ const Login: React.FC = () => {
                   }}
                 >
                   TMix Education
-                </Typography>
-                <Typography variant="body1" color="textSecondary" align="center" sx={{ maxWidth: 300 }}>
-                  Dành cho học sinh và phụ huynh
                 </Typography>
               </Box>
 

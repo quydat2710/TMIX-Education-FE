@@ -14,7 +14,7 @@ import theme from './theme';
 import Home from './pages/home/InteractiveHome'
 import TestDemo from './pages/TestDemo';
 import Login from './pages/auth/Login';
-import StaffLogin from './pages/auth/StaffLogin';
+// StaffLogin removed - unified into Login page
 import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import UnauthorizedAccess from './pages/auth/UnauthorizedAccess';
@@ -89,8 +89,8 @@ const AppContent: React.FC = () => {
           {/* Test Demo Route - For UI Preview */}
           <Route path="/test-demo" element={<TestDemo />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/staff/login" element={<StaffLogin />} />
-          <Route path="/admin/login" element={<Navigate to="/staff/login" replace />} />
+          <Route path="/staff/login" element={<Navigate to="/login" replace />} />
+          <Route path="/admin/login" element={<Navigate to="/login" replace />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/auth/verify-email" element={<VerifyEmail />} />
           <Route path="/unauthorized" element={<UnauthorizedAccess />} />
