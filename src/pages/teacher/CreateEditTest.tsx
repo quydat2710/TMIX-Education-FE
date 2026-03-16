@@ -9,6 +9,7 @@ import {
     Card, CardContent, Radio, RadioGroup, FormControlLabel,
     Alert, CircularProgress, Divider, Chip, Tooltip,
     Dialog, DialogTitle, DialogContent, DialogActions,
+    ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -18,16 +19,20 @@ import {
     ArrowBack as BackIcon,
     DragIndicator as DragIcon,
     ContentCopy as CopyIcon,
+    MenuBook as ReadingIcon,
+    Headphones as ListeningIcon,
+    Edit as WritingIcon,
+    Mic as SpeakingIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { COLORS } from '../../utils/colors';
 import { createTest, getTestById, updateTest, publishTest } from '../../services/tests';
-import { MCQuestion, TestFormData } from '../../types/test';
+import { MCQuestion, TestFormData, SkillType } from '../../types/test';
 import { useAuth } from '../../contexts/AuthContext';
 import { getTeacherScheduleAPI } from '../../services/teachers';
 
-const emptyQuestion = (): MCQuestion => ({
+const emptyMCQuestion = (): MCQuestion => ({
     id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
     question: '',
     options: ['', '', '', ''],
@@ -35,6 +40,39 @@ const emptyQuestion = (): MCQuestion => ({
     explanation: '',
     points: 1,
 });
+
+const emptyWritingQuestion = () => ({
+    id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    prompt: '',
+    minWords: 100,
+    maxWords: 500,
+    sampleAnswer: '',
+    rubric: 'Grammar accuracy, Vocabulary range, Coherence and cohesion, Task achievement',
+    points: 10,
+});
+
+const emptySpeakingQuestion = () => ({
+    id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    prompt: '',
+    referenceText: '',
+    duration: 60,
+    points: 10,
+});
+
+const getEmptyQuestion = (skillType: SkillType) => {
+    switch (skillType) {
+        case 'writing': return emptyWritingQuestion();
+        case 'speaking': return emptySpeakingQuestion();
+        default: return emptyMCQuestion();
+    }
+};
+
+const skillLabels: Record<SkillType, { label: string; icon: any; color: string }> = {
+    reading: { label: 'Đọc hiểu', icon: <ReadingIcon />, color: '#1976d2' },
+    listening: { label: 'Nghe', icon: <ListeningIcon />, color: '#9c27b0' },
+    writing: { label: 'Viết', icon: <WritingIcon />, color: '#2e7d32' },
+    speaking: { label: 'Nói', icon: <SpeakingIcon />, color: '#ed6c02' },
+};
 
 const CreateEditTest: React.FC = () => {
     const navigate = useNavigate();
@@ -52,10 +90,11 @@ const CreateEditTest: React.FC = () => {
     const [formData, setFormData] = useState<TestFormData>({
         title: '',
         description: '',
+        skillType: 'reading',
         classId: '',
         duration: 30,
         passingScore: 70,
-        questions: [emptyQuestion()],
+        questions: [emptyMCQuestion()],
         status: 'draft',
     });
 
@@ -92,10 +131,14 @@ const CreateEditTest: React.FC = () => {
                         setFormData({
                             title: test.title,
                             description: test.description || '',
+                            skillType: test.skillType || 'reading',
                             classId: String(test.classId || ''),
                             duration: test.duration,
                             passingScore: test.passingScore,
-                            questions: test.questions || [emptyQuestion()],
+                            questions: test.questions || [emptyMCQuestion()],
+                            passage: test.passage,
+                            speakingPrompt: test.speakingPrompt,
+                            audioUrl: test.audioUrl,
                             status: test.status as 'draft' | 'published',
                         });
                     }
@@ -132,7 +175,18 @@ const CreateEditTest: React.FC = () => {
     const addQuestion = () => {
         setFormData(prev => ({
             ...prev,
-            questions: [...prev.questions, emptyQuestion()],
+            questions: [...prev.questions, getEmptyQuestion(prev.skillType)],
+        }));
+    };
+
+    const handleSkillTypeChange = (_: any, newSkill: SkillType | null) => {
+        if (!newSkill || newSkill === formData.skillType) return;
+        setFormData(prev => ({
+            ...prev,
+            skillType: newSkill,
+            questions: [getEmptyQuestion(newSkill)],
+            passage: '',
+            speakingPrompt: '',
         }));
     };
 
@@ -159,11 +213,24 @@ const CreateEditTest: React.FC = () => {
         if (formData.duration < 1) return 'Thời gian phải lớn hơn 0';
         if (formData.questions.length === 0) return 'Đề thi phải có ít nhất 1 câu hỏi';
 
-        for (let i = 0; i < formData.questions.length; i++) {
-            const q = formData.questions[i];
-            if (!q.question.trim()) return `Câu ${i + 1}: Chưa nhập nội dung câu hỏi`;
-            const emptyOptions = q.options.filter(o => !o.trim());
-            if (emptyOptions.length > 0) return `Câu ${i + 1}: Phải điền đủ 4 đáp án`;
+        if (formData.skillType === 'reading' || formData.skillType === 'listening') {
+            for (let i = 0; i < formData.questions.length; i++) {
+                const q = formData.questions[i];
+                if (!q.question?.trim()) return `Câu ${i + 1}: Chưa nhập nội dung câu hỏi`;
+                const emptyOptions = q.options?.filter((o: string) => !o.trim()) || [];
+                if (emptyOptions.length > 0) return `Câu ${i + 1}: Phải điền đủ 4 đáp án`;
+            }
+        } else if (formData.skillType === 'writing') {
+            for (let i = 0; i < formData.questions.length; i++) {
+                const q = formData.questions[i];
+                if (!q.prompt?.trim()) return `Câu ${i + 1}: Chưa nhập đề bài viết`;
+            }
+        } else if (formData.skillType === 'speaking') {
+            for (let i = 0; i < formData.questions.length; i++) {
+                const q = formData.questions[i];
+                if (!q.prompt?.trim()) return `Câu ${i + 1}: Chưa nhập yêu cầu nói`;
+                if (!q.referenceText?.trim()) return `Câu ${i + 1}: Chưa nhập văn bản tham chiếu`;
+            }
         }
         return null;
     };
@@ -336,17 +403,62 @@ const CreateEditTest: React.FC = () => {
                     </Grid>
                 </Paper>
 
-                {/* Questions */}
+                {/* Skill Type Selector */}
+                <Paper sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom fontWeight={600}>
+                        Loại kỹ năng
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={formData.skillType}
+                        exclusive
+                        onChange={handleSkillTypeChange}
+                        sx={{ mb: 2, flexWrap: 'wrap' }}
+                    >
+                        {(Object.keys(skillLabels) as SkillType[]).map(skill => (
+                            <ToggleButton
+                                key={skill}
+                                value={skill}
+                                sx={{
+                                    px: 3, py: 1.5, gap: 1,
+                                    '&.Mui-selected': {
+                                        bgcolor: `${skillLabels[skill].color}15`,
+                                        color: skillLabels[skill].color,
+                                        borderColor: skillLabels[skill].color,
+                                    }
+                                }}
+                            >
+                                {skillLabels[skill].icon}
+                                {skillLabels[skill].label}
+                            </ToggleButton>
+                        ))}
+                    </ToggleButtonGroup>
+                    <Typography variant="body2" color="text.secondary">
+                        {formData.skillType === 'reading' && 'Đọc hiểu: Học viên đọc đoạn văn và trả lời trắc nghiệm'}
+                        {formData.skillType === 'listening' && 'Nghe: Học viên nghe audio và trả lời trắc nghiệm'}
+                        {formData.skillType === 'writing' && 'Viết: Học viên viết bài tự luận, AI chấm điểm ngữ pháp + từ vựng'}
+                        {formData.skillType === 'speaking' && 'Nói: Học viên ghi âm, AI đánh giá phát âm + độ chính xác'}
+                    </Typography>
+
+                    {/* Passage for Reading */}
+                    {formData.skillType === 'reading' && (
+                        <TextField
+                            fullWidth multiline rows={4}
+                            label="Đoạn văn đọc hiểu (tùy chọn)"
+                            placeholder="Dán đoạn văn để học viên đọc và trả lời câu hỏi..."
+                            value={formData.passage || ''}
+                            onChange={(e) => handleFieldChange('passage', e.target.value)}
+                            sx={{ mt: 2 }}
+                        />
+                    )}
+                </Paper>
+
+                {/* ============ QUESTIONS SECTION ============ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h6" fontWeight={600}>
-                        Câu hỏi ({formData.questions.length})
+                        {formData.skillType === 'writing' ? 'Đề bài viết' : formData.skillType === 'speaking' ? 'Bài nói' : `Câu hỏi (${formData.questions.length})`}
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        startIcon={<AddIcon />}
-                        onClick={addQuestion}
-                    >
-                        Thêm câu hỏi
+                    <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion}>
+                        + Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi'}
                     </Button>
                 </Box>
 
@@ -358,14 +470,12 @@ const CreateEditTest: React.FC = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <DragIcon sx={{ color: 'text.disabled' }} />
                                     <Chip
-                                        label={`Câu ${qIndex + 1}`}
+                                        label={`${formData.skillType === 'writing' ? 'Đề' : formData.skillType === 'speaking' ? 'Bài' : 'Câu'} ${qIndex + 1}`}
                                         color="primary"
                                         size="small"
                                     />
                                     <TextField
-                                        size="small"
-                                        type="number"
-                                        label="Điểm"
+                                        size="small" type="number" label="Điểm"
                                         value={question.points}
                                         onChange={(e) => handleQuestionChange(qIndex, 'points', parseInt(e.target.value) || 1)}
                                         sx={{ width: 80 }}
@@ -373,105 +483,146 @@ const CreateEditTest: React.FC = () => {
                                     />
                                 </Box>
                                 <Box>
-                                    <Tooltip title="Nhân bản câu">
-                                        <IconButton size="small" onClick={() => duplicateQuestion(qIndex)}>
-                                            <CopyIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Xóa câu">
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => removeQuestion(qIndex)}
-                                            disabled={formData.questions.length <= 1}
-                                        >
+                                    {(formData.skillType === 'reading' || formData.skillType === 'listening') && (
+                                        <Tooltip title="Nhân bản">
+                                            <IconButton size="small" onClick={() => duplicateQuestion(qIndex)}>
+                                                <CopyIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    <Tooltip title="Xóa">
+                                        <IconButton size="small" color="error" onClick={() => removeQuestion(qIndex)}
+                                            disabled={formData.questions.length <= 1}>
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
                                     </Tooltip>
                                 </Box>
                             </Box>
 
-                            {/* Question text */}
-                            <TextField
-                                fullWidth
-                                multiline
-                                rows={2}
-                                label={`Nội dung câu hỏi ${qIndex + 1} *`}
-                                placeholder="Nhập câu hỏi ở đây..."
-                                value={question.question}
-                                onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
-                                sx={{ mb: 2 }}
-                            />
-
-                            {/* Options */}
-                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                                Đáp án (chọn đáp án đúng):
-                            </Typography>
-                            <RadioGroup
-                                value={question.correctAnswer}
-                                onChange={(e) => handleQuestionChange(qIndex, 'correctAnswer', parseInt(e.target.value))}
-                            >
-                                <Grid container spacing={1}>
-                                    {question.options.map((option, optIndex) => (
-                                        <Grid item xs={12} md={6} key={optIndex}>
-                                            <Box sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 1,
-                                                p: 1,
-                                                borderRadius: 1,
-                                                bgcolor: question.correctAnswer === optIndex ? '#e8f5e9' : 'transparent',
-                                                border: question.correctAnswer === optIndex ? '2px solid #4caf50' : '1px solid #e0e0e0',
-                                            }}>
-                                                <FormControlLabel
-                                                    value={optIndex}
-                                                    control={<Radio size="small" />}
-                                                    label=""
-                                                    sx={{ m: 0, mr: -1 }}
-                                                />
-                                                <Chip
-                                                    label={String.fromCharCode(65 + optIndex)}
-                                                    size="small"
-                                                    variant={question.correctAnswer === optIndex ? 'filled' : 'outlined'}
-                                                    color={question.correctAnswer === optIndex ? 'success' : 'default'}
-                                                />
-                                                <TextField
-                                                    fullWidth
-                                                    size="small"
-                                                    placeholder={`Đáp án ${String.fromCharCode(65 + optIndex)}`}
-                                                    value={option}
-                                                    onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
-                                                    variant="standard"
-                                                />
-                                            </Box>
+                            {/* ========== MC QUESTION (Reading / Listening) ========== */}
+                            {(formData.skillType === 'reading' || formData.skillType === 'listening') && (
+                                <>
+                                    <TextField
+                                        fullWidth multiline rows={2}
+                                        label={`Nội dung câu hỏi ${qIndex + 1} *`}
+                                        placeholder="Nhập câu hỏi..."
+                                        value={question.question || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                                        Đáp án (chọn đáp án đúng):
+                                    </Typography>
+                                    <RadioGroup
+                                        value={question.correctAnswer}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'correctAnswer', parseInt(e.target.value))}
+                                    >
+                                        <Grid container spacing={1}>
+                                            {(question.options || ['','','','']).map((option: string, optIndex: number) => (
+                                                <Grid item xs={12} md={6} key={optIndex}>
+                                                    <Box sx={{
+                                                        display: 'flex', alignItems: 'center', gap: 1, p: 1,
+                                                        borderRadius: 1,
+                                                        bgcolor: question.correctAnswer === optIndex ? '#e8f5e9' : 'transparent',
+                                                        border: question.correctAnswer === optIndex ? '2px solid #4caf50' : '1px solid #e0e0e0',
+                                                    }}>
+                                                        <FormControlLabel value={optIndex} control={<Radio size="small" />} label="" sx={{ m: 0, mr: -1 }} />
+                                                        <Chip label={String.fromCharCode(65 + optIndex)} size="small"
+                                                            variant={question.correctAnswer === optIndex ? 'filled' : 'outlined'}
+                                                            color={question.correctAnswer === optIndex ? 'success' : 'default'}
+                                                        />
+                                                        <TextField fullWidth size="small" variant="standard"
+                                                            placeholder={`Đáp án ${String.fromCharCode(65 + optIndex)}`}
+                                                            value={option}
+                                                            onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                            ))}
                                         </Grid>
-                                    ))}
-                                </Grid>
-                            </RadioGroup>
+                                    </RadioGroup>
+                                    <TextField fullWidth size="small"
+                                        label="Giải thích (tùy chọn)" placeholder="Giải thích cho đáp án đúng..."
+                                        value={question.explanation || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'explanation', e.target.value)}
+                                        sx={{ mt: 2 }}
+                                    />
+                                </>
+                            )}
 
-                            {/* Explanation */}
-                            <TextField
-                                fullWidth
-                                size="small"
-                                label="Giải thích (tùy chọn)"
-                                placeholder="Giải thích cho đáp án đúng..."
-                                value={question.explanation || ''}
-                                onChange={(e) => handleQuestionChange(qIndex, 'explanation', e.target.value)}
-                                sx={{ mt: 2 }}
-                            />
+                            {/* ========== WRITING QUESTION ========== */}
+                            {formData.skillType === 'writing' && (
+                                <>
+                                    <TextField fullWidth multiline rows={3}
+                                        label={`Đề bài viết ${qIndex + 1} *`}
+                                        placeholder="VD: Write an essay about the advantages and disadvantages of social media..."
+                                        value={question.prompt || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'prompt', e.target.value)}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                                        <Grid item xs={6} md={3}>
+                                            <TextField fullWidth size="small" type="number" label="Số từ tối thiểu"
+                                                value={question.minWords || 100}
+                                                onChange={(e) => handleQuestionChange(qIndex, 'minWords', parseInt(e.target.value) || 0)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={6} md={3}>
+                                            <TextField fullWidth size="small" type="number" label="Số từ tối đa"
+                                                value={question.maxWords || 500}
+                                                onChange={(e) => handleQuestionChange(qIndex, 'maxWords', parseInt(e.target.value) || 0)}
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                    <TextField fullWidth multiline rows={2} size="small"
+                                        label="Tiêu chí chấm điểm (Rubric cho AI)"
+                                        placeholder="VD: Grammar accuracy, Vocabulary range, Coherence..."
+                                        value={question.rubric || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'rubric', e.target.value)}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField fullWidth multiline rows={3} size="small"
+                                        label="Bài mẫu (tùy chọn — tham khảo)"
+                                        placeholder="Bài viết mẫu để giáo viên tham khảo..."
+                                        value={question.sampleAnswer || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'sampleAnswer', e.target.value)}
+                                    />
+                                </>
+                            )}
+
+                            {/* ========== SPEAKING QUESTION ========== */}
+                            {formData.skillType === 'speaking' && (
+                                <>
+                                    <TextField fullWidth multiline rows={2}
+                                        label={`Yêu cầu nói ${qIndex + 1} *`}
+                                        placeholder="VD: Read the following passage aloud..."
+                                        value={question.prompt || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'prompt', e.target.value)}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField fullWidth multiline rows={3}
+                                        label="Văn bản tham chiếu (reference text) *"
+                                        placeholder="Đoạn văn mà học viên cần đọc/nói — AI sẽ so sánh với kết quả ghi âm"
+                                        value={question.referenceText || ''}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'referenceText', e.target.value)}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField fullWidth size="small" type="number"
+                                        label="Thời gian ghi âm tối đa (giây)"
+                                        value={question.duration || 60}
+                                        onChange={(e) => handleQuestionChange(qIndex, 'duration', parseInt(e.target.value) || 60)}
+                                        sx={{ width: 250 }}
+                                    />
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 ))}
 
                 {/* Add more button at bottom */}
                 <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <Button
-                        variant="outlined"
-                        startIcon={<AddIcon />}
-                        onClick={addQuestion}
-                        size="large"
-                    >
-                        + Thêm câu hỏi mới
+                    <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion} size="large">
+                        + Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi mới'}
                     </Button>
                 </Box>
 

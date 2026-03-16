@@ -12,6 +12,7 @@ import {
     ArrowBack as BackIcon,
     CheckCircle as PassIcon,
     Cancel as FailIcon,
+    Visibility as ViewIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
@@ -160,6 +161,7 @@ const TestStatisticsPage: React.FC = () => {
                                                 <TableCell align="center">Phần trăm</TableCell>
                                                 <TableCell align="center">Kết quả</TableCell>
                                                 <TableCell>Thời gian nộp</TableCell>
+                                                <TableCell align="center">Thao tác</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -187,6 +189,17 @@ const TestStatisticsPage: React.FC = () => {
                                                         )}
                                                     </TableCell>
                                                     <TableCell>{formatDate(attempt.submittedAt)}</TableCell>
+                                                    <TableCell align="center">
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            startIcon={<ViewIcon />}
+                                                            onClick={() => navigate(`/teacher/tests/attempts/${attempt.id}/review`)}
+                                                            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                                                        >
+                                                            Xem bài
+                                                        </Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
