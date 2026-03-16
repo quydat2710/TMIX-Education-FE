@@ -13,18 +13,10 @@ import {
   Chip,
   LinearProgress,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  IconButton,
-  Divider,
   TextField,
   MenuItem,
 } from '@mui/material';
 import {
-  Close as CloseIcon,
   School as SchoolIcon,
   Person as PersonIcon,
   Class as ClassIcon,
@@ -38,6 +30,7 @@ import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
 import { getAdminDashboardAPI, getMonthlyRevenueAPI } from '../../services/dashboard';
+import TuitionPaymentList from '../../components/features/dashboard/TuitionPaymentList';
 
 interface PaymentInfo {
   totalRevenue: number;
@@ -91,7 +84,6 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [selectedPayment, setSelectedPayment] = useState<RecentPayment | null>(null);
   const [revenueYear, setRevenueYear] = useState<number>(new Date().getFullYear());
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [revenueSummary, setRevenueSummary] = useState<{ totalRevenue: number; totalExpense: number; profit: number }>({ totalRevenue: 0, totalExpense: 0, profit: 0 });
@@ -416,61 +408,13 @@ const Dashboard: React.FC = () => {
 
           {/* Content Sections */}
           <Grid container spacing={3}>
-            {/* Recent Payments */}
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                  Thanh toán học phí
-                </Typography>
-                {dashboardData.recentlyPayment.length > 0 ? (
-                  <TableContainer sx={commonStyles.tableContainer}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Học viên</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền đã thanh toán</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {dashboardData.recentlyPayment.map((payment, index) => (
-                          <TableRow
-                            key={index}
-                            sx={{ ...commonStyles.tableRow, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
-                            onClick={() => setSelectedPayment(payment)}
-                          >
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
-                                {payment.name}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" align="center">
-                                {formatCurrency(payment.paidAmount)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={getStatusLabel(payment.status)}
-                                color={getStatusColor(payment.status)}
-                                size="small"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                ) : (
-                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                    Chưa có thanh toán nào gần đây
-                  </Typography>
-                )}
-              </Paper>
+            {/* Tuition Payments - Full Width */}
+            <Grid item xs={12}>
+              <TuitionPaymentList />
             </Grid>
 
             {/* Recent Salary Payments */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                   Thanh toán lương
@@ -518,113 +462,6 @@ const Dashboard: React.FC = () => {
               </Paper>
             </Grid>
           </Grid>
-
-          {/* Payment Detail Dialog */}
-          <Dialog
-            open={!!selectedPayment}
-            onClose={() => setSelectedPayment(null)}
-            maxWidth="sm"
-            fullWidth
-          >
-            <DialogTitle sx={{
-              background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              py: 2
-            }}>
-              <Typography variant="h6" fontWeight={700}>Chi tiết thanh toán</Typography>
-              <IconButton onClick={() => setSelectedPayment(null)} sx={{ color: 'white' }}>
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, mt: 1 }}>
-              {selectedPayment && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {/* Học viên */}
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>👨‍🎓 Thông tin học viên</Typography>
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                      <Typography variant="body1" fontWeight={600}>{selectedPayment.name}</Typography>
-                      {selectedPayment.studentEmail && selectedPayment.studentEmail !== 'N/A' && (
-                        <Typography variant="body2" color="text.secondary">Email: {selectedPayment.studentEmail}</Typography>
-                      )}
-                      {selectedPayment.studentPhone && selectedPayment.studentPhone !== 'N/A' && (
-                        <Typography variant="body2" color="text.secondary">SĐT: {selectedPayment.studentPhone}</Typography>
-                      )}
-                    </Paper>
-                  </Box>
-
-                  {/* Phụ huynh */}
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>👪 Thông tin phụ huynh</Typography>
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                      <Typography variant="body1" fontWeight={600}>{selectedPayment.parentName || 'Chưa có'}</Typography>
-                      {selectedPayment.parentEmail && selectedPayment.parentEmail !== 'N/A' && (
-                        <Typography variant="body2" color="text.secondary">Email: {selectedPayment.parentEmail}</Typography>
-                      )}
-                      {selectedPayment.parentPhone && selectedPayment.parentPhone !== 'N/A' && (
-                        <Typography variant="body2" color="text.secondary">SĐT: {selectedPayment.parentPhone}</Typography>
-                      )}
-                    </Paper>
-                  </Box>
-
-                  {/* Lớp học */}
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>📚 Lớp học</Typography>
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                      <Typography variant="body1" fontWeight={600}>Lớp {selectedPayment.className || 'N/A'}</Typography>
-                      {selectedPayment.month && selectedPayment.year && (
-                        <Typography variant="body2" color="text.secondary">Tháng {selectedPayment.month}/{selectedPayment.year}</Typography>
-                      )}
-                      {selectedPayment.totalLessons !== undefined && (
-                        <Typography variant="body2" color="text.secondary">Số buổi học: {selectedPayment.totalLessons}</Typography>
-                      )}
-                    </Paper>
-                  </Box>
-
-                  {/* Thanh toán */}
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>💰 Chi tiết thanh toán</Typography>
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2">Tổng học phí:</Typography>
-                        <Typography variant="body2" fontWeight={600}>{formatCurrency(selectedPayment.totalAmount || 0)}</Typography>
-                      </Box>
-                      {(selectedPayment.discountPercent || 0) > 0 && (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">Giảm giá:</Typography>
-                          <Typography variant="body2" fontWeight={600} color="success.main">{selectedPayment.discountPercent}%</Typography>
-                        </Box>
-                      )}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2">Đã thanh toán:</Typography>
-                        <Typography variant="body2" fontWeight={600} color="primary.main">{formatCurrency(selectedPayment.paidAmount)}</Typography>
-                      </Box>
-                      <Divider sx={{ my: 1 }} />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>Còn lại:</Typography>
-                        <Typography variant="body2" fontWeight={700} color="error.main">
-                          {formatCurrency((selectedPayment.totalAmount || 0) - selectedPayment.paidAmount)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ mt: 1.5 }}>
-                        <Chip
-                          label={getStatusLabel(selectedPayment.status)}
-                          color={getStatusColor(selectedPayment.status)}
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Box>
-                    </Paper>
-                  </Box>
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
-              <Button onClick={() => setSelectedPayment(null)} variant="contained">Đóng</Button>
-            </DialogActions>
-          </Dialog>
         </Box>
       </Box>
     </DashboardLayout>
