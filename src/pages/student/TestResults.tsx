@@ -89,6 +89,7 @@ const TestResults: React.FC = () => {
 
     const test = attempt.test;
     const isWritingTest = (test as any)?.skillType === 'writing';
+    const isSpeakingTest = (test as any)?.skillType === 'speaking';
     const aiGrading = (attempt as any)?.aiGrading;
     if (!test) {
         return (
@@ -163,7 +164,7 @@ const TestResults: React.FC = () => {
                                 </Typography>
 
                                 {/* MC Stats */}
-                                {!isWritingTest && (
+                                {!isWritingTest && !isSpeakingTest && (
                                     <>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                             <Typography variant="body2">Tổng số câu hỏi:</Typography>
@@ -175,6 +176,52 @@ const TestResults: React.FC = () => {
                                                 <strong>{attempt.answers?.filter((a: any, i: number) => a === test.questions[i]?.correctAnswer).length || 0}</strong>
                                             </Typography>
                                         </Box>
+                                    </>
+                                )}
+
+                                {/* Speaking Stats */}
+                                {isSpeakingTest && aiGrading && (
+                                    <>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="body2">Loại bài:</Typography>
+                                            <Typography variant="body2"><strong>🎤 Bài nói (AI chấm)</strong></Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="body2">Điểm tổng:</Typography>
+                                            <Typography variant="body2" color="primary.main">
+                                                <strong>{aiGrading.overallScore}/10</strong>
+                                            </Typography>
+                                        </Box>
+                                        {aiGrading.pronunciation !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Phát âm:</Typography>
+                                                <Typography variant="body2"><strong>{typeof aiGrading.pronunciation === 'object' ? aiGrading.pronunciation?.score : aiGrading.pronunciation}/10</strong></Typography>
+                                            </Box>
+                                        )}
+                                        {aiGrading.fluency !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Độ trôi chảy:</Typography>
+                                                <Typography variant="body2"><strong>{typeof aiGrading.fluency === 'object' ? aiGrading.fluency?.score : aiGrading.fluency}/10</strong></Typography>
+                                            </Box>
+                                        )}
+                                        {aiGrading.accuracy !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Độ chính xác:</Typography>
+                                                <Typography variant="body2"><strong>{typeof aiGrading.accuracy === 'object' ? aiGrading.accuracy?.score : aiGrading.accuracy}/10</strong></Typography>
+                                            </Box>
+                                        )}
+                                        {aiGrading.grammar !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Ngữ pháp:</Typography>
+                                                <Typography variant="body2"><strong>{typeof aiGrading.grammar === 'object' ? aiGrading.grammar?.score : aiGrading.grammar}/10</strong></Typography>
+                                            </Box>
+                                        )}
+                                        {aiGrading.vocabulary !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Từ vựng:</Typography>
+                                                <Typography variant="body2"><strong>{typeof aiGrading.vocabulary === 'object' ? aiGrading.vocabulary?.score : aiGrading.vocabulary}/10</strong></Typography>
+                                            </Box>
+                                        )}
                                     </>
                                 )}
 
@@ -267,7 +314,7 @@ const TestResults: React.FC = () => {
                         )}
 
                         {/* MC Question Review */}
-                        {!isWritingTest && (
+                        {!isWritingTest && !isSpeakingTest && (
                             <Paper sx={{
                                 p: 3,
                                 borderRadius: 3,
@@ -293,6 +340,48 @@ const TestResults: React.FC = () => {
                                     />
                                 ))}
                             </Paper>
+                        )}
+
+                        {/* Speaking Results */}
+                        {isSpeakingTest && (
+                            <>
+                                {/* Transcription */}
+                                {(attempt as any)?.transcription && (
+                                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: '#ea580c' }}>
+                                            🎤 Phiêm âm (đã ghi nhận)
+                                        </Typography>
+                                        <Box sx={{
+                                            p: 2.5, borderRadius: 2,
+                                            bgcolor: '#fff7ed', border: '1px solid #fed7aa',
+                                            fontFamily: '"Georgia", serif',
+                                            fontSize: '1rem',
+                                            lineHeight: 1.8,
+                                            whiteSpace: 'pre-wrap',
+                                        }}>
+                                            {(attempt as any).transcription}
+                                        </Box>
+                                    </Paper>
+                                )}
+
+                                {/* AI Grading */}
+                                {aiGrading && (
+                                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: '#2e7d32' }}>
+                                            🤖 Nhận xét từ AI
+                                        </Typography>
+                                        {aiGrading.detailedFeedback && (
+                                            <Box sx={{
+                                                p: 2.5, mb: 2, borderRadius: 2,
+                                                bgcolor: '#f0fdf4', border: '1px solid #bbf7d0',
+                                                whiteSpace: 'pre-wrap', lineHeight: 1.8,
+                                            }}>
+                                                <Typography variant="body1">{aiGrading.detailedFeedback}</Typography>
+                                            </Box>
+                                        )}
+                                    </Paper>
+                                )}
+                            </>
                         )}
 
                         {/* Writing AI Grading Detail */}

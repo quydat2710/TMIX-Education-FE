@@ -36,6 +36,24 @@ export const submitWritingTest = async (
 };
 
 /**
+ * Submit a Speaking test for AI grading (audio recording)
+ * @param testId - ID of the test
+ * @param audioBlob - Recorded audio blob
+ */
+export const submitSpeakingTest = async (
+    testId: string,
+    audioBlob: Blob
+): Promise<TestAttemptResponse> => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    const response = await axiosInstance.post(`/tests/${testId}/submit/speaking`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // 60s timeout for AI grading
+    });
+    return response.data;
+};
+
+/**
  * Get AI feedback for an attempt
  */
 export const getAiFeedback = async (attemptId: string) => {
