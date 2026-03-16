@@ -1,7 +1,7 @@
 // Take Test Page
 // Student interface to take a multiple choice test
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Typography,
@@ -26,9 +26,12 @@ import {
     Quiz as QuizIcon,
     Star as StarIcon,
     CheckCircle as CheckCircleIcon,
+    Mic as MicIcon,
+    Stop as StopIcon,
+    PlayArrow as PlayIcon,
 } from '@mui/icons-material';
 import { getStudentTestById } from '../../services/tests';
-import { submitTestForGrading, submitWritingTest } from '../../services/ai-grading';
+import { submitTestForGrading, submitWritingTest, submitSpeakingTest } from '../../services/ai-grading';
 import { Test } from '../../types/test';
 import { QuestionCard, TestTimer } from '../../components/features/test';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -46,6 +49,15 @@ const TakeTest: React.FC = () => {
     const [error, setError] = useState('');
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [timeUpTriggered, setTimeUpTriggered] = useState(false);
+
+    // Speaking recording state
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         loadTest();
@@ -82,15 +94,65 @@ const TakeTest: React.FC = () => {
     };
 
     const isWritingTest = test?.skillType === 'writing';
+    const isSpeakingTest = test?.skillType === 'speaking';
 
     const getWordCount = (): number => {
         return writingResponse.trim() ? writingResponse.trim().split(/\s+/).length : 0;
+    };
+
+    // Recording functions
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunksRef.current.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                setAudioBlob(blob);
+                setAudioUrl(URL.createObjectURL(blob));
+                stream.getTracks().forEach(t => t.stop());
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+            setRecordingTime(0);
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        } catch (err) {
+            setError('Không thể truy cập microphone. Vui lòng cho phép quyền sử dụng micro.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+    };
+
+    const resetRecording = () => {
+        setAudioBlob(null);
+        setAudioUrl(null);
+        setRecordingTime(0);
     };
 
     const handleSubmitClick = () => {
         if (isWritingTest) {
             if (getWordCount() < 10) {
                 setError('Bài viết quá ngắn. Vui lòng viết ít nhất 10 từ.');
+                return;
+            }
+        } else if (isSpeakingTest) {
+            if (!audioBlob) {
+                setError('Vui lòng ghi âm trước khi nộp bài.');
                 return;
             }
         } else {
@@ -114,6 +176,8 @@ const TakeTest: React.FC = () => {
             let response;
             if (isWritingTest) {
                 response = await submitWritingTest(testId, writingResponse);
+            } else if (isSpeakingTest && audioBlob) {
+                response = await submitSpeakingTest(testId, audioBlob);
             } else {
                 response = await submitTestForGrading(testId, answers);
             }
@@ -314,8 +378,8 @@ const TakeTest: React.FC = () => {
                     </Paper>
                 )}
 
-                {/* Questions - MC Mode */}
-                {!isWritingTest && test.questions.map((question, index) => (
+                {/* Questions - MC Mode (reading/listening only) */}
+                {!isWritingTest && !isSpeakingTest && test.questions.map((question, index) => (
                     <QuestionCard
                         key={question.id}
                         question={question}
@@ -325,6 +389,123 @@ const TakeTest: React.FC = () => {
                         disabled={submitting}
                     />
                 ))}
+
+                {/* Speaking Recording Mode */}
+                {isSpeakingTest && (
+                    <Paper sx={{ p: 3, borderRadius: 3, mb: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                        {/* Speaking Prompt */}
+                        {test.questions[0]?.prompt && (
+                            <Box sx={{
+                                p: 2.5, mb: 3, borderRadius: 2,
+                                bgcolor: '#fff7ed', border: '1px solid #fed7aa',
+                            }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9a3412', mb: 1 }}>
+                                    🎤 Đề bài:
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#c2410c', lineHeight: 1.7 }}>
+                                    {test.questions[0].prompt}
+                                </Typography>
+                                {test.questions[0]?.referenceText && (
+                                    <Box sx={{ mt: 2, p: 2, borderRadius: 1.5, bgcolor: '#fef3c7', border: '1px solid #fde68a' }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#92400e', mb: 0.5 }}>
+                                            📖 Đoạn văn tham khảo:
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ color: '#78350f', fontFamily: '"Georgia", serif', lineHeight: 1.8 }}>
+                                            {test.questions[0].referenceText}
+                                        </Typography>
+                                    </Box>
+                                )}
+                                {test.questions[0]?.duration && (
+                                    <Typography variant="body2" sx={{ mt: 1, color: '#9a3412', fontStyle: 'italic' }}>
+                                        ⏱ Thời gian ghi âm tối đa: {test.questions[0].duration} giây
+                                    </Typography>
+                                )}
+                            </Box>
+                        )}
+
+                        {/* Recording Controls */}
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                            {!audioBlob ? (
+                                <>
+                                    {/* Record Button */}
+                                    <Box
+                                        onClick={isRecording ? stopRecording : startRecording}
+                                        sx={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: 120, height: 120,
+                                            borderRadius: '50%',
+                                            bgcolor: isRecording ? '#dc2626' : '#ea580c',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s',
+                                            boxShadow: isRecording
+                                                ? '0 0 0 12px rgba(220,38,38,0.15), 0 8px 30px rgba(220,38,38,0.3)'
+                                                : '0 8px 30px rgba(234,88,12,0.3)',
+                                            animation: isRecording ? 'pulse 1.5s infinite' : 'none',
+                                            '@keyframes pulse': {
+                                                '0%': { boxShadow: '0 0 0 0 rgba(220,38,38,0.4)' },
+                                                '70%': { boxShadow: '0 0 0 20px rgba(220,38,38,0)' },
+                                                '100%': { boxShadow: '0 0 0 0 rgba(220,38,38,0)' },
+                                            },
+                                            '&:hover': {
+                                                transform: 'scale(1.05)',
+                                            },
+                                        }}
+                                    >
+                                        {isRecording ? <StopIcon sx={{ fontSize: 48 }} /> : <MicIcon sx={{ fontSize: 48 }} />}
+                                    </Box>
+
+                                    {/* Status Text */}
+                                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 700, color: isRecording ? '#dc2626' : '#555' }}>
+                                        {isRecording
+                                            ? `🔴 Đang ghi âm... ${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`
+                                            : '🎤 Nhấn để bắt đầu ghi âm'}
+                                    </Typography>
+                                    {isRecording && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                            Nhấn nút đỏ để dừng ghi âm
+                                        </Typography>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {/* Audio Preview */}
+                                    <Box sx={{ mb: 3 }}>
+                                        <PlayIcon sx={{ fontSize: 48, color: '#16a34a', mb: 1 }} />
+                                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#16a34a', mb: 2 }}>
+                                            ✅ Đã ghi âm xong!
+                                        </Typography>
+                                        <Box sx={{
+                                            display: 'inline-flex',
+                                            p: 2,
+                                            borderRadius: 2,
+                                            bgcolor: '#f0fdf4',
+                                            border: '1px solid #bbf7d0',
+                                        }}>
+                                            {audioUrl && <audio controls src={audioUrl} style={{ minWidth: 300 }} />}
+                                        </Box>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                            Thời lượng: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Re-record Button */}
+                                    <Button
+                                        variant="outlined"
+                                        color="warning"
+                                        startIcon={<MicIcon />}
+                                        onClick={resetRecording}
+                                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                                    >
+                                        🔄 Ghi âm lại
+                                    </Button>
+                                </>
+                            )}
+                        </Box>
+                    </Paper>
+                )}
 
                 {/* Writing Mode */}
                 {isWritingTest && (
@@ -435,7 +616,7 @@ const TakeTest: React.FC = () => {
                         size="large"
                         startIcon={<SendIcon />}
                         onClick={handleSubmitClick}
-                        disabled={submitting || (isWritingTest ? getWordCount() < 5 : getAnsweredCount() === 0)}
+                        disabled={submitting || (isWritingTest ? getWordCount() < 5 : isSpeakingTest ? !audioBlob : getAnsweredCount() === 0)}
                         sx={{
                             flex: 1,
                             borderRadius: 2,
@@ -483,9 +664,12 @@ const TakeTest: React.FC = () => {
                             border: '1px solid #e9ecef',
                         }}>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                Đã trả lời: <strong style={{ color: '#16a34a' }}>{getAnsweredCount()}</strong> / {test.questions.length} câu
+                                {isSpeakingTest
+                                    ? '🎤 Đã ghi âm xong'
+                                    : <>Đã trả lời: <strong style={{ color: '#16a34a' }}>{isWritingTest ? '✍' : getAnsweredCount()}</strong> {isWritingTest ? '' : `/ ${test.questions.length} câu`}</>
+                                }
                             </Typography>
-                        {!isWritingTest && test.questions.length - getAnsweredCount() > 0 && (
+                        {!isWritingTest && !isSpeakingTest && test.questions.length - getAnsweredCount() > 0 && (
                             <Typography variant="body2" sx={{ color: '#dc2626', mt: 0.5 }}>
                                 ⚠ Còn {test.questions.length - getAnsweredCount()} câu chưa trả lời
                             </Typography>
@@ -493,6 +677,11 @@ const TakeTest: React.FC = () => {
                         {isWritingTest && (
                             <Typography variant="body2" sx={{ mt: 0.5, color: '#166534' }}>
                                 ✍ Bài viết: {getWordCount()} từ — AI sẽ chấm điểm tự động
+                            </Typography>
+                        )}
+                        {isSpeakingTest && (
+                            <Typography variant="body2" sx={{ mt: 0.5, color: '#9a3412' }}>
+                                🎙 Thời lượng: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')} — AI sẽ chấm điểm tự động
                             </Typography>
                         )}
                         </Box>

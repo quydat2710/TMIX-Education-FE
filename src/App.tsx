@@ -12,7 +12,6 @@ import theme from './theme';
 
 // Pages
 import Home from './pages/home/InteractiveHome'
-import TestDemo from './pages/TestDemo';
 import Login from './pages/auth/Login';
 // StaffLogin removed - unified into Login page
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -87,8 +86,6 @@ const AppContent: React.FC = () => {
           {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
           <Route path="/" element={<Home />} />
 
-          {/* Test Demo Route - For UI Preview */}
-          <Route path="/test-demo" element={<TestDemo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/staff/login" element={<Navigate to="/login" replace />} />
           <Route path="/admin/login" element={<Navigate to="/login" replace />} />
