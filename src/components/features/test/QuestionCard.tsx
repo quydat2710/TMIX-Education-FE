@@ -14,6 +14,7 @@ import {
     Chip,
 } from '@mui/material';
 import { MCQuestion } from '../../../types/test';
+import TTSButton from '../../TTSButton';
 
 interface QuestionCardProps {
     question: MCQuestion;
@@ -70,17 +71,23 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         <Card sx={{ mb: 3, boxShadow: 2 }}>
             <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Typography variant="h6" gutterBottom>
-                        <strong>Question {questionNumber}</strong>
-                        {question.points > 0 && (
-                            <Chip
-                                label={`${question.points} pts`}
-                                size="small"
-                                color="primary"
-                                sx={{ ml: 2 }}
-                            />
-                        )}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h6" gutterBottom>
+                            <strong>Question {questionNumber}</strong>
+                            {question.points > 0 && (
+                                <Chip
+                                    label={`${question.points} pts`}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ ml: 2 }}
+                                />
+                            )}
+                        </Typography>
+                        <TTSButton
+                            text={`${question.question}. ${question.options.map((opt, i) => `${String.fromCharCode(65 + i)}: ${opt}`).join('. ')}`}
+                            tooltip="🔊 Nghe câu hỏi"
+                        />
+                    </Box>
                 </Box>
 
                 <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8 }}>

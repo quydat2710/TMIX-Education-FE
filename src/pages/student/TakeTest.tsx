@@ -35,6 +35,7 @@ import { submitTestForGrading, submitWritingTest, submitSpeakingTest } from '../
 import { Test } from '../../types/test';
 import { QuestionCard, TestTimer } from '../../components/features/test';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import TTSButton from '../../components/TTSButton';
 import { COLORS } from '../../utils/colors';
 
 const TakeTest: React.FC = () => {
@@ -362,8 +363,9 @@ const TakeTest: React.FC = () => {
                 {/* Passage for Reading/Listening */}
                 {(test as any)?.passage && (test as any)?.skillType !== 'writing' && (
                     <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             {(test as any)?.skillType === 'listening' ? '📝 Transcript (tham khảo)' : '📖 Đoạn văn đọc hiểu'}
+                            <TTSButton text={(test as any).passage} tooltip="🔊 Nghe đoạn văn" color={COLORS.primary.main} />
                         </Typography>
                         <Box sx={{
                             p: 2.5, borderRadius: 2,
@@ -399,17 +401,23 @@ const TakeTest: React.FC = () => {
                                 p: 2.5, mb: 3, borderRadius: 2,
                                 bgcolor: '#fff7ed', border: '1px solid #fed7aa',
                             }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9a3412', mb: 1 }}>
-                                    🎤 Đề bài:
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9a3412', mb: 1 }}>
+                                        🎤 Đề bài:
+                                    </Typography>
+                                    <TTSButton text={test.questions[0].prompt || ''} tooltip="🔊 Nghe đề bài" />
+                                </Box>
                                 <Typography variant="body1" sx={{ color: '#c2410c', lineHeight: 1.7 }}>
                                     {test.questions[0].prompt}
                                 </Typography>
                                 {test.questions[0]?.referenceText && (
                                     <Box sx={{ mt: 2, p: 2, borderRadius: 1.5, bgcolor: '#fef3c7', border: '1px solid #fde68a' }}>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#92400e', mb: 0.5 }}>
-                                            📖 Đoạn văn tham khảo:
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#92400e', mb: 0.5 }}>
+                                                📖 Đoạn văn tham khảo:
+                                            </Typography>
+                                            <TTSButton text={test.questions[0].referenceText || ''} tooltip="🔊 Nghe đoạn văn" color="#92400e" />
+                                        </Box>
                                         <Typography variant="body1" sx={{ color: '#78350f', fontFamily: '"Georgia", serif', lineHeight: 1.8 }}>
                                             {test.questions[0].referenceText}
                                         </Typography>
