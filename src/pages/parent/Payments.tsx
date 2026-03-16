@@ -67,6 +67,47 @@ const Payments: React.FC = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [qrCodeLoading, setQrCodeLoading] = useState<boolean>(false);
   const [qrDialogOpen, setQrDialogOpen] = useState<boolean>(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState<boolean>(false);
+
+  // Auto-poll payment status while QR dialog is open
+  useEffect(() => {
+    if (!qrDialogOpen || !selectedInvoice) return;
+    setPaymentConfirmed(false);
+
+    const pollInterval = setInterval(async () => {
+      try {
+        // Re-fetch payment data for the student
+        const parentId = (user as any)?.parentId || localStorage.getItem('parent_id') || user?.id || '';
+        const parentRes = await getParentByIdAPI(String(parentId));
+        const parentPayload: any = (parentRes as any)?.data?.data ?? (parentRes as any)?.data ?? {};
+        const students: Array<{ id: string; name: string }> = Array.isArray(parentPayload?.students) ? parentPayload.students : [];
+
+        for (const stu of students) {
+          const resp = await getPaymentsByStudentAPI(String(stu.id), { page: 1, limit: 20 });
+          const data: any = (resp as any)?.data?.data ?? (resp as any)?.data ?? {};
+          const list: any[] = Array.isArray(data?.result) ? data.result : [];
+          const matched = list.find((item: any) => String(item?.id) === String(selectedInvoice.paymentId || selectedInvoice.id));
+          if (matched && String(matched.status).toLowerCase() === 'paid') {
+            setPaymentConfirmed(true);
+            clearInterval(pollInterval);
+            setSnackbar({ open: true, message: '🎉 Thanh toán thành công! Hóa đơn đã được xác nhận.', severity: 'success' });
+            setTimeout(() => {
+              setQrDialogOpen(false);
+              setPaymentDialogOpen(false);
+              setSelectedInvoice(null);
+              setQrCodeUrl('');
+              fetchPaymentData(); // Refresh list
+            }, 2000);
+            return;
+          }
+        }
+      } catch (e) {
+        // Ignore polling errors
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [qrDialogOpen, selectedInvoice]);
 
   // History modal
   const [paymentHistoryModalOpen, setPaymentHistoryModalOpen] = useState<boolean>(false);
@@ -788,6 +829,21 @@ const Payments: React.FC = () => {
             </Box>
           ) : (
             <CircularProgress size={60} />
+          )}
+
+          {/* Payment status indicator */}
+          {qrCodeUrl && !paymentConfirmed && (
+            <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <CircularProgress size={16} sx={{ color: '#f59e0b' }} />
+              <Typography variant="body2" sx={{ color: '#f59e0b', fontWeight: 500 }}>
+                Đang chờ thanh toán...
+              </Typography>
+            </Box>
+          )}
+          {paymentConfirmed && (
+            <Alert severity="success" sx={{ mt: 3, borderRadius: 2 }}>
+              🎉 Thanh toán thành công! Đang cập nhật...
+            </Alert>
           )}
         </DialogContent>
 
