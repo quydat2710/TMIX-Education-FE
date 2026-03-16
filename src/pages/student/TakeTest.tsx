@@ -267,6 +267,53 @@ const TakeTest: React.FC = () => {
                     </Box>
                 </Paper>
 
+                {/* Audio Player for Listening Tests */}
+                {(test as any)?.skillType === 'listening' && (test as any)?.audioUrl && (
+                    <Paper sx={{
+                        p: 3, mb: 3, borderRadius: 3,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
+                    }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            🎧 Bài nghe
+                        </Typography>
+                        <Box sx={{
+                            p: 2, borderRadius: 2,
+                            bgcolor: 'rgba(255,255,255,0.15)',
+                            backdropFilter: 'blur(10px)',
+                        }}>
+                            <audio
+                                controls
+                                src={(test as any).audioUrl}
+                                style={{ width: '100%' }}
+                            />
+                        </Box>
+                        <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                            💡 Hãy nghe kỹ trước khi trả lời các câu hỏi bên dưới
+                        </Typography>
+                    </Paper>
+                )}
+
+                {/* Passage for Reading/Listening */}
+                {(test as any)?.passage && (test as any)?.skillType !== 'writing' && (
+                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main }}>
+                            {(test as any)?.skillType === 'listening' ? '📝 Transcript (tham khảo)' : '📖 Đoạn văn đọc hiểu'}
+                        </Typography>
+                        <Box sx={{
+                            p: 2.5, borderRadius: 2,
+                            bgcolor: '#fafafa', border: '1px solid #e5e5e5',
+                            fontFamily: '"Georgia", serif',
+                            fontSize: '1rem',
+                            lineHeight: 1.8,
+                            whiteSpace: 'pre-wrap',
+                        }}>
+                            {(test as any).passage}
+                        </Box>
+                    </Paper>
+                )}
+
                 {/* Questions - MC Mode */}
                 {!isWritingTest && test.questions.map((question, index) => (
                     <QuestionCard
