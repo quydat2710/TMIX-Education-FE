@@ -48,6 +48,7 @@ import Salary from './pages/teacher/Salary';
 import TeacherTestManagement from './pages/teacher/TestManagement';
 import TeacherCreateEditTest from './pages/teacher/CreateEditTest';
 import TeacherTestStatistics from './pages/teacher/TestStatistics';
+import TeacherReviewAttempt from './pages/teacher/ReviewAttempt';
 
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard';
@@ -196,6 +197,7 @@ const AppContent: React.FC = () => {
                   <Route path="tests/create" element={<TeacherCreateEditTest />} />
                   <Route path="tests/:id/edit" element={<TeacherCreateEditTest />} />
                   <Route path="tests/:id/stats" element={<TeacherTestStatistics />} />
+                  <Route path="tests/attempts/:attemptId/review" element={<TeacherReviewAttempt />} />
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                 </Routes>

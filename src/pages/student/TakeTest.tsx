@@ -18,17 +18,17 @@ import {
     IconButton,
     Tooltip,
     Chip,
+    TextField,
 } from '@mui/material';
 import {
     Send as SendIcon,
     ArrowBack as ArrowBackIcon,
     Quiz as QuizIcon,
-    Schedule as ScheduleIcon,
     Star as StarIcon,
     CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { getStudentTestById } from '../../services/tests';
-import { submitTestForGrading } from '../../services/ai-grading';
+import { submitTestForGrading, submitWritingTest } from '../../services/ai-grading';
 import { Test } from '../../types/test';
 import { QuestionCard, TestTimer } from '../../components/features/test';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -40,6 +40,7 @@ const TakeTest: React.FC = () => {
 
     const [test, setTest] = useState<Test | null>(null);
     const [answers, setAnswers] = useState<number[]>([]);
+    const [writingResponse, setWritingResponse] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -80,11 +81,24 @@ const TakeTest: React.FC = () => {
         return (getAnsweredCount() / test.questions.length) * 100;
     };
 
+    const isWritingTest = test?.skillType === 'writing';
+
+    const getWordCount = (): number => {
+        return writingResponse.trim() ? writingResponse.trim().split(/\s+/).length : 0;
+    };
+
     const handleSubmitClick = () => {
-        const unanswered = test!.questions.length - getAnsweredCount();
-        if (unanswered > 0) {
-            if (!window.confirm(`Bạn còn ${unanswered} câu chưa trả lời. Vẫn nộp bài?`)) {
+        if (isWritingTest) {
+            if (getWordCount() < 10) {
+                setError('Bài viết quá ngắn. Vui lòng viết ít nhất 10 từ.');
                 return;
+            }
+        } else {
+            const unanswered = test!.questions.length - getAnsweredCount();
+            if (unanswered > 0) {
+                if (!window.confirm(`Bạn còn ${unanswered} câu chưa trả lời. Vẫn nộp bài?`)) {
+                    return;
+                }
             }
         }
         setShowConfirmDialog(true);
@@ -97,10 +111,17 @@ const TakeTest: React.FC = () => {
         setSubmitting(true);
 
         try {
-            const response = await submitTestForGrading(testId, answers);
-            navigate(`/student/tests/results/${response.data.id}`);
+            let response;
+            if (isWritingTest) {
+                response = await submitWritingTest(testId, writingResponse);
+            } else {
+                response = await submitTestForGrading(testId, answers);
+            }
+            // Handle both wrapped {data: {id}} and direct {id} response
+            const attemptData = response.data || response;
+            navigate(`/student/tests/results/${attemptData.id}`);
         } catch (err: any) {
-            setError(err.message || 'Không thể nộp bài');
+            setError(err.response?.data?.message || err.message || 'Không thể nộp bài');
             setSubmitting(false);
         }
     };
@@ -217,15 +238,21 @@ const TakeTest: React.FC = () => {
                         <Box sx={{ mt: 2 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                 <Typography variant="body2" sx={{ fontWeight: 600, color: '#555' }}>
-                                    Tiến trình
+                                    {isWritingTest ? 'Số từ đã viết' : 'Tiến trình'}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.primary.main }}>
-                                    {getAnsweredCount()} / {test.questions.length} câu
+                                    {isWritingTest
+                                        ? `${getWordCount()} từ`
+                                        : `${getAnsweredCount()} / ${test.questions.length} câu`
+                                    }
                                 </Typography>
                             </Box>
                             <LinearProgress
                                 variant="determinate"
-                                value={getProgressPercentage()}
+                                value={isWritingTest
+                                    ? Math.min((getWordCount() / (test.questions[0]?.minWords || 100)) * 100, 100)
+                                    : getProgressPercentage()
+                                }
                                 sx={{
                                     height: 8,
                                     borderRadius: 4,
@@ -240,8 +267,8 @@ const TakeTest: React.FC = () => {
                     </Box>
                 </Paper>
 
-                {/* Questions */}
-                {test.questions.map((question, index) => (
+                {/* Questions - MC Mode */}
+                {!isWritingTest && test.questions.map((question, index) => (
                     <QuestionCard
                         key={question.id}
                         question={question}
@@ -251,6 +278,80 @@ const TakeTest: React.FC = () => {
                         disabled={submitting}
                     />
                 ))}
+
+                {/* Writing Mode */}
+                {isWritingTest && (
+                    <Paper sx={{ p: 3, borderRadius: 3, mb: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                        {/* Writing Prompt */}
+                        {test.questions[0]?.prompt && (
+                            <Box sx={{
+                                p: 2.5, mb: 3, borderRadius: 2,
+                                bgcolor: '#f0fdf4', border: '1px solid #bbf7d0',
+                            }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#166534', mb: 1 }}>
+                                    📝 Đề bài:
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#15803d', lineHeight: 1.7 }}>
+                                    {test.questions[0].prompt}
+                                </Typography>
+                                {(test.questions[0].minWords || test.questions[0].maxWords) && (
+                                    <Typography variant="body2" sx={{ mt: 1, color: '#166534', fontStyle: 'italic' }}>
+                                        Yêu cầu: {test.questions[0].minWords && `tối thiểu ${test.questions[0].minWords} từ`}
+                                        {test.questions[0].minWords && test.questions[0].maxWords && ' — '}
+                                        {test.questions[0].maxWords && `tối đa ${test.questions[0].maxWords} từ`}
+                                    </Typography>
+                                )}
+                            </Box>
+                        )}
+
+                        {/* Reading passage if available */}
+                        {test.passage && (
+                            <Box sx={{
+                                p: 2.5, mb: 3, borderRadius: 2,
+                                bgcolor: '#eff6ff', border: '1px solid #bfdbfe',
+                            }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e40af', mb: 1 }}>
+                                    📖 Đoạn văn tham khảo:
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#1e3a5a', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                                    {test.passage}
+                                </Typography>
+                            </Box>
+                        )}
+
+                        {/* Text Editor */}
+                        <TextField
+                            fullWidth multiline
+                            minRows={12} maxRows={25}
+                            placeholder="Nhập bài viết của bạn tại đây..."
+                            value={writingResponse}
+                            onChange={(e) => setWritingResponse(e.target.value)}
+                            disabled={submitting}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                    fontSize: '1.05rem',
+                                    lineHeight: 1.8,
+                                    fontFamily: '"Georgia", serif',
+                                },
+                            }}
+                        />
+
+                        {/* Word Counter */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1.5, px: 0.5 }}>
+                            <Typography variant="body2" sx={{
+                                color: getWordCount() < (test.questions[0]?.minWords || 0) ? '#dc2626' : '#16a34a',
+                                fontWeight: 600,
+                            }}>
+                                📊 Số từ: {getWordCount()}
+                                {test.questions[0]?.minWords && ` / ${test.questions[0].minWords} (tối thiểu)`}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#888' }}>
+                                {getWordCount() > 0 ? `~${Math.ceil(getWordCount() / 250)} trang` : ''}
+                            </Typography>
+                        </Box>
+                    </Paper>
+                )}
 
                 {/* Action Buttons */}
                 <Box sx={{
@@ -287,7 +388,7 @@ const TakeTest: React.FC = () => {
                         size="large"
                         startIcon={<SendIcon />}
                         onClick={handleSubmitClick}
-                        disabled={submitting || getAnsweredCount() === 0}
+                        disabled={submitting || (isWritingTest ? getWordCount() < 5 : getAnsweredCount() === 0)}
                         sx={{
                             flex: 1,
                             borderRadius: 2,
@@ -337,11 +438,16 @@ const TakeTest: React.FC = () => {
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
                                 Đã trả lời: <strong style={{ color: '#16a34a' }}>{getAnsweredCount()}</strong> / {test.questions.length} câu
                             </Typography>
-                            {test.questions.length - getAnsweredCount() > 0 && (
-                                <Typography variant="body2" sx={{ color: '#dc2626', mt: 0.5 }}>
-                                    ⚠ Còn {test.questions.length - getAnsweredCount()} câu chưa trả lời
-                                </Typography>
-                            )}
+                        {!isWritingTest && test.questions.length - getAnsweredCount() > 0 && (
+                            <Typography variant="body2" sx={{ color: '#dc2626', mt: 0.5 }}>
+                                ⚠ Còn {test.questions.length - getAnsweredCount()} câu chưa trả lời
+                            </Typography>
+                        )}
+                        {isWritingTest && (
+                            <Typography variant="body2" sx={{ mt: 0.5, color: '#166534' }}>
+                                ✍ Bài viết: {getWordCount()} từ — AI sẽ chấm điểm tự động
+                            </Typography>
+                        )}
                         </Box>
                     </DialogContent>
                     <DialogActions sx={{ p: 2.5, pt: 1 }}>

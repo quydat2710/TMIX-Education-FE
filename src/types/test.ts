@@ -2,7 +2,7 @@
 
 import { BaseEntity } from './index';
 
-// Multiple Choice Question
+// Multiple Choice Question (Reading + Listening)
 export interface MCQuestion {
   id: string;
   question: string;
@@ -10,18 +10,46 @@ export interface MCQuestion {
   correctAnswer: number;     // Index of correct option (0-3)
   explanation?: string;      // Optional explanation
   points: number;            // Points for this question
+  audioUrl?: string;         // Per-question audio (listening)
 }
+
+// Writing Question
+export interface WritingQuestion {
+  id: string;
+  prompt: string;
+  minWords?: number;
+  maxWords?: number;
+  sampleAnswer?: string;
+  rubric?: string;           // Grading criteria for AI
+  points: number;
+}
+
+// Speaking Question
+export interface SpeakingQuestion {
+  id: string;
+  prompt: string;
+  referenceText: string;     // Correct text for comparison
+  audioUrl?: string;         // Reference pronunciation audio
+  duration?: number;         // Max recording time in seconds
+  points: number;
+}
+
+export type SkillType = 'reading' | 'listening' | 'writing' | 'speaking';
 
 // Test Entity
 export interface Test extends BaseEntity {
   title: string;
   description?: string;
+  skillType: SkillType;
   classId: string;
   teacherId: string;
   duration: number;          // in minutes
   totalPoints: number;
   passingScore: number;      // percentage (0-100)
-  questions: MCQuestion[];
+  questions: any[];          // MCQuestion[] | WritingQuestion[] | SpeakingQuestion[]
+  audioUrl?: string;         // Main audio URL (listening)
+  passage?: string;          // Reading passage or Writing prompt
+  speakingPrompt?: string;   // Speaking test general prompt
   status: 'draft' | 'published' | 'archived';
   // Additional metadata
   className?: string;
@@ -69,10 +97,14 @@ export interface AIGradingResult {
 export interface TestFormData {
   title: string;
   description: string;
+  skillType: SkillType;
   classId: string;
   duration: number;
   passingScore: number;
-  questions: MCQuestion[];
+  questions: any[];          // MCQuestion[] | WritingQuestion[] | SpeakingQuestion[]
+  passage?: string;          // Reading passage or Writing prompt
+  speakingPrompt?: string;   // Speaking test general prompt
+  audioUrl?: string;         // Main audio URL (listening)
   status: 'draft' | 'published';
 }
 

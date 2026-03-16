@@ -164,3 +164,14 @@ export const exportTestResults = async (testId: string) => {
     });
     return response.data;
 };
+
+/**
+ * Teacher review: override attempt score/feedback
+ */
+export const reviewAttempt = async (
+    attemptId: string,
+    data: { score?: number; percentage?: number; passed?: boolean; teacherFeedback?: string },
+) => {
+    const response = await axiosInstance.patch(`/tests/attempts/${attemptId}/review`, data);
+    return response.data;
+};

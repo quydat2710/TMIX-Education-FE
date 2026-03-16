@@ -21,6 +21,29 @@ export const submitTestForGrading = async (
 };
 
 /**
+ * Submit a Writing test for AI grading
+ * @param testId - ID of the test
+ * @param writingResponse - Student's essay text
+ */
+export const submitWritingTest = async (
+    testId: string,
+    writingResponse: string
+): Promise<TestAttemptResponse> => {
+    const response = await axiosInstance.post(`/tests/${testId}/submit/writing`, {
+        writingResponse,
+    });
+    return response.data;
+};
+
+/**
+ * Get AI feedback for an attempt
+ */
+export const getAiFeedback = async (attemptId: string) => {
+    const response = await axiosInstance.get(`/tests/attempts/${attemptId}/ai-feedback`);
+    return response.data;
+};
+
+/**
  * Get AI grading result for a specific attempt
  * @param attemptId - ID of the test attempt
  * @returns Full grading details with feedback
