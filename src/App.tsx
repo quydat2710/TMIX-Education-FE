@@ -57,6 +57,7 @@ import StudentProfile from './pages/profile/StudentProfile';
 import StudentTestsList from './pages/student/TestsList';
 import TakeTest from './pages/student/TakeTest';
 import TestResults from './pages/student/TestResults';
+import StudentChatbot from './pages/student/Chatbot';
 
 // Parent Pages
 import ParentDashboard from './pages/parent/Dashboard';
@@ -216,6 +217,7 @@ const AppContent: React.FC = () => {
                   <Route path="tests" element={<StudentTestsList />} />
                   <Route path="tests/:testId/take" element={<TakeTest />} />
                   <Route path="tests/results/:attemptId" element={<TestResults />} />
+                  <Route path="chatbot" element={<StudentChatbot />} />
                   <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                 </Routes>
               </ProtectedRoute>
