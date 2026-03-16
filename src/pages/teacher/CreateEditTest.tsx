@@ -28,6 +28,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { COLORS } from '../../utils/colors';
 import { createTest, getTestById, updateTest, publishTest } from '../../services/tests';
+import { uploadFileAPI } from '../../services/files';
 import { MCQuestion, TestFormData, SkillType } from '../../types/test';
 import { useAuth } from '../../contexts/AuthContext';
 import { getTeacherScheduleAPI } from '../../services/teachers';
@@ -86,6 +87,7 @@ const CreateEditTest: React.FC = () => {
     const [success, setSuccess] = useState('');
     const [classes, setClasses] = useState<any[]>([]);
     const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+    const [audioUploading, setAudioUploading] = useState(false);
 
     const [formData, setFormData] = useState<TestFormData>({
         title: '',
@@ -449,6 +451,70 @@ const CreateEditTest: React.FC = () => {
                             onChange={(e) => handleFieldChange('passage', e.target.value)}
                             sx={{ mt: 2 }}
                         />
+                    )}
+
+                    {/* Audio Upload for Listening */}
+                    {formData.skillType === 'listening' && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                                🎧 File âm thanh (MP3)
+                            </Typography>
+                            {formData.audioUrl ? (
+                                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f3ff', border: '1px solid #ddd6fe' }}>
+                                    <audio controls src={formData.audioUrl} style={{ width: '100%', marginBottom: 8 }} />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            ✅ Đã tải lên thành công
+                                        </Typography>
+                                        <Button
+                                            size="small" color="error" variant="outlined"
+                                            onClick={() => handleFieldChange('audioUrl', '')}
+                                        >
+                                            Xóa audio
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ) : (
+                                <Button
+                                    variant="outlined"
+                                    component="label"
+                                    disabled={audioUploading}
+                                    startIcon={audioUploading ? <CircularProgress size={18} /> : <ListeningIcon />}
+                                    sx={{ borderRadius: 2, borderStyle: 'dashed', py: 2, px: 4 }}
+                                >
+                                    {audioUploading ? 'Đang tải lên...' : 'Chọn file MP3/WAV'}
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept="audio/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            try {
+                                                setAudioUploading(true);
+                                                const res = await uploadFileAPI(file);
+                                                const url = res?.data?.data?.url || res?.data?.url || '';
+                                                handleFieldChange('audioUrl', url);
+                                                setSuccess('Upload audio thành công!');
+                                            } catch (err) {
+                                                setError('Upload audio thất bại');
+                                            } finally {
+                                                setAudioUploading(false);
+                                            }
+                                        }}
+                                    />
+                                </Button>
+                            )}
+
+                            <TextField
+                                fullWidth multiline rows={3}
+                                label="Bài nghe script (tùy chọn - dùng để tham khảo)"
+                                placeholder="Nhập nội dung bài nghe (transcript)..."
+                                value={formData.passage || ''}
+                                onChange={(e) => handleFieldChange('passage', e.target.value)}
+                                sx={{ mt: 2 }}
+                            />
+                        </Box>
                     )}
                 </Paper>
 
