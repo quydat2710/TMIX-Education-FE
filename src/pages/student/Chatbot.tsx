@@ -64,6 +64,11 @@ const ChatbotPage: React.FC = () => {
                     ...prev,
                     { role: 'assistant', content: res.data.data.reply, timestamp: new Date() },
                 ]);
+            } else if (res.data?.reply) {
+                setMessages(prev => [
+                    ...prev,
+                    { role: 'assistant', content: res.data.reply, timestamp: new Date() },
+                ]);
             } else {
                 setMessages(prev => [
                     ...prev,
@@ -106,7 +111,7 @@ const ChatbotPage: React.FC = () => {
                                 TMix AI Assistant
                             </Typography>
                             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                Powered by Llama 3.3 • Hỗ trợ Tiếng Anh & Tiếng Việt
+                                Hỗ trợ Tiếng Anh & Tiếng Việt
                             </Typography>
                         </Box>
                     </Box>
