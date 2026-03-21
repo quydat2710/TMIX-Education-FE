@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 interface SidebarContextType {
   sidebarOpen: boolean;
@@ -6,6 +7,7 @@ interface SidebarContextType {
   toggleSidebar: () => void;
   openSidebar: () => void;
   closeSidebar: () => void;
+  isMobile: boolean;
 }
 
 interface SidebarProviderProps {
@@ -15,14 +17,21 @@ interface SidebarProviderProps {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // <900px
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(!isMobile);
 
-  const toggleSidebar = (): void => setSidebarOpen((prev) => !prev);
-  const openSidebar = (): void => setSidebarOpen(true);
-  const closeSidebar = (): void => setSidebarOpen(false);
+  // Auto-close sidebar when switching to mobile, auto-open when switching to desktop
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
+  const toggleSidebar = useCallback((): void => setSidebarOpen((prev) => !prev), []);
+  const openSidebar = useCallback((): void => setSidebarOpen(true), []);
+  const closeSidebar = useCallback((): void => setSidebarOpen(false), []);
 
   return (
-    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen, toggleSidebar, openSidebar, closeSidebar }}>
+    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen, toggleSidebar, openSidebar, closeSidebar, isMobile }}>
       {children}
     </SidebarContext.Provider>
   );

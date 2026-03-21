@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { openSidebar } = useSidebar();
+  const { openSidebar, closeSidebar, isMobile } = useSidebar();
   const role = user?.role || 'student';
   const menuItems = getMenuItemsByRole(role);
   const [statsOpen, setStatsOpen] = useState<boolean>(location.pathname.startsWith('/admin/statistics'));
@@ -102,188 +102,72 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     }
   }, [open]);
 
-  return (
-    <Drawer
-      variant="permanent"
-      open={open}
-      sx={{
-        width: open ? drawerWidth : miniWidth,
-        flexShrink: 0,
-        whiteSpace: 'nowrap',
-        boxSizing: 'border-box',
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        '& .MuiDrawer-paper': {
-          width: open ? drawerWidth : miniWidth,
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          overflowX: 'hidden',
-          bgcolor: '#fff',
-          borderRight: '1px solid #eee',
-        },
-      }}
-    >
-      <Box sx={{ mt: 8 }}>
-        <List>
-          {menuItems.map((item) => {
-            const isStatistics = item.path === '/admin/statistics';
-            const isUsers = item.path === '/admin/users';
+  // Navigate and auto-close sidebar on mobile
+  const handleNavigate = (path: string): void => {
+    navigate(path);
+    if (isMobile) {
+      closeSidebar();
+    }
+  };
 
-            if (!isStatistics && !isUsers) {
-              return (
-                <Tooltip key={item.text} title={!open ? item.text : ''} placement="right" arrow>
-                  <ListItem disablePadding sx={{ display: 'block' }}>
-                    <ListItemButton
-                      selected={location.pathname === item.path}
-                      onClick={() => navigate(item.path)}
+  const drawerContent = (
+    <Box sx={{ mt: isMobile ? 2 : 8 }}>
+      <List>
+        {menuItems.map((item) => {
+          const isStatistics = item.path === '/admin/statistics';
+          const isUsers = item.path === '/admin/users';
+
+          if (!isStatistics && !isUsers) {
+            return (
+              <Tooltip key={item.text} title={!open ? item.text : ''} placement="right" arrow>
+                <ListItem disablePadding sx={{ display: 'block' }}>
+                  <ListItemButton
+                    selected={location.pathname === item.path}
+                    onClick={() => handleNavigate(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: open ? 'initial' : 'center',
+                      px: 2.5,
+                      borderRadius: 2,
+                      my: 0.5,
+                      transition: 'background 0.2s',
+                      '&.Mui-selected': {
+                        bgcolor: '#f5f5f5',
+                        color: COLORS.primary.main,
+                        '&:hover': { bgcolor: '#eeeeee' }
+                      },
+                      '&:hover': { bgcolor: '#f9f9f9' }
+                    }}
+                  >
+                    <ListItemIcon
                       sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        borderRadius: 2,
-                        my: 0.5,
-                        transition: 'background 0.2s',
-                        '&.Mui-selected': {
-                          bgcolor: '#f5f5f5',
-                          color: COLORS.primary.main,
-                          '&:hover': { bgcolor: '#eeeeee' }
-                        },
-                        '&:hover': { bgcolor: '#f9f9f9' }
+                        minWidth: 0,
+                        mr: open ? 2 : 'auto',
+                        justifyContent: 'center',
+                        color: location.pathname === item.path ? COLORS.primary.main : 'inherit',
                       }}
                     >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 0,
-                          mr: open ? 2 : 'auto',
-                          justifyContent: 'center',
-                          color: location.pathname === item.path ? COLORS.primary.main : 'inherit',
-                        }}
-                      >
-                        {item.icon}
-                      </ListItemIcon>
-                      {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />}
-                    </ListItemButton>
-                  </ListItem>
-                </Tooltip>
-              );
-            }
+                      {item.icon}
+                    </ListItemIcon>
+                    {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />}
+                  </ListItemButton>
+                </ListItem>
+              </Tooltip>
+            );
+          }
 
-            // Users management item with expandable sub-menu
-            if (isUsers) {
-              return (
-                <Box key={item.text}>
-                  <ListItem disablePadding sx={{ display: 'block' }}>
-                    <ListItemButton
-                      selected={location.pathname.startsWith('/admin/users')}
-                      onClick={() => {
-                        if (!open) {
-                          openSidebar();
-                        }
-                        setUsersOpen((v) => !v);
-                      }}
-                      sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        borderRadius: 2,
-                        my: 0.5,
-                        transition: 'background 0.2s',
-                        '&.Mui-selected': {
-                          bgcolor: '#f5f5f5',
-                          color: COLORS.primary.main,
-                          '&:hover': { bgcolor: '#eeeeee' }
-                        },
-                        '&:hover': { bgcolor: '#f9f9f9' }
-                      }}
-                    >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 0,
-                          mr: open ? 2 : 'auto',
-                          justifyContent: 'center',
-                          color: location.pathname.startsWith('/admin/users') ? COLORS.primary.main : 'inherit',
-                        }}
-                      >
-                        <PeopleIcon />
-                      </ListItemIcon>
-                      {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0, mr: 2 }} />}
-                      {open && (usersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
-                    </ListItemButton>
-                  </ListItem>
-                  {usersOpen && (
-                    <List component="div" disablePadding sx={{ pl: open ? 4 : 0 }}>
-                      <ListItemButton
-                        selected={location.pathname === '/admin/users/students'}
-                        onClick={() => {
-                          if (!open) {
-                            openSidebar();
-                          }
-                          navigate('/admin/users/students');
-                        }}
-                        sx={{
-                          minHeight: 40,
-                          justifyContent: open ? 'initial' : 'center',
-                          px: 2.5,
-                          borderRadius: 2,
-                          ml: open ? 2 : 0,
-                          my: 0.25
-                        }}
-                      >
-                        {open && <ListItemText primary="Học viên" />}
-                      </ListItemButton>
-                      <ListItemButton
-                        selected={location.pathname === '/admin/users/teachers'}
-                        onClick={() => {
-                          if (!open) {
-                            openSidebar();
-                          }
-                          navigate('/admin/users/teachers');
-                        }}
-                        sx={{
-                          minHeight: 40,
-                          justifyContent: open ? 'initial' : 'center',
-                          px: 2.5,
-                          borderRadius: 2,
-                          ml: open ? 2 : 0,
-                          my: 0.25
-                        }}
-                      >
-                        {open && <ListItemText primary="Giáo viên" />}
-                      </ListItemButton>
-                      <ListItemButton
-                        selected={location.pathname === '/admin/users/parents'}
-                        onClick={() => {
-                          if (!open) {
-                            openSidebar();
-                          }
-                          navigate('/admin/users/parents');
-                        }}
-                        sx={{
-                          minHeight: 40,
-                          justifyContent: open ? 'initial' : 'center',
-                          px: 2.5,
-                          borderRadius: 2,
-                          ml: open ? 2 : 0,
-                          my: 0.25
-                        }}
-                      >
-                        {open && <ListItemText primary="Phụ huynh" />}
-                      </ListItemButton>
-                    </List>
-                  )}
-                </Box>
-              );
-            }
-
-            // Statistics item with expandable sub-menu
+          // Users management item with expandable sub-menu
+          if (isUsers) {
             return (
               <Box key={item.text}>
                 <ListItem disablePadding sx={{ display: 'block' }}>
                   <ListItemButton
-                    selected={location.pathname.startsWith('/admin/statistics')}
+                    selected={location.pathname.startsWith('/admin/users')}
                     onClick={() => {
                       if (!open) {
                         openSidebar();
                       }
-                      setStatsOpen((v) => !v);
+                      setUsersOpen((v) => !v);
                     }}
                     sx={{
                       minHeight: 48,
@@ -305,24 +189,24 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                         minWidth: 0,
                         mr: open ? 2 : 'auto',
                         justifyContent: 'center',
-                        color: location.pathname.startsWith('/admin/statistics') ? COLORS.primary.main : 'inherit',
+                        color: location.pathname.startsWith('/admin/users') ? COLORS.primary.main : 'inherit',
                       }}
                     >
-                      <AssessmentIcon />
+                      <PeopleIcon />
                     </ListItemIcon>
                     {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0, mr: 2 }} />}
-                    {open && (statsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
+                    {open && (usersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
                   </ListItemButton>
                 </ListItem>
-                {statsOpen && (
+                {usersOpen && (
                   <List component="div" disablePadding sx={{ pl: open ? 4 : 0 }}>
                     <ListItemButton
-                      selected={location.pathname === '/admin/statistics/financial'}
+                      selected={location.pathname === '/admin/users/students'}
                       onClick={() => {
                         if (!open) {
                           openSidebar();
                         }
-                        navigate('/admin/statistics/financial');
+                        handleNavigate('/admin/users/students');
                       }}
                       sx={{
                         minHeight: 40,
@@ -333,15 +217,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                         my: 0.25
                       }}
                     >
-                      {open && <ListItemText primary="Thống kê tài chính" />}
+                      {open && <ListItemText primary="Học viên" />}
                     </ListItemButton>
                     <ListItemButton
-                      selected={location.pathname === '/admin/statistics/students'}
+                      selected={location.pathname === '/admin/users/teachers'}
                       onClick={() => {
                         if (!open) {
                           openSidebar();
                         }
-                        navigate('/admin/statistics/students');
+                        handleNavigate('/admin/users/teachers');
                       }}
                       sx={{
                         minHeight: 40,
@@ -352,15 +236,165 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                         my: 0.25
                       }}
                     >
-                      {open && <ListItemText primary="Thống kê học sinh" />}
+                      {open && <ListItemText primary="Giáo viên" />}
+                    </ListItemButton>
+                    <ListItemButton
+                      selected={location.pathname === '/admin/users/parents'}
+                      onClick={() => {
+                        if (!open) {
+                          openSidebar();
+                        }
+                        handleNavigate('/admin/users/parents');
+                      }}
+                      sx={{
+                        minHeight: 40,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        borderRadius: 2,
+                        ml: open ? 2 : 0,
+                        my: 0.25
+                      }}
+                    >
+                      {open && <ListItemText primary="Phụ huynh" />}
                     </ListItemButton>
                   </List>
                 )}
               </Box>
             );
-          })}
-        </List>
-      </Box>
+          }
+
+          // Statistics item with expandable sub-menu
+          return (
+            <Box key={item.text}>
+              <ListItem disablePadding sx={{ display: 'block' }}>
+                <ListItemButton
+                  selected={location.pathname.startsWith('/admin/statistics')}
+                  onClick={() => {
+                    if (!open) {
+                      openSidebar();
+                    }
+                    setStatsOpen((v) => !v);
+                  }}
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    borderRadius: 2,
+                    my: 0.5,
+                    transition: 'background 0.2s',
+                    '&.Mui-selected': {
+                      bgcolor: '#f5f5f5',
+                      color: COLORS.primary.main,
+                      '&:hover': { bgcolor: '#eeeeee' }
+                    },
+                    '&:hover': { bgcolor: '#f9f9f9' }
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 2 : 'auto',
+                      justifyContent: 'center',
+                      color: location.pathname.startsWith('/admin/statistics') ? COLORS.primary.main : 'inherit',
+                    }}
+                  >
+                    <AssessmentIcon />
+                  </ListItemIcon>
+                  {open && <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0, mr: 2 }} />}
+                  {open && (statsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
+                </ListItemButton>
+              </ListItem>
+              {statsOpen && (
+                <List component="div" disablePadding sx={{ pl: open ? 4 : 0 }}>
+                  <ListItemButton
+                    selected={location.pathname === '/admin/statistics/financial'}
+                    onClick={() => {
+                      if (!open) {
+                        openSidebar();
+                      }
+                      handleNavigate('/admin/statistics/financial');
+                    }}
+                    sx={{
+                      minHeight: 40,
+                      justifyContent: open ? 'initial' : 'center',
+                      px: 2.5,
+                      borderRadius: 2,
+                      ml: open ? 2 : 0,
+                      my: 0.25
+                    }}
+                  >
+                    {open && <ListItemText primary="Thống kê tài chính" />}
+                  </ListItemButton>
+                  <ListItemButton
+                    selected={location.pathname === '/admin/statistics/students'}
+                    onClick={() => {
+                      if (!open) {
+                        openSidebar();
+                      }
+                      handleNavigate('/admin/statistics/students');
+                    }}
+                    sx={{
+                      minHeight: 40,
+                      justifyContent: open ? 'initial' : 'center',
+                      px: 2.5,
+                      borderRadius: 2,
+                      ml: open ? 2 : 0,
+                      my: 0.25
+                    }}
+                  >
+                    {open && <ListItemText primary="Thống kê học sinh" />}
+                  </ListItemButton>
+                </List>
+              )}
+            </Box>
+          );
+        })}
+      </List>
+    </Box>
+  );
+
+  // Mobile: temporary drawer (overlay)
+  if (isMobile) {
+    return (
+      <Drawer
+        variant="temporary"
+        open={open}
+        onClose={closeSidebar}
+        ModalProps={{ keepMounted: true }} // Better mobile performance
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            bgcolor: '#fff',
+            borderRight: '1px solid #eee',
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    );
+  }
+
+  // Desktop: permanent drawer (collapsible)
+  return (
+    <Drawer
+      variant="permanent"
+      open={open}
+      sx={{
+        width: open ? drawerWidth : miniWidth,
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+        boxSizing: 'border-box',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '& .MuiDrawer-paper': {
+          width: open ? drawerWidth : miniWidth,
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflowX: 'hidden',
+          bgcolor: '#fff',
+          borderRight: '1px solid #eee',
+        },
+      }}
+    >
+      {drawerContent}
       <Divider />
     </Drawer>
   );

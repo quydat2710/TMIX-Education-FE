@@ -17,18 +17,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <Header onMenuClick={toggleSidebar} />
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: '64px' }}>
         <Sidebar open={sidebarOpen} />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 1.5, sm: 2, md: 3 },
             width: '100%',
             minHeight: 'calc(100vh - 64px)',
-            transition: 'margin 0.3s',
+            transition: 'margin 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             bgcolor: '#f9f9f9',
-        }}
-      >
-        {children}
+          }}
+        >
+          {children}
         </Box>
       </Box>
     </Box>
