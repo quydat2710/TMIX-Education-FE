@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Avatar, Box, Typography, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Avatar, Box, Typography, Menu, MenuItem, useMediaQuery, useTheme } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -15,6 +15,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm')); // <600px
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleLogoClick = (): void => {
@@ -58,8 +60,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <AppBar position="fixed" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#fff', color: '#222', borderRadius: 0, boxShadow: 'none' }}>
-      <Toolbar sx={{ justifyContent: 'space-between', minHeight: 64, pl: 2, pr: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Toolbar sx={{ justifyContent: 'space-between', minHeight: 64, pl: { xs: 1, sm: 2 }, pr: { xs: 1.5, sm: 4 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
           <IconButton color="default" edge="start" onClick={onMenuClick} sx={{ p: 1.2 }}>
             <MenuIcon fontSize="medium" />
           </IconButton>
@@ -68,11 +70,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               component="img"
               src={logoTMix}
               alt="TMix Education"
-              sx={{ height: 40, width: 'auto', mr: 1 }}
+              sx={{ height: { xs: 32, sm: 40 }, width: 'auto', mr: 1 }}
             />
-            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
-              <span style={{ color: '#D32F2F' }}>TMix</span> <span style={{ color: '#1E3A5F' }}>Education</span>
-            </Typography>
+            {/* Hide text on very small screens, show on sm+ */}
+            {!isSmallMobile && (
+              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
+                <span style={{ color: '#D32F2F' }}>TMix</span> <span style={{ color: '#1E3A5F' }}>Education</span>
+              </Typography>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
