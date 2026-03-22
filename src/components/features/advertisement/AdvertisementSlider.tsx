@@ -169,25 +169,35 @@ const AdvertisementSlider: React.FC<AdvertisementSliderProps> = ({
               />
               <Box sx={{
                 position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(180deg, rgba(15, 31, 51, 0.25) 0%, rgba(15, 31, 51, 0.55) 60%, rgba(15, 31, 51, 0.9) 100%)',
+                zIndex: 1,
+              }} />
+              <Box sx={{
+                position: 'absolute',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
                 color: 'white',
                 p: { xs: 2.5, md: 4 },
-                minHeight: { xs: '180px', md: '220px' }, // Ensure minimum height for content
+                minHeight: { xs: '180px', md: '220px' },
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-end'
+                justifyContent: 'flex-end',
+                zIndex: 2,
               }}>
                 <Typography
                   variant="h4"
                   fontWeight="bold"
                   gutterBottom
                   sx={{
-                    fontSize: { xs: '1.5rem', md: '2rem' },
+                    fontSize: { xs: '1.8rem', md: '2.5rem' },
                     mb: 1.5,
-                    lineHeight: 1.2
+                    lineHeight: 1.2,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)',
                   }}
                 >
                   {ad.title}
@@ -196,9 +206,10 @@ const AdvertisementSlider: React.FC<AdvertisementSliderProps> = ({
                   variant="body1"
                   sx={{
                     mb: 2,
-                    opacity: 0.9,
-                    fontSize: { xs: '0.9rem', md: '1rem' },
-                    lineHeight: 1.5,
+                    opacity: 0.95,
+                    fontSize: { xs: '1rem', md: '1.15rem' },
+                    lineHeight: 1.6,
+                    textShadow: '0 1px 4px rgba(0,0,0,0.5)',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',

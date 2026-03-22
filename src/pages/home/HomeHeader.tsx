@@ -304,11 +304,13 @@ const HomeHeader: React.FC = () => {
     <AppBar
       position="fixed"
       sx={{
-        bgcolor: '#fff',
+        bgcolor: scrolled ? 'rgba(255, 255, 255, 0.85)' : '#fff',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
         color: COLORS.text.primary,
         borderBottom: 'none',
-        boxShadow: scrolled ? 1 : 'none',
-        transition: 'box-shadow 0.3s',
+        boxShadow: scrolled ? '0 4px 30px rgba(0, 0, 0, 0.08)' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         borderRadius: 0,
         zIndex: 1100,
       }}
