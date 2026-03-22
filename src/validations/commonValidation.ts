@@ -14,13 +14,24 @@ export function validatePhone(phone: string): string {
   return '';
 }
 
-// Validate dayOfBirth (dd/mm/yyyy)
+// Validate dayOfBirth (dd/mm/yyyy or yyyy-mm-dd)
 export function validateDayOfBirth(dayOfBirth: string): string {
   if (!dayOfBirth) return 'Ngày sinh không được để trống';
-  const re = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-  if (!re.test(dayOfBirth)) return 'Ngày sinh phải có định dạng dd/mm/yyyy';
+  
+  let dd: number, mm: number, yyyy: number;
+  
+  const reDMY = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+  const reYMD = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+  
+  if (reDMY.test(dayOfBirth)) {
+    [dd, mm, yyyy] = dayOfBirth.split('/').map(Number);
+  } else if (reYMD.test(dayOfBirth)) {
+    [yyyy, mm, dd] = dayOfBirth.split('-').map(Number);
+  } else {
+    return 'Ngày sinh phải có định dạng dd/mm/yyyy';
+  }
+  
   // Kiểm tra ngày thực tế
-  const [dd, mm, yyyy] = dayOfBirth.split('/').map(Number);
   const d = new Date(yyyy, mm - 1, dd);
   if (d.getFullYear() !== yyyy || d.getMonth() !== mm - 1 || d.getDate() !== dd) return 'Ngày sinh không hợp lệ';
   // Ngày sinh phải nhỏ hơn ngày hiện tại
