@@ -55,12 +55,12 @@ const StudentStatisticsPanel: React.FC = () => {
       const params = { year: selectedYear };
       const res: ApiResponse = await getMonthlyStudentChangeAPI(params);
       console.log('API response:', res.data);
-      const apiData = res.data?.data || res.data || {};
+      const apiData = (res as any).data?.data || (res as any).data || {};
       console.log('apiData.increase:', apiData.increase);
 
       const months: MonthlyData[] = [];
 
-      (apiData.increase || []).forEach(item => {
+      (apiData.increase || []).forEach((item: { year: number; month: number; count: number }) => {
         console.log('Increase item:', item);
         months.push({
           year: item.year, month: item.month, monthName: `Th${item.month}`,
@@ -69,7 +69,7 @@ const StudentStatisticsPanel: React.FC = () => {
       });
 
       console.log('apiData.decrease:', apiData.decrease);
-      (apiData.decrease || []).forEach(item => {
+      (apiData.decrease || []).forEach((item: { year: number; month: number; count: number }) => {
         console.log('Decrease item:', item);
         const idx = months.findIndex(m => m.year === item.year && m.month === item.month);
         if (idx !== -1) {

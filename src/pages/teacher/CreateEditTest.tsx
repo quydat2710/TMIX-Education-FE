@@ -7,7 +7,7 @@ import {
     Box, Typography, Button, Paper, TextField, Grid,
     FormControl, InputLabel, Select, MenuItem, IconButton,
     Card, CardContent, Radio, RadioGroup, FormControlLabel,
-    Alert, CircularProgress, Divider, Chip, Tooltip,
+    Alert, CircularProgress, Chip, Tooltip,
     Dialog, DialogTitle, DialogContent, DialogActions,
     ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
@@ -26,8 +26,7 @@ import {
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
-import { COLORS } from '../../utils/colors';
-import { createTest, getTestById, updateTest, publishTest } from '../../services/tests';
+import { createTest, getTestById, updateTest } from '../../services/tests';
 import { uploadFileAPI } from '../../services/files';
 import { MCQuestion, TestFormData, SkillType } from '../../types/test';
 import { useAuth } from '../../contexts/AuthContext';

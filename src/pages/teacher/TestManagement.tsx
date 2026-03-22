@@ -7,7 +7,7 @@ import {
     Box, Typography, Button, Paper, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Chip, IconButton,
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Tooltip, Alert, CircularProgress, TextField, MenuItem,
+    Tooltip, Alert, CircularProgress, MenuItem,
     Select, FormControl, InputLabel,
 } from '@mui/material';
 import {
@@ -17,7 +17,6 @@ import {
     Publish as PublishIcon,
     Unpublished as UnpublishedIcon,
     BarChart as StatsIcon,
-    Visibility as ViewIcon,
     Archive as ArchiveIcon,
     ContentCopy as CopyIcon,
 } from '@mui/icons-material';
@@ -37,8 +36,8 @@ const TestManagement: React.FC = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedTest, setSelectedTest] = useState<Test | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [page] = useState(1);
+    const [, setTotalPages] = useState(1);
 
     // Duplicate dialog
     const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
