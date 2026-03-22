@@ -18,7 +18,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { COLORS } from '../../utils/colors';
 import { getTestById, getTestStatistics } from '../../services/tests';
-import { Test, TestStatistics as TestStatsType } from '../../types/test';
+import { Test } from '../../types/test';
 
 const StatCard: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color }) => (
     <Paper sx={{ p: 2.5, textAlign: 'center', borderTop: `3px solid ${color || COLORS.primary.main}` }}>

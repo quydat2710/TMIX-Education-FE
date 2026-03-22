@@ -35,7 +35,7 @@ const TeacherDetail: React.FC = () => {
     const fetchTeacher = async () => {
       // Get teacher ID from location state (if available)
       let teacherId = location.state?.teacherId;
-      const isTypical = location.state?.isTypical === true;
+
 
       // If no teacherId in state, try to extract it from the slug URL param
       // URL format: "nguyen-thi-hoa-<uuid>" where uuid contains dashes
