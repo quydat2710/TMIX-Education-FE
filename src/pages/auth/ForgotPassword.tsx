@@ -12,7 +12,6 @@ import {
   IconButton
 } from '@mui/material';
 import {
-  School,
   Email,
   ArrowBack,
   CheckCircle,
@@ -27,6 +26,7 @@ import { validateOtpCode } from '../../validations/forgotPasswordValidation';
 import { validateEmail, validatePassword } from '../../validations/commonValidation';
 import { validationRules } from '../../utils/validation';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
+import logoTMix from '../../assets/logo_tmix.png';
 
 interface FormErrors {
   email?: string;
@@ -281,12 +281,30 @@ const ForgotPassword: React.FC = () => {
       case 'email':
         return (
           <Box component="form" onSubmit={handleSubmitEmail} sx={{ mt: 1 }}>
+            {/* Process explanation */}
+            <Box sx={{ 
+              mb: 3, 
+              p: 2, 
+              borderRadius: 2, 
+              backgroundColor: 'rgba(30, 58, 95, 0.06)',
+              border: '1px solid rgba(30, 58, 95, 0.12)'
+            }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: '#1E3A5F' }}>
+                📋 Quy trình khôi phục:
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem', lineHeight: 1.8 }}>
+                1️⃣ Nhập email đã đăng ký tài khoản<br/>
+                2️⃣ Nhận mã OTP (6 số) qua email<br/>
+                3️⃣ Nhập mã OTP + đặt mật khẩu mới
+              </Typography>
+            </Box>
+
             <TextField
               margin="normal"
               required
               fullWidth
               id="email"
-              label="Email"
+              label="Email đã đăng ký"
               name="email"
               type="email"
               autoComplete="email"
@@ -360,9 +378,58 @@ const ForgotPassword: React.FC = () => {
               {isSubmitting ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                'Gửi email đặt lại mật khẩu'
+                'Gửi mã OTP qua email'
               )}
             </Button>
+
+            {/* Note for students */}
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              borderRadius: 2, 
+              backgroundColor: '#fff3e0',
+              border: '1px solid #ffe0b2'
+            }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: '#e65100', fontSize: '0.82rem' }}>
+                💡 Không nhớ email đăng ký?
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: '0.78rem', color: '#bf360c', mb: 1.5 }}>
+                Học sinh / Phụ huynh có thể liên hệ trung tâm để được hỗ trợ đặt lại mật khẩu:
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href="tel:0123456789"
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontSize: '0.78rem',
+                    borderColor: '#e65100',
+                    color: '#e65100',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#fff3e0', borderColor: '#bf360c' }
+                  }}
+                >
+                  📞 Gọi: 0123 456 789
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href="https://zalo.me/0123456789"
+                  target="_blank"
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontSize: '0.78rem',
+                    borderColor: '#0068ff',
+                    color: '#0068ff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#e3f2fd', borderColor: '#0068ff' }
+                  }}
+                >
+                  💬 Nhắn Zalo
+                </Button>
+              </Box>
+            </Box>
           </Box>
         );
 
@@ -643,66 +710,179 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      display: 'flex',
-      background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
-      position: 'relative',
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'url(/images/login-bg.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: 0.1,
-        zIndex: 0
-      }
-    }}>
-      <Container component="main" maxWidth="sm" sx={{
+    <>
+      {/* CSS animations */}
+      <style>
+        {`
+          @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+          }
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
+
+      <Box sx={{
+        minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        background: 'linear-gradient(-45deg, #D32F2F, #B71C1C, #1E3A5F, #0F1F33)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientShift 15s ease infinite',
         position: 'relative',
-        zIndex: 1
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+          zIndex: 0
+        }
       }}>
-        <Card sx={{
-          width: '100%',
-          maxWidth: 450,
-          mx: 'auto',
-          borderRadius: 4,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          backdropFilter: 'blur(20px)',
-          background: 'rgba(255, 255, 255, 0.95)'
+        <Container component="main" maxWidth="sm" sx={{
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          zIndex: 1
         }}>
-          <CardContent sx={{ p: 5 }}>
-            <Box
-              sx={{
+          <Card sx={{
+            width: '100%',
+            maxWidth: 480,
+            mx: 'auto',
+            borderRadius: 4,
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            backdropFilter: 'blur(20px)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            overflow: 'hidden',
+            position: 'relative',
+            animation: 'fadeInUp 0.5s ease-out',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0, left: 0, right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #D32F2F 0%, #1E3A5F 100%)'
+            }
+          }}>
+            <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
+              <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                mb: 4,
-              }}
-            >
-              <School sx={{
-                fontSize: 64,
-                color: 'black',
-                mb: 2,
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
-              }} />
-              <Typography component="h1" variant="h3" fontWeight="bold" gutterBottom>
-                {currentStep === 'email' && 'Quên mật khẩu'}
-                {currentStep === 'verify' && 'Xác thực mã'}
-                {currentStep === 'reset' && 'Đặt lại mật khẩu'}
-              </Typography>
-              <Typography variant="body1" color="textSecondary" align="center" sx={{ maxWidth: 300 }}>
-                {currentStep === 'email' && 'Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu'}
-                {currentStep === 'verify' && 'Nhập mã xác thực đã được gửi đến email của bạn'}
-                {currentStep === 'reset' && 'Nhập mật khẩu mới cho tài khoản của bạn'}
-              </Typography>
-            </Box>
+                mb: 3,
+              }}>
+                {/* TMix Logo */}
+                <Box
+                  component="img"
+                  src={logoTMix}
+                  alt="TMix Education"
+                  sx={{
+                    height: 60,
+                    width: 'auto',
+                    mb: 2,
+                    animation: 'float 3s ease-in-out infinite',
+                    filter: 'drop-shadow(0 4px 12px rgba(211, 47, 47, 0.3))'
+                  }}
+                />
+
+                {/* Step Progress Indicator */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                  {[
+                    { step: 'email', label: 'Email', num: 1 },
+                    { step: 'verify', label: 'OTP', num: 2 },
+                    { step: 'reset', label: 'Mật khẩu', num: 3 }
+                  ].map((item, index) => {
+                    const stepOrder = ['email', 'verify', 'reset'];
+                    const currentIndex = stepOrder.indexOf(currentStep);
+                    const itemIndex = stepOrder.indexOf(item.step);
+                    const isActive = currentStep === item.step;
+                    const isCompleted = itemIndex < currentIndex;
+
+                    return (
+                      <React.Fragment key={item.step}>
+                        {index > 0 && (
+                          <Box sx={{
+                            width: 32,
+                            height: 2,
+                            borderRadius: 1,
+                            backgroundColor: isCompleted ? '#D32F2F' : '#e0e0e0',
+                            transition: 'all 0.3s ease'
+                          }} />
+                        )}
+                        <Box sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}>
+                          <Box sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            transition: 'all 0.3s ease',
+                            ...(isCompleted ? {
+                              backgroundColor: '#D32F2F',
+                              color: '#fff',
+                            } : isActive ? {
+                              backgroundColor: '#1E3A5F',
+                              color: '#fff',
+                              boxShadow: '0 0 0 3px rgba(30, 58, 95, 0.2)',
+                            } : {
+                              backgroundColor: '#f0f0f0',
+                              color: '#9e9e9e',
+                            })
+                          }}>
+                            {isCompleted ? '✓' : item.num}
+                          </Box>
+                          <Typography sx={{
+                            fontSize: '0.65rem',
+                            fontWeight: isActive ? 700 : 500,
+                            color: isActive ? '#1E3A5F' : isCompleted ? '#D32F2F' : '#9e9e9e',
+                            transition: 'all 0.3s ease'
+                          }}>
+                            {item.label}
+                          </Typography>
+                        </Box>
+                      </React.Fragment>
+                    );
+                  })}
+                </Box>
+
+                <Typography
+                  component="h1"
+                  variant="h4"
+                  fontWeight="bold"
+                  gutterBottom
+                  sx={{
+                    background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textAlign: 'center'
+                  }}
+                >
+                  {currentStep === 'email' && 'Quên mật khẩu'}
+                  {currentStep === 'verify' && 'Nhập mã OTP'}
+                  {currentStep === 'reset' && 'Đặt mật khẩu mới'}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" align="center" sx={{ maxWidth: 320 }}>
+                  {currentStep === 'email' && 'Nhập email đã đăng ký để nhận mã OTP khôi phục mật khẩu'}
+                  {currentStep === 'verify' && 'Kiểm tra hộp thư email và nhập mã OTP 6 số'}
+                  {currentStep === 'reset' && 'Tạo mật khẩu mới cho tài khoản của bạn'}
+                </Typography>
+              </Box>
 
             {error && (
               <NotificationSnackbar
@@ -745,6 +925,7 @@ const ForgotPassword: React.FC = () => {
         </Card>
       </Container>
     </Box>
+    </>
   );
 };
 

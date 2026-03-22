@@ -329,8 +329,8 @@ const ParentProfile: React.FC = () => {
                           Trạng thái xác thực email
                         </Typography>
                         <Chip
-                          label="Chưa xác thực"
-                          color="warning"
+                          label={user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+                          color={user.isEmailVerified ? 'success' : 'warning'}
                           size="small"
                           icon={<VerifiedUserIcon />}
                         />
@@ -418,24 +418,26 @@ const ParentProfile: React.FC = () => {
                       Đổi mật khẩu
                     </Button>
 
-                    <Button
-                      variant="outlined"
-                      startIcon={<VerifiedUserIcon />}
-                      onClick={() => setVerifyEmailOpen(true)}
-                      sx={{
-                        borderRadius: 2,
-                        px: 3,
-                        py: 1,
-                        borderColor: '#3b82f6',
-                        color: '#3b82f6',
-                        '&:hover': {
-                          borderColor: '#2563eb',
-                          bgcolor: '#eff6ff'
-                        }
-                      }}
-                    >
-                      Xác thực email
-                    </Button>
+                    {!user.isEmailVerified && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<VerifiedUserIcon />}
+                        onClick={() => setVerifyEmailOpen(true)}
+                        sx={{
+                          borderRadius: 2,
+                          px: 3,
+                          py: 1,
+                          borderColor: '#3b82f6',
+                          color: '#3b82f6',
+                          '&:hover': {
+                            borderColor: '#2563eb',
+                            bgcolor: '#eff6ff'
+                          }
+                        }}
+                      >
+                        Xác thực email
+                      </Button>
+                    )}
 
                     {!isEditing ? (
                       <Button
@@ -512,7 +514,7 @@ const ParentProfile: React.FC = () => {
         onClose={() => setVerifyEmailOpen(false)}
         userEmail={user?.email || ''}
         onSuccess={() => {
-          console.log('Email verified successfully');
+          updateUser({ ...user, isEmailVerified: true });
         }}
       />
     </DashboardLayout>

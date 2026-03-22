@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Pagination } from '@mui/material';
+import { Box, Typography, Button, Pagination, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -10,6 +10,7 @@ import { useStudentForm } from '../../hooks/features/useStudentForm';
 import { StudentForm, StudentTable, StudentFilters, StudentViewDialog } from '../../components/features/student';
 import { Student } from '../../types';
 import { getStudentByIdAPI } from '../../services/students';
+import { resetPasswordAPI } from '../../services/users';
 
 interface SnackbarState {
   open: boolean;
@@ -25,6 +26,9 @@ const StudentManagement: React.FC = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
+  const [resetPasswordDialog, setResetPasswordDialog] = useState(false);
+  const [resetPasswordStudent, setResetPasswordStudent] = useState<Student | null>(null);
+  const [newPassword, setNewPassword] = useState('');
 
   // Custom hooks
   const {
@@ -131,6 +135,27 @@ const StudentManagement: React.FC = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const handleOpenResetPassword = (student: Student) => {
+    setResetPasswordStudent(student);
+    setNewPassword('');
+    setResetPasswordDialog(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordStudent || !newPassword) return;
+    if (newPassword.length < 6) {
+      setSnackbar({ open: true, message: 'Mật khẩu phải có ít nhất 6 ký tự', severity: 'error' });
+      return;
+    }
+    try {
+      await resetPasswordAPI(resetPasswordStudent.id, newPassword);
+      setSnackbar({ open: true, message: `Đặt lại mật khẩu cho ${resetPasswordStudent.name || 'học sinh'} thành công!`, severity: 'success' });
+      setResetPasswordDialog(false);
+    } catch {
+      setSnackbar({ open: true, message: 'Đặt lại mật khẩu thất bại', severity: 'error' });
+    }
+  };
+
   return (
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
@@ -163,6 +188,7 @@ const StudentManagement: React.FC = () => {
               if (student) handleOpenDeleteDialog(student);
             }}
             onViewDetails={handleOpenViewDialog}
+            onResetPassword={handleOpenResetPassword}
           />
 
           {/* Pagination */}
@@ -217,6 +243,30 @@ const StudentManagement: React.FC = () => {
         message={snackbar.message}
         severity={snackbar.severity}
       />
+
+      <Dialog open={resetPasswordDialog} onClose={() => setResetPasswordDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Đặt lại mật khẩu</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Đặt mật khẩu mới cho: <strong>{resetPasswordStudent?.name || resetPasswordStudent?.userId?.name}</strong>
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Mật khẩu mới"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            helperText="Tối thiểu 6 ký tự"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetPasswordDialog(false)}>Hủy</Button>
+          <Button onClick={handleResetPassword} variant="contained" disabled={!newPassword || newPassword.length < 6}>
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 };

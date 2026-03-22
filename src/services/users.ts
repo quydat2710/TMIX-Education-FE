@@ -23,3 +23,6 @@ export const updateUserAPI = (userId: string, data: UserUpdateData) => {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 };
+
+export const resetPasswordAPI = (userId: string, newPassword: string) =>
+  axiosInstance.patch(`/user/reset-password/${userId}`, { newPassword });
