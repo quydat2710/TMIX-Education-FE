@@ -101,7 +101,7 @@ const FeaturedTeachersHome = () => {
   const handleTeacherClick = (teacher: Teacher) => {
     const slug = createSlug(teacher.name);
     // Pass a hint so detail page will use typical-teacher endpoint first
-    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}`, { state: { teacherId: teacher.id, isTypical: true } });
+    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}-${teacher.id}`, { state: { teacherId: teacher.id, isTypical: true } });
   };
 
   const handlePrevClick = () => {

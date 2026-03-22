@@ -15,9 +15,10 @@ import {
 import {
   Phone as PhoneIcon,
   Email as EmailIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  LockOutlined as LockIcon
 } from '@mui/icons-material';
-import { getTeacherByIdAPI, getTeacherBySlugAPI, getTypicalTeacherDetailAPI } from '../../services/teachers';
+import { getTeacherByIdAPI, getTypicalTeacherDetailAPI } from '../../services/teachers';
 import { Teacher } from '../../types';
 import PublicLayout from '../../components/layouts/PublicLayout';
 
@@ -28,45 +29,55 @@ const TeacherDetail: React.FC = () => {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requireLogin, setRequireLogin] = useState(false);
 
   useEffect(() => {
     const fetchTeacher = async () => {
       // Get teacher ID from location state (if available)
-      const teacherId = location.state?.teacherId;
+      let teacherId = location.state?.teacherId;
       const isTypical = location.state?.isTypical === true;
 
+      // If no teacherId in state, try to extract it from the slug URL param
+      // URL format: "nguyen-thi-hoa-<uuid>" where uuid contains dashes
+      if (!teacherId && slug) {
+        // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        // Try to extract UUID from the end of the slug
+        const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+        const match = slug.match(uuidRegex);
+        if (match) {
+          teacherId = match[1];
+        }
+      }
+
       if (teacherId) {
-        // If we have the teacher ID from navigation state, try typical endpoint first when hinted
         try {
           setLoading(true);
           let response: any;
-          if (isTypical) {
-            response = await getTypicalTeacherDetailAPI(teacherId);
-          } else {
-            response = await getTeacherByIdAPI(teacherId);
-          }
-          setTeacher(response.data?.data || response.data);
-        } catch (err) {
-          // Fallback to standard detail if typical endpoint fails
+
+          // Always try public typical endpoint first (no auth needed)
           try {
-            const fallback = await getTeacherByIdAPI(teacherId);
-            setTeacher(fallback.data?.data || fallback.data);
-          } catch (innerErr) {
-            console.error('Error fetching teacher detail:', innerErr);
-            setError('Không thể tải thông tin giáo viên');
+            response = await getTypicalTeacherDetailAPI(teacherId);
+            setTeacher(response.data?.data || response.data);
+          } catch {
+            // If typical fails, try standard endpoint (requires auth)
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+              // Not logged in → show login prompt
+              setRequireLogin(true);
+              return;
+            }
+            try {
+              response = await getTeacherByIdAPI(teacherId);
+              setTeacher(response.data?.data || response.data);
+            } catch (apiErr: any) {
+              const status = apiErr?.response?.status;
+              if (status === 401 || status === 403) {
+                setRequireLogin(true);
+              } else {
+                setError('Không thể tải thông tin giáo viên');
+              }
+            }
           }
-        } finally {
-          setLoading(false);
-        }
-      } else if (slug) {
-        // If no teacher ID in state, try to find teacher by slug
-        try {
-          setLoading(true);
-          const response = await getTeacherBySlugAPI(slug);
-          setTeacher(response.data?.data || response.data);
-        } catch (err) {
-          console.error('Error fetching teacher by slug:', err);
-          setError('Không thể tải thông tin giáo viên');
         } finally {
           setLoading(false);
         }
@@ -108,6 +119,58 @@ const TeacherDetail: React.FC = () => {
               <Skeleton variant="rectangular" height={200} />
             </Grid>
           </Grid>
+        </Container>
+      </PublicLayout>
+    );
+  }
+
+  if (requireLogin) {
+    return (
+      <PublicLayout>
+        <Container maxWidth="sm" sx={{ py: 8 }}>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 5,
+              textAlign: 'center',
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+            }}
+          >
+            <LockIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Yêu cầu đăng nhập
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Bạn cần đăng nhập để xem thông tin chi tiết của giáo viên.
+              Thông tin cá nhân được bảo mật và chỉ hiển thị cho người dùng đã xác thực.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate('/login')}
+              sx={{
+                px: 5,
+                py: 1.5,
+                borderRadius: 3,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              Đăng nhập ngay
+            </Button>
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="text"
+                onClick={() => navigate(-1)}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                ← Quay lại
+              </Button>
+            </Box>
+          </Paper>
         </Container>
       </PublicLayout>
     );
