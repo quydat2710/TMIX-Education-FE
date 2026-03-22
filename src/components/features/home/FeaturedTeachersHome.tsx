@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Button,
   CircularProgress,
   IconButton
 } from '@mui/material';
@@ -19,6 +18,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { getTypicalTeachersAPI, getAllTeachersAPI } from '../../../services/teachers';
 import { Teacher } from '../../../types';
+import AnimatedSection from '../../common/AnimatedSection';
 
 const FeaturedTeachersHome = () => {
   const navigate = useNavigate();
@@ -27,7 +27,6 @@ const FeaturedTeachersHome = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch teachers: thử API /teachers/typical trước, nếu trống → fallback sang getAllTeachersAPI
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
@@ -36,7 +35,6 @@ const FeaturedTeachersHome = () => {
 
         let teachersData: any[] = [];
 
-        // 1. Thử lấy "giáo viên tiêu biểu" trước
         try {
           const response = await getTypicalTeachersAPI();
           if (response.data?.data?.result) {
@@ -47,15 +45,13 @@ const FeaturedTeachersHome = () => {
             teachersData = response.data;
           }
         } catch {
-          // API typical có thể lỗi → bỏ qua, sẽ fallback bên dưới
+          // fallback below
         }
 
-        // Filter active + typical
         let result = teachersData
           .filter((t: any) => t.isActive !== false)
           .filter((t: any) => t.typical === true);
 
-        // 2. Nếu không có typical teachers → fallback lấy tất cả, slice 6 đầu
         if (result.length === 0) {
           try {
             const allResponse = await getAllTeachersAPI({ page: 1, limit: 6 });
@@ -86,45 +82,27 @@ const FeaturedTeachersHome = () => {
     fetchTeachers();
   }, []);
 
-  // Function to convert name to URL-friendly slug
   const createSlug = (name: string): string => {
     return name
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .trim();
   };
 
   const handleTeacherClick = (teacher: Teacher) => {
     const slug = createSlug(teacher.name);
-    // Pass a hint so detail page will use typical-teacher endpoint first
     navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}-${teacher.id}`, { state: { teacherId: teacher.id, isTypical: true } });
   };
 
-  const handlePrevClick = () => {
-    sliderRef.current?.slickPrev();
-  };
-
-  const handleNextClick = () => {
-    sliderRef.current?.slickNext();
-  };
-
-  // Helper function to format qualifications
-  const formatQualifications = (qualifications: string[]) => {
-    if (!qualifications || qualifications.length === 0) return 'Chưa có thông tin';
-    return qualifications.join(', ');
-  };
-
-  // Helper function to format specializations
   const formatSpecializations = (specializations: string[]) => {
     if (!specializations || specializations.length === 0) return 'Chưa có thông tin';
     return specializations.join(', ');
   };
 
-  // Slider settings
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -135,20 +113,8 @@ const FeaturedTeachersHome = () => {
     autoplaySpeed: 5000,
     pauseOnHover: true,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        }
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        }
-      }
+      { breakpoint: 1024, settings: { slidesToShow: 2, slidesToScroll: 1 } },
+      { breakpoint: 600, settings: { slidesToShow: 1, slidesToScroll: 1 } }
     ]
   };
 
@@ -160,209 +126,240 @@ const FeaturedTeachersHome = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Box sx={{ textAlign: 'center', py: 8 }}>
-        <Typography color="error" variant="h6">
-          {error}
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (teachers.length === 0) {
+  if (error || teachers.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <Typography variant="h6" color="text.secondary">
-          Chưa có giáo viên nào
+          {error || 'Chưa có giáo viên nào'}
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ position: 'relative', px: 4 }}>
-      {/* Tiêu đề */}
-      <Typography
-        variant="h4"
-        sx={{
-          textAlign: 'center',
-          mb: 4,
-          color: '#000',
-          fontWeight: 'bold',
-          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
-        }}
-      >
-        Giáo viên tiêu biểu
-      </Typography>
+    <AnimatedSection variant="fadeUp">
+      <Box sx={{ position: 'relative', px: 4 }}>
+        {/* Section Title */}
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Typography
+            variant="overline"
+            sx={{
+              color: '#e53935',
+              fontWeight: 700,
+              letterSpacing: 3,
+              fontSize: '0.85rem',
+              mb: 1,
+              display: 'block',
+            }}
+          >
+            ĐỘI NGŨ GIẢNG VIÊN
+          </Typography>
+          <Typography
+            variant="h4"
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+            }}
+          >
+            <span style={{ color: '#333333', fontWeight: 600 }}>Giáo viên </span>
+            <span style={{ color: '#D32F2F', fontWeight: 700 }}>tiêu biểu</span>
+          </Typography>
+        </Box>
 
-      {/* Navigation Arrows */}
-      <Box sx={{ position: 'relative' }}>
-        {/* Previous Button */}
-        <IconButton
-          onClick={handlePrevClick}
-          sx={{
-            position: 'absolute',
-            left: -20,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            '&:hover': {
-              bgcolor: 'grey.100',
-            },
-            '@media (max-width: 600px)': {
-              left: -10,
-            }
-          }}
-        >
-          <ChevronLeftIcon />
-        </IconButton>
+        {/* Navigation Arrows */}
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => sliderRef.current?.slickPrev()}
+            sx={{
+              position: 'absolute',
+              left: -20,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              bgcolor: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              width: 44,
+              height: 44,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: '#e53935',
+                color: 'white',
+                transform: 'translateY(-50%) scale(1.1)',
+              },
+              '@media (max-width: 600px)': { left: -10 }
+            }}
+          >
+            <ChevronLeftIcon />
+          </IconButton>
 
-        {/* Next Button */}
-        <IconButton
-          onClick={handleNextClick}
-          sx={{
-            position: 'absolute',
-            right: -20,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            '&:hover': {
-              bgcolor: 'grey.100',
-            },
-            '@media (max-width: 600px)': {
-              right: -10,
-            }
-          }}
-        >
-          <ChevronRightIcon />
-        </IconButton>
+          <IconButton
+            onClick={() => sliderRef.current?.slickNext()}
+            sx={{
+              position: 'absolute',
+              right: -20,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              bgcolor: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              width: 44,
+              height: 44,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: '#e53935',
+                color: 'white',
+                transform: 'translateY(-50%) scale(1.1)',
+              },
+              '@media (max-width: 600px)': { right: -10 }
+            }}
+          >
+            <ChevronRightIcon />
+          </IconButton>
 
-        {/* Slider */}
-        <Box sx={{ px: 2 }}>
-          <Slider ref={sliderRef} {...sliderSettings}>
-            {teachers.map((teacher) => (
-              <Box key={teacher.id} sx={{ px: 1 }}>
-                <Card
-                  onClick={() => handleTeacherClick(teacher)}
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
-                    }
-                  }}
-                >
-                  <Box sx={{ position: 'relative', paddingTop: '100%' }}>
-                    {teacher.avatar ? (
-                      <CardMedia
-                        component="img"
-                        image={teacher.avatar}
-                        alt={teacher.name}
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
+          {/* Slider */}
+          <Box sx={{ px: 2 }}>
+            <Slider ref={sliderRef} {...sliderSettings}>
+              {teachers.map((teacher) => (
+                <Box key={teacher.id} sx={{ px: 1.5 }}>
+                  <Card
+                    onClick={() => handleTeacherClick(teacher)}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                      transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                      '&:hover': {
+                        transform: 'translateY(-12px) scale(1.02)',
+                        boxShadow: '0 25px 50px rgba(229, 57, 53, 0.15), 0 10px 25px rgba(0,0,0,0.08)',
+                        '& .teacher-overlay': {
+                          opacity: 1,
+                        },
+                        '& .teacher-img': {
+                          transform: 'scale(1.08)',
+                        },
+                      }
+                    }}
+                  >
+                    {/* Image with gradient overlay */}
+                    <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
+                      {teacher.avatar ? (
+                        <CardMedia
+                          className="teacher-img"
+                          component="img"
+                          image={teacher.avatar}
+                          alt={teacher.name}
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                            color: '#999',
+                            fontSize: '4rem',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {teacher.name.charAt(0).toUpperCase()}
+                        </Box>
+                      )}
+                      {/* Gradient overlay on hover */}
                       <Box
+                        className="teacher-overlay"
                         sx={{
                           position: 'absolute',
-                          top: 0,
+                          bottom: 0,
                           left: 0,
-                          width: '100%',
-                          height: '100%',
+                          right: 0,
+                          height: '50%',
+                          background: 'linear-gradient(transparent, rgba(30, 58, 95, 0.85))',
+                          opacity: 0,
+                          transition: 'opacity 0.4s ease',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'grey.100',
-                          color: 'grey.500',
-                          fontSize: '3rem',
-                          fontWeight: 'bold'
+                          alignItems: 'flex-end',
+                          p: 2,
                         }}
                       >
-                        {teacher.name.charAt(0).toUpperCase()}
+                        <Typography
+                          sx={{
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          Xem chi tiết →
+                        </Typography>
                       </Box>
-                    )}
-                  </Box>
-                  <CardContent sx={{ p: 3, flexGrow: 1 }}>
-                    <Typography
-                      gutterBottom
-                      variant="h5"
-                      component="h2"
-                      sx={{ fontWeight: 'bold', color: '#000' }}
-                    >
-                      {teacher.name}
-                    </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      color="primary"
-                      gutterBottom
-                      sx={{ fontWeight: 600, mb: 2 }}
-                    >
-                      {formatSpecializations(teacher.specializations)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      paragraph
-                      sx={{ mb: 1, fontWeight: 500 }}
-                    >
-                      Bằng cấp: {formatQualifications(teacher.qualifications)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      paragraph
-                      sx={{ mb: 2, fontWeight: 500 }}
-                    >
-                      Địa chỉ: {teacher.address}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      paragraph
-                      sx={{ lineHeight: 1.6, color: '#555', mb: 2 }}
-                    >
-                      {teacher.description || 'Chưa có mô tả'}
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        mt: 'auto',
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        '&:hover': {
-                          backgroundColor: 'primary.main',
-                          color: 'white'
-                        }
-                      }}
-                    >
-                      Xem chi tiết
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Slider>
+                    </Box>
+
+                    {/* Content */}
+                    <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          color: '#1E3A5F',
+                          mb: 0.5,
+                          fontSize: '1.1rem',
+                        }}
+                      >
+                        {teacher.name}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: '#e53935',
+                          fontWeight: 600,
+                          mb: 1.5,
+                          fontSize: '0.85rem',
+                        }}
+                      >
+                        {formatSpecializations(teacher.specializations)}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: '#777',
+                          lineHeight: 1.6,
+                          fontSize: '0.85rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {teacher.description || 'Giảng viên giàu kinh nghiệm tại TMix Education'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Slider>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </AnimatedSection>
   );
 };
 

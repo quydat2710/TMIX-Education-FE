@@ -196,6 +196,15 @@ export interface ApiEndpoints {
     UPDATE: (id: string) => string;
     DELETE: (id: string) => string;
   };
+  NOTIFICATIONS: {
+    GET_ALL: string;
+    UNREAD_COUNT: string;
+    MARK_READ: (id: string) => string;
+    MARK_ALL_READ: string;
+    SEND: string;
+    DELETE: (id: string) => string;
+    STREAM: string;
+  };
 
 }
 
@@ -416,6 +425,16 @@ export const API_CONFIG: ApiConfig = {
       GET_BY_ID: (id: string) => `/articles/${id}`,
       UPDATE: (id: string) => `/articles/${id}`,
       DELETE: (id: string) => `/articles/${id}`,
+    },
+    // Notification endpoints
+    NOTIFICATIONS: {
+      GET_ALL: '/notifications',
+      UNREAD_COUNT: '/notifications/unread-count',
+      MARK_READ: (id: string) => `/notifications/${id}/read`,
+      MARK_ALL_READ: '/notifications/read-all',
+      SEND: '/notifications/send',
+      DELETE: (id: string) => `/notifications/${id}`,
+      STREAM: '/notifications/stream',
     },
 
   },

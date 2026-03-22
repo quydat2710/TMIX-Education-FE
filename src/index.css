@@ -1,3 +1,9 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +11,45 @@
 /* Custom styles */
 html {
   background-color: #ffffff;
+  scroll-behavior: smooth;
+}
+
+/* ===== Premium Design System Variables ===== */
+:root {
+  --gradient-primary: linear-gradient(135deg, #D32F2F 0%, #FF6659 50%, #1E3A5F 100%);
+  --gradient-accent: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  --glow-red: 0 0 20px rgba(211, 47, 47, 0.4), 0 0 40px rgba(211, 47, 47, 0.2);
+  --glow-blue: 0 0 20px rgba(30, 58, 95, 0.4), 0 0 40px rgba(30, 58, 95, 0.2);
+}
+
+/* ===== Glow Pulse Animation ===== */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(211, 47, 47, 0.3), 0 0 20px rgba(211, 47, 47, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(211, 47, 47, 0.5), 0 0 40px rgba(211, 47, 47, 0.25), 0 0 60px rgba(211, 47, 47, 0.1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(2deg); }
+  66% { transform: translateY(5px) rotate(-1deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.glow-btn {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+.float-shape {
+  animation: float 6s ease-in-out infinite;
 }
 
 body {

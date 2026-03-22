@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { COLORS } from '../../utils/colors';
 import logoTMix from '../../assets/logo_tmix.png';
 
+import NotificationBell from '../features/NotificationBell';
+
 interface HeaderProps {
   onMenuClick: () => void;
 }
@@ -81,6 +83,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {user && <NotificationBell />}
           <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
             <Avatar
               sx={{

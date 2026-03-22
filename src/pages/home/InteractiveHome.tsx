@@ -12,7 +12,7 @@ import ConsultationRegistration from '../../components/features/home/Consultatio
 
 /**
  * InteractiveHome - Trang chủ chính của website TMix Education
- * Tổng hợp tất cả các section: Banner, About, Featured Teachers, Feedback, Registration
+ * Full premium redesign with scroll animations, glassmorphism, and modern effects
  */
 const InteractiveHome: React.FC = () => {
     return (
@@ -24,19 +24,66 @@ const InteractiveHome: React.FC = () => {
             <BannerCarousel />
 
             {/* About Section - Giới thiệu trung tâm */}
-            <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-                <AboutSection />
-            </Container>
+            <Box
+                sx={{
+                    py: { xs: 5, md: 8 },
+                    position: 'relative',
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%)',
+                }}
+            >
+                {/* Subtle dot pattern background */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        opacity: 0.3,
+                        backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
+                        backgroundSize: '30px 30px',
+                    }}
+                />
+                <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+                    <AboutSection />
+                </Container>
+            </Box>
+
+            {/* Section Divider */}
+            <Box
+                sx={{
+                    height: 2,
+                    background: 'linear-gradient(90deg, transparent, rgba(229,57,53,0.15), rgba(25,118,210,0.15), transparent)',
+                }}
+            />
 
             {/* Featured Teachers - Giáo viên tiêu biểu */}
-            <Box sx={{ py: { xs: 4, md: 6 }, bgcolor: '#fafafa' }}>
+            <Box
+                sx={{
+                    py: { xs: 5, md: 8 },
+                    background: 'linear-gradient(180deg, #fafbff 0%, #f5f6fa 50%, #fafbff 100%)',
+                }}
+            >
                 <Container maxWidth="lg">
                     <FeaturedTeachersHome />
                 </Container>
             </Box>
 
+            {/* Section Divider */}
+            <Box
+                sx={{
+                    height: 2,
+                    background: 'linear-gradient(90deg, transparent, rgba(229,57,53,0.15), rgba(25,118,210,0.15), transparent)',
+                }}
+            />
+
             {/* Feedback - Phản hồi học viên */}
-            <Box sx={{ py: { xs: 4, md: 6 } }}>
+            <Box
+                sx={{
+                    py: { xs: 5, md: 8 },
+                    background: 'linear-gradient(180deg, #ffffff 0%, #fef7f7 100%)',
+                }}
+            >
                 <Container maxWidth="lg">
                     <FeedbackHome />
                 </Container>

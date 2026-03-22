@@ -75,6 +75,8 @@ import AboutPage from './pages/AboutPage';
 import CoursesPage from './pages/CoursesPage';
 import SchedulePage from './pages/SchedulePage';
 import TestimonialsPage from './pages/TestimonialsPage';
+import NotificationsPage from './pages/NotificationsPage';
+import DashboardLayout from './components/layouts/DashboardLayout';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -137,6 +139,18 @@ const AppContent: React.FC = () => {
               } replace />
             )
           } />
+
+          {/* Notifications route — accessible to all logged-in users */}
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT, USER_ROLES.PARENT]}>
+                <DashboardLayout>
+                  <NotificationsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route
