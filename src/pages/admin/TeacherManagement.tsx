@@ -5,6 +5,11 @@ import {
   Button,
   Grid,
   Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -20,6 +25,7 @@ import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import { Teacher } from '../../types';
 import { useTeacherManagement } from '../../hooks/features/useTeacherManagement';
 import { useTeacherForm } from '../../hooks/features/useTeacherForm';
+import { resetPasswordAPI } from '../../services/users';
 
 // Components
 import TeacherForm from '../../components/features/teacher/TeacherForm';
@@ -80,6 +86,9 @@ const TeacherManagement: React.FC = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
+  const [resetPasswordDialog, setResetPasswordDialog] = useState(false);
+  const [resetPasswordTeacher, setResetPasswordTeacher] = useState<Teacher | null>(null);
+  const [newPassword, setNewPassword] = useState('');
 
   // Dialog handlers
   const handleOpenDialog = async (teacher: Teacher | null = null): Promise<void> => {
@@ -271,6 +280,27 @@ const TeacherManagement: React.FC = () => {
     totalSalary: teachers?.reduce((sum: number, t: any) => sum + (t.salaryPerLesson || 0), 0) || 0
   };
 
+  const handleOpenResetPassword = (teacher: Teacher) => {
+    setResetPasswordTeacher(teacher);
+    setNewPassword('');
+    setResetPasswordDialog(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordTeacher || !newPassword) return;
+    if (newPassword.length < 6) {
+      setSnackbar({ open: true, message: 'Mật khẩu phải có ít nhất 6 ký tự', severity: 'error' });
+      return;
+    }
+    try {
+      await resetPasswordAPI(resetPasswordTeacher.id, newPassword);
+      setSnackbar({ open: true, message: `Đặt lại mật khẩu cho ${resetPasswordTeacher.name || resetPasswordTeacher.userId?.name || 'giáo viên'} thành công!`, severity: 'success' });
+      setResetPasswordDialog(false);
+    } catch {
+      setSnackbar({ open: true, message: 'Đặt lại mật khẩu thất bại', severity: 'error' });
+    }
+  };
+
   return (
     <DashboardLayout role="admin">
       <Box sx={commonStyles.pageContainer}>
@@ -346,6 +376,7 @@ const TeacherManagement: React.FC = () => {
               onEdit={handleOpenDialog}
               onDelete={handleDeleteTeacher}
               onViewDetails={handleOpenViewDialog}
+              onResetPassword={handleOpenResetPassword}
             />
 
             {/* Pagination */}
@@ -394,6 +425,30 @@ const TeacherManagement: React.FC = () => {
               severity={snackbar.severity}
               onClose={() => setSnackbar({ ...snackbar, open: false })}
             />
+
+            <Dialog open={resetPasswordDialog} onClose={() => setResetPasswordDialog(false)} maxWidth="xs" fullWidth>
+              <DialogTitle>Đặt lại mật khẩu</DialogTitle>
+              <DialogContent>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  Đặt mật khẩu mới cho: <strong>{resetPasswordTeacher?.name || resetPasswordTeacher?.userId?.name}</strong>
+                </Typography>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  label="Mật khẩu mới"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  helperText="Tối thiểu 6 ký tự"
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setResetPasswordDialog(false)}>Hủy</Button>
+                <Button onClick={handleResetPassword} variant="contained" disabled={!newPassword || newPassword.length < 6}>
+                  Xác nhận
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         </Box>
       </Box>

@@ -14,7 +14,8 @@ import {
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  LockReset as LockResetIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { Teacher } from '../../../types';
@@ -24,6 +25,7 @@ interface TeacherTableProps {
   onEdit: (teacher: Teacher) => void;
   onDelete: (teacher: Teacher) => void;
   onViewDetails: (teacher: Teacher) => void;
+  onResetPassword?: (teacher: Teacher) => void;
   loading?: boolean;
 }
 
@@ -34,6 +36,7 @@ const TeacherTable: React.FC<TeacherTableProps> = ({
   onEdit,
   onDelete,
   onViewDetails,
+  onResetPassword,
   loading = false
 }) => {
   const theme = useTheme();
@@ -170,6 +173,16 @@ const TeacherTable: React.FC<TeacherTableProps> = ({
                     >
                       <DeleteIcon />
                     </IconButton>
+                    {onResetPassword && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onResetPassword(teacher)}
+                        sx={{ color: '#ff9800' }}
+                        title="Đặt lại mật khẩu"
+                      >
+                        <LockResetIcon />
+                      </IconButton>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>

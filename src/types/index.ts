@@ -16,6 +16,7 @@ export interface User extends BaseEntity {
   role: 'admin' | 'teacher' | 'student' | 'parent';
   avatar?: string;
   username?: string;
+  isEmailVerified?: boolean;
   // Role-specific IDs
   studentId?: string;
   teacherId?: string;
