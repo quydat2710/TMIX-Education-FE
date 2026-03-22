@@ -36,6 +36,7 @@ interface UserUpdateData {
   phone: string;
   gender: string;
   address: string;
+  dayOfBirth?: string;
 }
 
 interface StudentUpdateData {
@@ -50,6 +51,7 @@ interface UserUpdateErrors {
   phone?: string;
   gender?: string;
   address?: string;
+  dayOfBirth?: string;
 }
 
 interface StudentUpdateErrors {
@@ -154,8 +156,11 @@ const StudentProfile: React.FC = () => {
         return;
       }
 
-      // Update user data
-      const userResponse = await updateUserAPI(user.id, userFormData);
+      // Update user data (include dayOfBirth from studentFormData since it's stored in users table)
+      const userResponse = await updateUserAPI(user.id, {
+        ...userFormData,
+        dayOfBirth: studentFormData.dayOfBirth,
+      });
 
       // Update student data if user update is successful
       if (userResponse.data && user.student?.id) {
