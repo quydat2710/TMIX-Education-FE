@@ -151,9 +151,7 @@ export interface UserUpdateData {
   name?: string;
   email?: string;
   phone?: string;
-  gender?: string;
   dateOfBirth?: string;
-  dayOfBirth?: string;
   address?: string;
 }
 

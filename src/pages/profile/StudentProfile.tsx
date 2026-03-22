@@ -36,7 +36,6 @@ interface UserUpdateData {
   phone: string;
   gender: string;
   address: string;
-  dayOfBirth?: string;
 }
 
 interface StudentUpdateData {
@@ -51,7 +50,6 @@ interface UserUpdateErrors {
   phone?: string;
   gender?: string;
   address?: string;
-  dayOfBirth?: string;
 }
 
 interface StudentUpdateErrors {
@@ -156,11 +154,8 @@ const StudentProfile: React.FC = () => {
         return;
       }
 
-      // Update user data (include dayOfBirth from studentFormData since it's stored in users table)
-      const userResponse = await updateUserAPI(user.id, {
-        ...userFormData,
-        dayOfBirth: studentFormData.dayOfBirth,
-      });
+      // Update user data
+      const userResponse = await updateUserAPI(user.id, userFormData);
 
       // Update student data if user update is successful
       if (userResponse.data && user.student?.id) {
@@ -204,7 +199,7 @@ const StudentProfile: React.FC = () => {
 
     setStudentFormData({
       dayOfBirth: user?.student?.dayOfBirth ? user.student.dayOfBirth.split('T')[0] : '',
-              grade: user?.student?.grade?.toString() || '1',
+      grade: user?.student?.grade?.toString() || '1',
       parentId: user?.student?.parentId || null,
     });
 
@@ -224,34 +219,34 @@ const StudentProfile: React.FC = () => {
   if (!user) {
     return (
       <DashboardLayout role="student">
-      <Box sx={commonStyles.pageContainer}>
-        <CircularProgress />
-      </Box>
+        <Box sx={commonStyles.pageContainer}>
+          <CircularProgress />
+        </Box>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout role="student">
-    <Box sx={commonStyles.pageContainer}>
+      <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
             <Typography sx={commonStyles.pageTitle}>
               Trang cá nhân
-        </Typography>
+            </Typography>
           </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success}
-          </Alert>
-        )}
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
 
           <Grid container spacing={3}>
             {/* Left Panel - Profile Summary */}
@@ -278,8 +273,8 @@ const StudentProfile: React.FC = () => {
 
                   {/* User Name */}
                   <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1e293b' }}>
-                  {user.name}
-                </Typography>
+                    {user.name}
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -452,7 +447,7 @@ const StudentProfile: React.FC = () => {
                         </Box>
                       </Grid>
                     )}
-              </Grid>
+                  </Grid>
 
                   {/* Action Buttons */}
                   <Box sx={{ display: 'flex', gap: 2, mt: 4, flexWrap: 'wrap' }}>
@@ -515,11 +510,11 @@ const StudentProfile: React.FC = () => {
                       </Button>
                     ) : (
                       <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<CancelIcon />}
-                  onClick={handleCancel}
-                  disabled={loading}
+                        <Button
+                          variant="outlined"
+                          startIcon={<CancelIcon />}
+                          onClick={handleCancel}
+                          disabled={loading}
                           sx={{
                             borderRadius: 2,
                             px: 3,
@@ -531,14 +526,14 @@ const StudentProfile: React.FC = () => {
                               bgcolor: '#f1f5f9'
                             }
                           }}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-                  onClick={handleSave}
-                  disabled={loading}
+                        >
+                          Hủy
+                        </Button>
+                        <Button
+                          variant="contained"
+                          startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                          onClick={handleSave}
+                          disabled={loading}
                           sx={{
                             borderRadius: 2,
                             px: 3,
@@ -548,14 +543,14 @@ const StudentProfile: React.FC = () => {
                               bgcolor: '#2563eb'
                             }
                           }}
-                >
-                  {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                </Button>
-              </Box>
-            )}
+                        >
+                          {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                        </Button>
+                      </Box>
+                    )}
                   </Box>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
             </Grid>
           </Grid>
         </Box>
