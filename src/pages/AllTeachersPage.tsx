@@ -78,7 +78,7 @@ const AllTeachersPage = () => {
 
   const handleTeacherClick = (teacher: Teacher) => {
     const slug = createSlug(teacher.name);
-    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}`, { state: { teacherId: teacher.id } });
+    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}-${teacher.id}`, { state: { teacherId: teacher.id } });
   };
 
   // Helper function to format qualifications
