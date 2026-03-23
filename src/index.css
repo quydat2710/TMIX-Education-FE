@@ -170,3 +170,14 @@ input:-webkit-autofill:active {
   display: none !important;
   content: '' !important;
 }
+
+/* ===== CMS Article Card Height Equalization ===== */
+/* Ensures stat cards rendered from CMS HTML have equal heights */
+.cms-content div[style*="display: flex"] {
+  align-items: stretch !important;
+}
+
+.cms-content div[style*="display: flex"] > div {
+  display: flex !important;
+  flex-direction: column !important;
+}

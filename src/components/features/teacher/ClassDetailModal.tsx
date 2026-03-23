@@ -19,12 +19,14 @@ import {
   TableRow,
   TableCell,
   LinearProgress,
+  Switch,
+  Tooltip,
 } from '@mui/material';
 import {
   School as SchoolIcon,
   People as PeopleIcon
 } from '@mui/icons-material';
-import { getClassByIdAPI } from '../../../services/classes';
+import { getClassByIdAPI, updateStudentStatusAPI } from '../../../services/classes';
 import AttendanceModal from './AttendanceModal';
 
 interface Schedule {
@@ -61,6 +63,7 @@ interface Student {
   email?: string;
   phone?: string;
   status?: string;
+  isActive?: boolean;
 }
 
 interface ClassDetailModalProps {
@@ -162,8 +165,8 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
             name: s?.student?.name,
             email: s?.student?.email,
             phone: s?.student?.phone,
-            // Map trạng thái từ API: isActivce (boolean) -> 'active' | 'inactive'
-            status: s?.isActivce ? 'active' : 'inactive',
+            isActive: s?.isActive !== false,
+            status: s?.isActive !== false ? 'active' : 'inactive',
           }))
         : [];
       setStudentsDetail(mappedStudents);
@@ -177,6 +180,20 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
 
   const handleDetailTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
     setDetailTabValue(newValue);
+  };
+
+  const handleToggleStudentStatus = async (studentId: string, currentActive: boolean): Promise<void> => {
+    if (!classData?.id) return;
+    try {
+      await updateStudentStatusAPI(classData.id, studentId, !currentActive);
+      setStudentsDetail(prev => prev.map(s => 
+        s.id === studentId 
+          ? { ...s, isActive: !currentActive, status: !currentActive ? 'active' : 'inactive' }
+          : s
+      ));
+    } catch (err) {
+      console.error('Error toggling student status:', err);
+    }
   };
 
   const handleCloseAttendance = (): void => {
@@ -410,6 +427,7 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                             <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Email</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Số điện thoại</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Trạng thái</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>Tạm dừng</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -433,6 +451,16 @@ const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                                   color={getStatusColor(student.status)}
                                   size="small"
                                 />
+                              </TableCell>
+                              <TableCell>
+                                <Tooltip title={student.isActive !== false ? 'Nhấn để tạm dừng' : 'Nhấn để kích hoạt lại'}>
+                                  <Switch
+                                    checked={student.isActive !== false}
+                                    onChange={() => handleToggleStudentStatus(student.id, student.isActive !== false)}
+                                    color="success"
+                                    size="small"
+                                  />
+                                </Tooltip>
                               </TableCell>
                             </TableRow>
                           ))}

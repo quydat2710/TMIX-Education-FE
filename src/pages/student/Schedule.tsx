@@ -64,7 +64,7 @@ const Schedule: React.FC = () => {
                   className: classData.name,
                   time: `${schedule.time_slots.start_time} - ${schedule.time_slots.end_time}`,
                   room: (classData as any).room || '',
-                  teacher: 'Chưa phân công', // API không cung cấp teacher info
+                  teacher: (classData as any).teacher?.name || 'Chưa phân công',
                   type: 'student',
                   classId: classData.id,
                   status: 'active', // Default status
