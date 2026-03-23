@@ -92,11 +92,17 @@ export interface TeacherScheduleResponse {
 
 export interface StudentScheduleClass {
   discountPercent: number;
+  isActive?: boolean;
   class: {
     id: string;
     name: string;
     grade: number;
     section: number;
+    room?: string;
+    teacher?: {
+      id: string;
+      name: string;
+    };
     schedule: {
       start_date: string;
       end_date: string;

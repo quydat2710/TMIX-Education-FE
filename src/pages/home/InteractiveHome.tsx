@@ -7,6 +7,7 @@ import { BannerCarousel } from './components';
 import HomeWelcomeAdPopup from './components/WelcomeAdPopup';
 import AboutSection from './components/AboutSection';
 import FeaturedTeachersHome from '../../components/features/home/FeaturedTeachersHome';
+import FeaturedCoursesHome from '../../components/features/home/FeaturedCoursesHome';
 import FeedbackHome from '../../components/features/home/FeedbackHome';
 import ConsultationRegistration from '../../components/features/home/ConsultationRegistration';
 
@@ -66,6 +67,26 @@ const InteractiveHome: React.FC = () => {
             >
                 <Container maxWidth="lg">
                     <FeaturedTeachersHome />
+                </Container>
+            </Box>
+
+            {/* Section Divider */}
+            <Box
+                sx={{
+                    height: 2,
+                    background: 'linear-gradient(90deg, transparent, rgba(229,57,53,0.15), rgba(25,118,210,0.15), transparent)',
+                }}
+            />
+
+            {/* Featured Courses - Khóa học nổi bật */}
+            <Box
+                sx={{
+                    py: { xs: 5, md: 8 },
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f8faff 100%)',
+                }}
+            >
+                <Container maxWidth="lg">
+                    <FeaturedCoursesHome />
                 </Container>
             </Box>
 

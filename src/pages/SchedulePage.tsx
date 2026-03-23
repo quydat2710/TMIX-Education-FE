@@ -262,7 +262,7 @@ const SchedulePage: React.FC = () => {
           <Box sx={{ width: '100%' }}>
             {articles.map((article, index) => (
               <Box key={article.id || index}>
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                <div className="cms-content" dangerouslySetInnerHTML={{ __html: article.content }} />
               </Box>
             ))}
           </Box>

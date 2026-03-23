@@ -122,6 +122,11 @@ export const removeStudentsFromClassAPI = (classId: string, studentIds: string[]
     headers: { 'Content-Type': 'application/json', 'x-lang': 'vi' }
   });
 
+export const updateStudentStatusAPI = (classId: string, studentId: string, isActive: boolean) =>
+  axiosInstance.patch(`/classes/student-status/${classId}?studentId=${studentId}`, { isActive }, {
+    headers: { 'Content-Type': 'application/json', 'x-lang': 'vi' }
+  });
+
 export const enrollStudentAPI = addStudentsToClassAPI;
 export const removeStudentFromClassAPI = (classId: string, studentId: string) => removeStudentsFromClassAPI(classId, [studentId]);
 export const getStudentsInClassAPI = (classId: string, params?: ApiParams) =>

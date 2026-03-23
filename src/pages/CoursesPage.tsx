@@ -119,11 +119,11 @@ const CoursesPage: React.FC = () => {
     switch (status.toLowerCase()) {
       case 'active':
       case 'ongoing':
-        return { label: 'Đang học', bgcolor: 'rgba(46, 125, 50, 0.1)', color: '#2e7d32', borderColor: 'rgba(46, 125, 50, 0.3)' };
+        return { label: 'Đang học', bgcolor: '#4CAF50', color: '#fff', borderColor: '#4CAF50' };
       case 'upcoming':
-        return { label: 'Sắp khai giảng', bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2', borderColor: 'rgba(25, 118, 210, 0.3)' };
+        return { label: 'Sắp khai giảng', bgcolor: '#FF9800', color: '#fff', borderColor: '#FF9800' };
       case 'closed':
-        return { label: 'Đã kết thúc', bgcolor: 'rgba(0,0,0,0.05)', color: '#757575', borderColor: 'rgba(0,0,0,0.1)' };
+        return { label: 'Đã kết thúc', bgcolor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.3)' };
       default:
         return { label: status, bgcolor: 'rgba(0,0,0,0.05)', color: '#757575', borderColor: 'rgba(0,0,0,0.1)' };
     }
@@ -312,10 +312,18 @@ const CoursesPage: React.FC = () => {
                                       borderLeft: `3px solid ${NAVY}`,
                                       lineHeight: 1.6,
                                       fontSize: '0.8rem',
+                                      minHeight: '4.2em',
+                                      overflow: 'hidden',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 3,
+                                      WebkitBoxOrient: 'vertical',
                                     }}
                                   >
                                     {classItem.description}
                                   </Typography>
+                                )}
+                                {!classItem.description && (
+                                  <Box sx={{ minHeight: '4.2em', mt: 1.5 }} />
                                 )}
                               </Box>
 

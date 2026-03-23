@@ -102,6 +102,7 @@ export const AnimatedItem: React.FC<{
   <motion.div
     variants={variants[variant]}
     transition={{ duration, ease: [0.25, 0.46, 0.45, 0.94] }}
+    style={{ height: '100%' }}
   >
     {children}
   </motion.div>

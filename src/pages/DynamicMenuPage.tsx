@@ -124,7 +124,7 @@ const DynamicMenuPage = () => {
                             {articles.map((article) => (
                                 <Box key={article.id} sx={{ mb: 4 }}>
                                     {/* Render raw HTML content from LayoutBuilder/ArticleEditor */}
-                                    <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                                    <div className="cms-content" dangerouslySetInnerHTML={{ __html: article.content }} />
                                 </Box>
                             ))}
                         </Box>
