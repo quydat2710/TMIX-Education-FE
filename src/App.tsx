@@ -48,6 +48,7 @@ import TeacherTestManagement from './pages/teacher/TestManagement';
 import TeacherCreateEditTest from './pages/teacher/CreateEditTest';
 import TeacherTestStatistics from './pages/teacher/TestStatistics';
 import TeacherReviewAttempt from './pages/teacher/ReviewAttempt';
+import TeacherMaterialManagement from './pages/teacher/MaterialManagement';
 
 // Student Pages
 import StudentDashboard from './pages/student/Dashboard';
@@ -58,6 +59,7 @@ import StudentTestsList from './pages/student/TestsList';
 import TakeTest from './pages/student/TakeTest';
 import TestResults from './pages/student/TestResults';
 import StudentChatbot from './pages/student/Chatbot';
+import StudentMaterials from './pages/student/Materials';
 
 // Parent Pages
 import ParentDashboard from './pages/parent/Dashboard';
@@ -210,6 +212,7 @@ const AppContent: React.FC = () => {
                   <Route path="tests/:id/edit" element={<TeacherCreateEditTest />} />
                   <Route path="tests/:id/stats" element={<TeacherTestStatistics />} />
                   <Route path="tests/attempts/:attemptId/review" element={<TeacherReviewAttempt />} />
+                  <Route path="materials" element={<TeacherMaterialManagement />} />
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
                 </Routes>
@@ -232,6 +235,7 @@ const AppContent: React.FC = () => {
                   <Route path="tests/:testId/take" element={<TakeTest />} />
                   <Route path="tests/results/:attemptId" element={<TestResults />} />
                   <Route path="chatbot" element={<StudentChatbot />} />
+                  <Route path="materials" element={<StudentMaterials />} />
                   <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                 </Routes>
               </ProtectedRoute>
