@@ -17,6 +17,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import MenuIcon from '@mui/icons-material/Menu';
 import SecurityIcon from '@mui/icons-material/Security';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -53,6 +54,7 @@ const getMenuItemsByRole = (role: string): MenuItem[] => {
         { text: 'Lịch dạy', icon: <ClassIcon />, path: '/teacher/schedule' },
         { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/teacher/classes' },
         { text: 'Đề thi', icon: <ListAltIcon />, path: '/teacher/tests' },
+        { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/teacher/materials' },
         { text: 'Lương', icon: <PaymentIcon />, path: '/teacher/salary' },
       ];
     case 'student':
@@ -62,6 +64,7 @@ const getMenuItemsByRole = (role: string): MenuItem[] => {
         { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/student/classes' },
         { text: 'Bài kiểm tra', icon: <ListAltIcon />, path: '/student/tests' },
         { text: 'Trợ lý AI', icon: <SmartToyIcon />, path: '/student/chatbot' },
+        { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/student/materials' },
       ];
     case 'parent':
       return [
