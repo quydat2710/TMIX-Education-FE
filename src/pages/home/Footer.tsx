@@ -4,7 +4,6 @@ import {
   Facebook as FacebookIcon, Instagram as InstagramIcon, YouTube as YouTubeIcon,
   Phone as PhoneIcon, Email as EmailIcon
 } from '@mui/icons-material';
-import { COLORS } from '../../utils/colors';
 import AnimatedSection from '../../components/common/AnimatedSection';
 
 interface FooterLink {
