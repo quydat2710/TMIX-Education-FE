@@ -27,7 +27,7 @@ const InteractiveHome: React.FC = () => {
             {/* About Section - Giới thiệu trung tâm */}
             <Box
                 sx={{
-                    py: { xs: 5, md: 8 },
+                    py: { xs: 3, md: 8 },
                     position: 'relative',
                     background: 'linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%)',
                 }}

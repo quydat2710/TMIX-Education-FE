@@ -3,593 +3,643 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Button,
   Box,
   IconButton,
-  Menu,
-  MenuItem,
+  Avatar,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider,
   useMediaQuery,
   useTheme,
-  Avatar,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
+  Close as CloseIcon,
   Person as PersonIcon,
   Dashboard as DashboardIcon,
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
-  KeyboardArrowDown as ArrowDownIcon,
+  KeyboardArrowRight as ArrowRightIcon,
 } from '@mui/icons-material';
-import { COLORS } from '../../utils/colors';
-import { useNavigate } from 'react-router-dom';
-import { commonStyles } from '../../utils/styles';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { NavigationMenuItem } from '../../types';
-
-// ✅ Menu tĩnh cho public pages — tách biệt hoàn toàn với admin/staff routes
-const PUBLIC_MENU: NavigationMenuItem[] = [
-  { id: 'pub-1', title: 'Về chúng tôi', slug: '/ve-chung-toi', order: 1, isActive: true, childrenMenu: [] },
-  { id: 'pub-2', title: 'Giáo viên', slug: '/giao-vien', order: 2, isActive: true, childrenMenu: [] },
-  { id: 'pub-3', title: 'Các khóa học', slug: '/cac-khoa-hoc', order: 3, isActive: true, childrenMenu: [] },
-  { id: 'pub-4', title: 'Đánh giá', slug: '/danh-gia', order: 4, isActive: true, childrenMenu: [] },
-];
 import logoTMix from '../../assets/logo_tmix.png';
 
-const scrollToSection = (id: string): void => {
-  const el = document.getElementById(id);
-  if (el) {
-    window.scrollTo({
-      top: el.offsetTop - 72, // Offset for header height
-      behavior: 'smooth',
-    });
-  }
+// ── Static menu ───────────────────────────────────────────────────────────────
+const PUBLIC_MENU: NavigationMenuItem[] = [
+  { id: 'pub-1', title: 'Về chúng tôi', slug: '/ve-chung-toi', order: 1, isActive: true, childrenMenu: [] },
+  { id: 'pub-2', title: 'Giáo viên',    slug: '/giao-vien',    order: 2, isActive: true, childrenMenu: [] },
+  { id: 'pub-3', title: 'Các khóa học', slug: '/cac-khoa-hoc', order: 3, isActive: true, childrenMenu: [] },
+  { id: 'pub-4', title: 'Đánh giá',     slug: '/danh-gia',     order: 4, isActive: true, childrenMenu: [] },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const BRAND = {
+  navy:  '#1E3A5F',
+  red:   '#D32F2F',
+  blue:  '#3D7CC9',
 };
 
 const HomeHeader: React.FC = () => {
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const theme      = useTheme();
+  const isMobile   = useMediaQuery(theme.breakpoints.down('md'));
   const { user, logout } = useAuth();
-  // ✅ Dùng menu tĩnh hardcoded cho public pages (không lấy từ API)
-  const menuItems = PUBLIC_MENU;
 
-  const [scrolled, setScrolled] = useState<boolean>(false);
-  const [activeSection, setActiveSection] = useState<string>('hero-section');
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<HTMLElement | null>(null);
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [dropdownAnchor, setDropdownAnchor] = useState<{ [key: string]: HTMLElement | null }>({});
-  const closeTimeoutRef = React.useRef<{ [key: string]: NodeJS.Timeout }>({});
-  const menuRefs = React.useRef<{ [key: string]: HTMLElement | null }>({});
-  const justOpenedRef = React.useRef<boolean>(false);
+  const [scrolled,       setScrolled]       = useState(false);
+  const [drawerOpen,     setDrawerOpen]     = useState(false);
+  const [avatarAnchor,   setAvatarAnchor]   = useState<HTMLElement | null>(null);
+  const [hoveredId,      setHoveredId]      = useState<string | null>(null);
 
+  const menuItems = PUBLIC_MENU.filter(m => m.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  // Global mouse move listener to close dropdown when not hovering menu or dropdown
+  // ── Scroll detection ────────────────────────────────────────────────────────
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    const onScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      // Skip if just opened (prevent immediate close)
-      if (justOpenedRef.current) {
-        return;
-      }
-
-      // Debounce - chỉ check sau 200ms để giảm lag
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        // Check if any dropdown is open
-        const hasOpenDropdown = Object.values(dropdownAnchor).some(anchor => anchor !== null);
-
-        if (!hasOpenDropdown) return;
-
-        const target = e.target as HTMLElement;
-
-        // Check if mouse is on a menu button or menu item container
-        const isOnMenuButton = target.closest('button') !== null &&
-          Object.values(menuRefs.current).some(ref => ref && ref.contains(target));
-
-        // Check if mouse is on any Box container that wraps menu items
-        const isOnMenuContainer = Object.values(menuRefs.current).some(ref => ref && ref.contains(target));
-
-        // Check if mouse is on dropdown menu (MUI Portal)
-        const isOnDropdown = target.closest('[role="menu"]') !== null;
-
-        // If not on button, container, and not on dropdown -> close all
-        if (!isOnMenuButton && !isOnMenuContainer && !isOnDropdown) {
-          setDropdownAnchor({});
-        }
-      }, 200);
-    };
-
-    document.addEventListener('mousemove', handleGlobalMouseMove);
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-    };
-  }, [dropdownAnchor]);
-
-  // Get active menu items (filtered and sorted)
-  // ✅ Lọc bỏ menu item "Trang chủ" vì trang chủ được điều hướng qua logo
-  const activeMenuItems = menuItems
-    .filter(item => item.isActive)
-    .filter(item => {
-      // Loại bỏ item có slug là '/' hoặc '/home' hoặc title là 'Trang chủ'
-      const slug = item.slug?.toLowerCase().trim();
-      const title = item.title?.toLowerCase().trim();
-      return slug !== '/' &&
-        slug !== '/home' &&
-        title !== 'trang chủ' &&
-        title !== 'home';
-    })
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-  // Không dùng menu tĩnh mặc định; chỉ hiển thị khi có menu từ API
-  const displayMenuItems = activeMenuItems;
-
-  // Get section IDs for scroll detection
-  const sectionIds = displayMenuItems
-    .map(item => ({ label: item.title, id: item.slug || item.title }));
-
-  useEffect(() => {
-    const handleScroll = (): void => {
-      const scrollY = window.scrollY;
-      const currentSection = sectionIds.reduce((acc, section) => {
-        const el = document.getElementById(section.id);
-        if (el && scrollY >= el.offsetTop - 80) {
-          return section.id;
-        }
-        return acc;
-      }, 'hero-section');
-
-      setActiveSection(currentSection);
-      setScrolled(scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sectionIds]);
-
-  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
-    setMobileMenuAnchor(event.currentTarget);
+  // ── Navigation ──────────────────────────────────────────────────────────────
+  const goTo = (slug?: string) => {
+    if (slug) navigate(slug.startsWith('/') ? slug : `/${slug}`);
+    setDrawerOpen(false);
   };
 
-  const handleMobileMenuClose = (): void => {
-    setMobileMenuAnchor(null);
+  // ── Active detection ────────────────────────────────────────────────────────
+  const isActive = (slug?: string) =>
+    slug ? location.pathname === slug : false;
+
+  // ── Auth handlers ───────────────────────────────────────────────────────────
+  const handleDashboard   = () => { navigate(`/${user?.role}/dashboard`); setAvatarAnchor(null); };
+  const handleProfile     = () => {
+    const map: Record<string, string> = { admin: '/admin/profile', teacher: '/teacher/profile', student: '/student/profile', parent: '/parent/profile' };
+    navigate(map[user?.role ?? ''] ?? '/profile');
+    setAvatarAnchor(null);
   };
+  const handleLogout      = () => { logout(); navigate('/'); setAvatarAnchor(null); };
 
-  const handleMobileMenuItemClick = (menuItem: NavigationMenuItem): void => {
-    handleMenuClick(menuItem);
-    handleMobileMenuClose();
-  };
-
-  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>): void => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = (): void => {
-    setAnchorEl(null);
-  };
-
-  const handleDashboard = (): void => {
-    const role = user?.role;
-    if (role) {
-      navigate(`/${role}/dashboard`);
-    }
-    handleMenuClose();
-  };
-
-  const handleProfile = (): void => {
-    // Navigate to profile based on user role
-    switch (user?.role) {
-      case 'admin':
-        navigate('/admin/profile');
-        break;
-      case 'teacher':
-        navigate('/teacher/profile');
-        break;
-      case 'student':
-        navigate('/student/profile');
-        break;
-      case 'parent':
-        navigate('/parent/profile');
-        break;
-      default:
-        navigate('/profile'); // Fallback to general profile
-    }
-    handleMenuClose();
-  };
-
-  const handleLogout = (): void => {
-    logout();
-    navigate('/'); // Stay on home page after logout
-    handleMenuClose();
-  };
-
-  const handleDropdownClose = (menuId: string): void => {
-    setDropdownAnchor(prev => ({ ...prev, [menuId]: null }));
-  };
-
-  const handleMenuClick = (menuItem: NavigationMenuItem): void => {
-    // If has children, don't do anything - just show dropdown
-    if (menuItem.childrenMenu && menuItem.childrenMenu.length > 0) {
-      return;
-    }
-
-    // Only navigate/scroll if no children
-    if (menuItem.slug) {
-      // Navigate to slug if available
-      // Ensure slug starts with '/' for absolute path
-      const absoluteSlug = menuItem.slug.startsWith('/') ? menuItem.slug : `/${menuItem.slug}`;
-      navigate(absoluteSlug);
-    } else {
-      // Fallback to scroll to section
-      scrollToSection(menuItem.title);
-    }
-  };
-
-  const handleSubmenuClick = (submenu: NavigationMenuItem): void => {
-    if (submenu.slug) {
-      // Ensure slug starts with '/' for absolute path
-      const absoluteSlug = submenu.slug.startsWith('/') ? submenu.slug : `/${submenu.slug}`;
-      navigate(absoluteSlug);
-    }
-  };
-
-  const renderAuthControls = (): React.ReactNode => {
-    if (user) {
-      return (
-        <>
-          <IconButton onClick={handleAvatarClick} sx={{ p: 0.3 }}>
-            <Avatar
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: COLORS.secondary.main,
-                color: '#fff',
-                cursor: 'pointer',
-                fontSize: 18
-              }}
-              src={user?.avatar}
-              alt={user?.name || user?.username || 'User'}
-            >
-              {user?.avatar ? null : (user?.name?.charAt(0) || user?.username?.charAt(0) || '?')}
-            </Avatar>
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            sx={{ mt: 1 }}
-          >
-            <Box sx={{ px: 2, py: 1, minWidth: 180 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'center', mb: 1 }}>
-                {user?.name || user?.username || 'User'}
-              </Typography>
-            </Box>
-            <MenuItem onClick={handleDashboard}>
-              <DashboardIcon fontSize="small" sx={{ mr: 1 }} />
-              Dashboard
-            </MenuItem>
-            <MenuItem onClick={handleProfile}>
-              <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
-              Trang cá nhân
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-              Đăng xuất
-            </MenuItem>
-          </Menu>
-        </>
-      );
-    }
-    return (
-      <Button
-        variant="contained"
-        onClick={() => navigate('/login')}
-        startIcon={<PersonIcon />}
+  // ────────────────────────────────────────────────────────────────────────────
+  //  RENDER
+  // ────────────────────────────────────────────────────────────────────────────
+  return (
+    <>
+      <AppBar
+        position="fixed"
+        elevation={0}
         sx={{
-          ...commonStyles.primaryButton,
-          px: 2.5,
-          py: 1,
-          borderRadius: 2,
+          bgcolor: scrolled ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,1)',
+          backdropFilter: scrolled ? 'blur(22px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(22px) saturate(180%)' : 'none',
+          borderBottom: scrolled
+            ? '1px solid rgba(30,58,95,0.08)'
+            : '1px solid transparent',
+          boxShadow: scrolled ? '0 4px 24px rgba(30,58,95,0.06)' : 'none',
+          transition: 'background-color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease',
+          zIndex: theme.zIndex.drawer + 10,
         }}
       >
-        Đăng nhập
-      </Button>
-    );
-  };
-
-  return (
-    <AppBar
-      position="fixed"
-      sx={{
-        bgcolor: scrolled ? 'rgba(255, 255, 255, 0.85)' : '#fff',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
-        color: COLORS.text.primary,
-        borderBottom: 'none',
-        boxShadow: scrolled ? '0 4px 30px rgba(0, 0, 0, 0.08)' : 'none',
-        transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        borderRadius: 0,
-        zIndex: 1100,
-      }}
-    >
-      <Toolbar sx={{
-        minHeight: 72,
-        maxHeight: 72,
-        px: { xs: 2, md: 4 },
-        display: 'flex',
-        justifyContent: 'space-between',
-        overflow: 'visible'
-      }}>
-        {/* Logo */}
-        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <Toolbar
+          sx={{
+            minHeight: { xs: 64, md: 72 },
+            px: { xs: 2, md: 4 },
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          {/* ── Logo ── */}
           <Box
-            component="img"
-            src={logoTMix}
-            alt="TMix Education"
-            sx={{ height: 44, width: 'auto', mr: 1 }}
-          />
-          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
-            <span style={{ color: '#D32F2F' }}>TMix</span> <span style={{ color: '#1E3A5F' }}>Education</span>
-          </Typography>
-        </Box>
-
-        {isMobile ? (
-          // Mobile Menu
-          <>
-            <IconButton
-              size="large"
-              edge="end"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleMobileMenuOpen}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={mobileMenuAnchor}
-              open={Boolean(mobileMenuAnchor)}
-              onClose={handleMobileMenuClose}
-              sx={{ mt: 1 }}
-            >
-              {displayMenuItems.map((menuItem) => (
-                <Box key={menuItem.id}>
-                  <MenuItem
-                    onClick={() => handleMobileMenuItemClick(menuItem)}
-                    sx={{ fontWeight: 600 }} // ✅ Chữ đậm cho menu mobile
-                  >
-                    {menuItem.title}
-                  </MenuItem>
-                  {menuItem.childrenMenu && menuItem.childrenMenu.length > 0 && (
-                    <Box sx={{ pl: 2 }}>
-                      {menuItem.childrenMenu
-                        .filter(child => child.isActive)
-                        .sort((a, b) => (a.order || 0) - (b.order || 0))
-                        .map((submenu) => (
-                          <MenuItem
-                            key={submenu.id}
-                            onClick={() => {
-                              handleSubmenuClick(submenu);
-                              handleMobileMenuClose();
-                            }}
-                            sx={{ pl: 3, fontSize: '0.9rem', fontWeight: 500 }} // ✅ Submenu mobile hơi nhạt hơn
-                          >
-                            {submenu.title}
-                          </MenuItem>
-                        ))}
-                    </Box>
-                  )}
-                </Box>
-              ))}
-              {user ? (
-                <>
-                  <MenuItem onClick={() => { handleDashboard(); handleMobileMenuClose(); }}>
-                    Dashboard
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleProfile(); handleMobileMenuClose(); }}>
-                    Trang cá nhân
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleLogout(); handleMobileMenuClose(); }}>
-                    Đăng xuất
-                  </MenuItem>
-                </>
-              ) : (
-                <MenuItem onClick={() => { navigate('/login'); handleMobileMenuClose(); }}>
-                  Đăng nhập
-                </MenuItem>
-              )}
-            </Menu>
-          </>
-        ) : (
-          // Desktop Menu
-          <>
+            onClick={() => navigate('/')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              cursor: 'pointer',
+              flexShrink: 0,
+              '&:hover .logo-img': { transform: 'scale(1.06) rotate(-2deg)' },
+              '&:hover .logo-text': { letterSpacing: '0.02em' },
+            }}
+          >
             <Box
+              component="img"
+              src={logoTMix}
+              alt="TMix"
+              className="logo-img"
               sx={{
-                position: 'absolute',
-                left: '50%',
-                top: 0,
-                bottom: 0,
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                alignItems: 'center',
-                height: '100%',
-                zIndex: 1,
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
+                height: { xs: 38, md: 44 },
+                width: 'auto',
+                mixBlendMode: 'multiply',
+                transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+              }}
+            />
+            <Typography
+              className="logo-text"
+              variant="h6"
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: '1rem', md: '1.18rem' },
+                letterSpacing: '-0.01em',
+                lineHeight: 1,
+                transition: 'letter-spacing 0.3s ease',
+                userSelect: 'none',
               }}
             >
-              {displayMenuItems.map((menuItem) => (
-                <Box
-                  key={menuItem.id}
-                  ref={(el) => { menuRefs.current[menuItem.id] = el as HTMLElement | null; }}
-                  sx={{
-                    position: 'relative',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                  }}
-                  onMouseEnter={(e) => {
-                    // Clear all close timeouts
-                    Object.keys(closeTimeoutRef.current).forEach(key => {
-                      clearTimeout(closeTimeoutRef.current[key]);
-                    });
-                    closeTimeoutRef.current = {};
+              <span style={{ color: BRAND.red }}>TMix</span>
+              {' '}
+              <span style={{ color: BRAND.navy }}>Education</span>
+            </Typography>
+          </Box>
 
-                    // Check if this menu has children
-                    if (menuItem.childrenMenu && menuItem.childrenMenu.length > 0) {
-                      const buttonElement = e.currentTarget.querySelector('button');
-                      if (buttonElement) {
-                        // Close other dropdowns smoothly
-                        setDropdownAnchor(() => {
-                          const newState: any = {};
-                          // Only keep current menu open
-                          newState[menuItem.id] = buttonElement;
-                          return newState;
-                        });
+          {/* ── Desktop Nav ── */}
+          {!isMobile && (
+            <Box
+              component="nav"
+              sx={{
+                flex: 1,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              {menuItems.map((item) => {
+                const active  = isActive(item.slug);
+                const hovered = hoveredId === item.id;
 
-                        // Set flag to prevent immediate close
-                        justOpenedRef.current = true;
-                        setTimeout(() => {
-                          justOpenedRef.current = false;
-                        }, 300);
-                      }
-                    } else {
-                      // No children, close all dropdowns
-                      setDropdownAnchor({});
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    // Don't close immediately, wait a bit
-                    // This prevents flickering when moving mouse between button and dropdown
-                  }}
-                >
-                  <Button
-                    onClick={() => handleMenuClick(menuItem)}
-                    endIcon={menuItem.childrenMenu && menuItem.childrenMenu.length > 0 ? <ArrowDownIcon /> : null}
+                return (
+                  <Box
+                    key={item.id}
+                    onMouseEnter={() => setHoveredId(item.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => goTo(item.slug)}
                     sx={{
-                      mx: 1.5,
-                      px: 2,
+                      position: 'relative',
+                      px: 2.2,
                       py: 1,
-                      color: activeSection === (menuItem.slug || menuItem.title) ? COLORS.primary.main : '#111',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      borderRadius: 1,
-                      bgcolor: dropdownAnchor[menuItem.id] ? '#f5f5f5' : 'transparent',
-                      outline: 'none',
-                      boxShadow: 'none',
-                      border: '1px solid transparent',
-                      transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                      minHeight: 40,
-                      whiteSpace: (() => {
-                        // Đếm số từ trong title
-                        const wordCount = menuItem.title?.split(/\s+/).filter(word => word.length > 0).length || 0;
-                        // Chỉ xuống dòng khi có nhiều hơn 3 từ
-                        return wordCount <= 3 ? 'nowrap' : 'normal';
-                      })(),
-                      lineHeight: 1.2,
-                      textAlign: 'center',
-                      '&:focus, &:active': {
-                        outline: 'none',
-                        boxShadow: 'none',
-                      },
+                      cursor: 'pointer',
+                      borderRadius: '50px',
+                      bgcolor: active
+                        ? 'rgba(30,58,95,0.09)'
+                        : hovered
+                        ? 'rgba(30,58,95,0.06)'
+                        : 'transparent',
+                      border: active
+                        ? '1.5px solid rgba(30,58,95,0.2)'
+                        : hovered
+                        ? '1.5px solid rgba(30,58,95,0.1)'
+                        : '1.5px solid transparent',
+                      transition: 'background-color 0.22s ease, border-color 0.22s ease',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: active ? 700 : hovered ? 700 : 600,
+                        fontSize: '0.98rem',
+                        letterSpacing: active ? '0.015em' : hovered ? '0.005em' : 0,
+                        // Elite hover micro-lift
+                        transform: hovered && !active ? 'scale(1.02)' : 'scale(1)',
+                        transformOrigin: 'center',
+                        display: 'block',
+                        // Gradient text when active; color shift on hover
+                        ...(active
+                          ? {
+                              background: `linear-gradient(110deg, ${BRAND.navy} 10%, ${BRAND.red} 100%)`,
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                            }
+                          : {
+                              color: hovered ? BRAND.blue : '#1A2B45',
+                            }),
+                        transition:
+                          'color 0.22s ease, font-weight 0.15s ease, letter-spacing 0.22s ease, transform 0.22s cubic-bezier(0.34,1.4,0.64,1)',
+                        userSelect: 'none',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+
+                    {/* ─── Slide-in underline ─── */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 3,
+                        left: '50%',
+                        height: '2.5px',
+                        borderRadius: '3px',
+                        background: active
+                          ? `linear-gradient(90deg, ${BRAND.navy}, ${BRAND.red})`
+                          : `linear-gradient(90deg, ${BRAND.blue}, ${BRAND.navy})`,
+                        transform: (active || hovered)
+                          ? 'translateX(-50%) scaleX(1)'
+                          : 'translateX(-50%) scaleX(0)',
+                        width: '68%',
+                        transformOrigin: 'center',
+                        transition: 'transform 0.28s cubic-bezier(0.34,1.2,0.64,1), background 0.22s ease',
+                      }}
+                    />
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+
+          {/* ── Right Controls ── */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, ml: 'auto' }}>
+            {/* Desktop user controls */}
+            {!isMobile && (
+              user ? (
+                <>
+                  <Box
+                    onClick={(e) => setAvatarAnchor(e.currentTarget)}
+                    sx={{
+                      position: 'relative',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.7,
+                      borderRadius: '50px',
+                      border: '1.5px solid rgba(30,58,95,0.12)',
+                      transition: 'all 0.25s ease',
                       '&:hover': {
-                        bgcolor: '#f5f5f5',
-                        border: '1px solid transparent',
+                        bgcolor: 'rgba(30,58,95,0.04)',
+                        borderColor: 'rgba(30,58,95,0.22)',
+                        boxShadow: '0 2px 12px rgba(30,58,95,0.1)',
                       },
                     }}
                   >
-                    {menuItem.title}
-                  </Button>
-
-                  {/* Dropdown Menu */}
-                  {menuItem.childrenMenu && menuItem.childrenMenu.length > 0 && (
-                    <Menu
-                      anchorEl={dropdownAnchor[menuItem.id]}
-                      open={Boolean(dropdownAnchor[menuItem.id])}
-                      onClose={() => handleDropdownClose(menuItem.id)}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-                      disableAutoFocusItem
-                      disableAutoFocus
-                      disableScrollLock
-                      disablePortal={false}
+                    <Avatar
+                      src={user.avatar}
+                      alt={user.name || user.username}
                       sx={{
-                        mt: 0.5,
-                        pointerEvents: 'none',
-                        '& .MuiPaper-root': {
-                          pointerEvents: 'auto',
-                          borderRadius: 2,
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                          border: '1px solid rgba(0,0,0,0.08)',
-                          minWidth: 200,
-                          marginTop: '4px',
-                        },
-                        '& .MuiList-root': {
-                          py: 1,
-                        }
-                      }}
-                      MenuListProps={{
-                        autoFocusItem: false,
-                        onMouseLeave: () => {
-                          // Close dropdown when mouse leaves the menu
-                          closeTimeoutRef.current[menuItem.id] = setTimeout(() => {
-                            handleDropdownClose(menuItem.id);
-                          }, 150);
-                        },
-                        onMouseEnter: () => {
-                          // Cancel close timeout when mouse re-enters
-                          if (closeTimeoutRef.current[menuItem.id]) {
-                            clearTimeout(closeTimeoutRef.current[menuItem.id]);
-                          }
-                        }
-                      }}
-                      TransitionProps={{
-                        timeout: 200,
-                      }}
-                      slotProps={{
-                        paper: {
-                          style: {
-                            transform: 'none',
-                            position: 'absolute',
-                          }
-                        }
+                        width: 32,
+                        height: 32,
+                        bgcolor: BRAND.navy,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        border: '2px solid rgba(255,255,255,0.9)',
+                        boxShadow: '0 2px 8px rgba(30,58,95,0.2)',
                       }}
                     >
-                      {menuItem.childrenMenu
-                        .filter(child => child.isActive)
-                        .sort((a, b) => (a.order || 0) - (b.order || 0))
-                        .map((submenu) => (
-                          <MenuItem
-                            key={submenu.id}
-                            onClick={() => handleSubmenuClick(submenu)}
-                            sx={{
-                              minWidth: 200,
-                              px: 2.5,
-                              py: 1.2,
-                              fontSize: '0.95rem',
-                              fontWeight: 500,
-                              transition: 'background-color 0.2s ease',
-                              '&:hover': {
-                                bgcolor: '#f5f5f5',
-                              }
-                            }}
-                          >
-                            {submenu.title}
-                          </MenuItem>
-                        ))}
-                    </Menu>
-                  )}
+                      {!user.avatar && (user.name?.charAt(0) || user.username?.charAt(0) || '?')}
+                    </Avatar>
+                    <Typography
+                      sx={{
+                        fontSize: '0.88rem',
+                        fontWeight: 600,
+                        color: BRAND.navy,
+                        maxWidth: 90,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {user.name || user.username}
+                    </Typography>
+                  </Box>
+                  <Menu
+                    anchorEl={avatarAnchor}
+                    open={Boolean(avatarAnchor)}
+                    onClose={() => setAvatarAnchor(null)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    PaperProps={{
+                      sx: {
+                        mt: 1.5,
+                        borderRadius: '16px',
+                        minWidth: 200,
+                        boxShadow: '0 8px 40px rgba(30,58,95,0.14)',
+                        border: '1px solid rgba(30,58,95,0.08)',
+                        overflow: 'hidden',
+                        '& .MuiMenuItem-root': {
+                          px: 2.5,
+                          py: 1.2,
+                          fontSize: '0.92rem',
+                          fontWeight: 500,
+                          gap: 1.5,
+                          borderRadius: '8px',
+                          mx: 1,
+                          my: 0.3,
+                          transition: 'background-color 0.2s ease',
+                          '&:hover': { bgcolor: 'rgba(30,58,95,0.06)' },
+                        },
+                      },
+                    }}
+                  >
+                    <Box sx={{ px: 2.5, pt: 1.5, pb: 1 }}>
+                      <Typography sx={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 500 }}>Đăng nhập với vai trò</Typography>
+                      <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: BRAND.navy, mt: 0.2 }}>{user.name || user.username}</Typography>
+                    </Box>
+                    <Divider sx={{ mx: 2, mb: 0.5 }} />
+                    <MenuItem onClick={handleDashboard}><DashboardIcon fontSize="small" sx={{ color: BRAND.navy }} />Dashboard</MenuItem>
+                    <MenuItem onClick={handleProfile}><AccountCircleIcon fontSize="small" sx={{ color: BRAND.navy }} />Trang cá nhân</MenuItem>
+                    <Divider sx={{ mx: 2, my: 0.5 }} />
+                    <MenuItem onClick={handleLogout} sx={{ color: BRAND.red + ' !important', '& svg': { color: BRAND.red } }}>
+                      <LogoutIcon fontSize="small" />Đăng xuất
+                    </MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <Box
+                  onClick={() => navigate('/login')}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.8,
+                    px: 2.5,
+                    py: 1,
+                    borderRadius: '50px',
+                    background: `linear-gradient(135deg, ${BRAND.navy} 0%, ${BRAND.blue} 100%)`,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(30,58,95,0.25)',
+                    transition: 'all 0.3s cubic-bezier(0.34,1.2,0.64,1)',
+                    '&:hover': {
+                      transform: 'translateY(-2px) scale(1.03)',
+                      boxShadow: '0 8px 22px rgba(30,58,95,0.3)',
+                    },
+                    '&:active': { transform: 'translateY(0) scale(0.98)' },
+                  }}
+                >
+                  <PersonIcon sx={{ fontSize: 18, color: '#fff' }} />
+                  <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', userSelect: 'none' }}>
+                    Đăng nhập
+                  </Typography>
                 </Box>
-              ))}
-            </Box>
+              )
+            )}
 
-            {renderAuthControls()}
-          </>
-        )}
-      </Toolbar>
-    </AppBar>
+            {/* Mobile hamburger */}
+            {isMobile && (
+              <IconButton
+                onClick={() => setDrawerOpen(true)}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: '12px',
+                  border: '1.5px solid rgba(30,58,95,0.12)',
+                  color: BRAND.navy,
+                  transition: 'all 0.25s ease',
+                  '&:hover': { bgcolor: 'rgba(30,58,95,0.05)', borderColor: 'rgba(30,58,95,0.22)' },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* ── Mobile Premium Drawer ───────────────────────────────────────────── */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: '82vw', sm: 340 },
+            background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '-8px 0 48px rgba(30,58,95,0.12)',
+            borderRadius: '20px 0 0 20px',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        }}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backdropFilter: 'blur(4px)',
+              backgroundColor: 'rgba(0,0,0,0.25)',
+            },
+          },
+        }}
+      >
+        {/* Drawer Header */}
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(30,58,95,0.07)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              component="img"
+              src={logoTMix}
+              alt="TMix"
+              sx={{ height: 36, mixBlendMode: 'multiply' }}
+            />
+            <Typography sx={{ fontWeight: 800, fontSize: '1.05rem' }}>
+              <span style={{ color: BRAND.red }}>TMix</span>{' '}
+              <span style={{ color: BRAND.navy }}>Education</span>
+            </Typography>
+          </Box>
+          <IconButton
+            onClick={() => setDrawerOpen(false)}
+            size="small"
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: '10px',
+              border: '1.5px solid rgba(30,58,95,0.10)',
+              color: '#64748B',
+              transition: 'all 0.2s ease',
+              '&:hover': { bgcolor: 'rgba(211,47,47,0.07)', borderColor: BRAND.red, color: BRAND.red },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+
+        {/* Nav Links */}
+        <List sx={{ px: 2, pt: 2, flex: 1 }}>
+          {menuItems.map((item, idx) => {
+            const active = isActive(item.slug);
+            return (
+              <ListItemButton
+                key={item.id}
+                onClick={() => goTo(item.slug)}
+                sx={{
+                  borderRadius: '14px',
+                  mb: 0.5,
+                  px: 2.5,
+                  py: 1.4,
+                  overflow: 'hidden',
+                  position: 'relative',
+                  bgcolor: active ? 'rgba(30,58,95,0.07)' : 'transparent',
+                  border: active ? '1.5px solid rgba(30,58,95,0.12)' : '1.5px solid transparent',
+                  transition: 'all 0.22s ease',
+                  // Slide-in animation stagger
+                  animation: drawerOpen ? `slideInRight 0.35s cubic-bezier(0.34,1.1,0.64,1) ${idx * 0.06 + 0.1}s both` : 'none',
+                  '@keyframes slideInRight': {
+                    from: { opacity: 0, transform: 'translateX(24px)' },
+                    to:   { opacity: 1, transform: 'translateX(0)' },
+                  },
+                  '&:hover': {
+                    bgcolor: active ? 'rgba(30,58,95,0.1)' : 'rgba(30,58,95,0.05)',
+                    borderColor: 'rgba(30,58,95,0.14)',
+                    '& .nav-arrow': { opacity: 1, transform: 'translateX(0)' },
+                  },
+                  // Left accent bar
+                  '&::before': active ? {
+                    content: '""',
+                    position: 'absolute',
+                    left: 0,
+                    top: '20%',
+                    height: '60%',
+                    width: '3px',
+                    borderRadius: '0 3px 3px 0',
+                    background: `linear-gradient(180deg, ${BRAND.red}, ${BRAND.navy})`,
+                  } : {},
+                }}
+              >
+                <ListItemText
+                  primary={item.title}
+                  primaryTypographyProps={{
+                    sx: {
+                      fontWeight: active ? 700 : 500,
+                      fontSize: '1rem',
+                      ...(active
+                        ? {
+                            background: `linear-gradient(100deg, ${BRAND.navy}, ${BRAND.red})`,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          }
+                        : { color: '#374151' }),
+                    },
+                  }}
+                />
+                <ArrowRightIcon
+                  className="nav-arrow"
+                  sx={{
+                    fontSize: 18,
+                    color: BRAND.blue,
+                    opacity: active ? 0.8 : 0,
+                    transform: active ? 'translateX(0)' : 'translateX(-6px)',
+                    transition: 'all 0.22s ease',
+                  }}
+                />
+              </ListItemButton>
+            );
+          })}
+        </List>
+
+        {/* Drawer Footer – auth section */}
+        <Box
+          sx={{
+            px: 2,
+            pb: 3,
+            pt: 1,
+            borderTop: '1px solid rgba(30,58,95,0.07)',
+          }}
+        >
+          {user ? (
+            <>
+              {/* User info chip */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  px: 2,
+                  py: 1.5,
+                  bgcolor: 'rgba(30,58,95,0.04)',
+                  borderRadius: '14px',
+                  mb: 1.5,
+                  border: '1.5px solid rgba(30,58,95,0.07)',
+                }}
+              >
+                <Avatar
+                  src={user.avatar}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: BRAND.navy,
+                    fontSize: 16,
+                    fontWeight: 700,
+                    border: '2px solid #fff',
+                    boxShadow: '0 2px 8px rgba(30,58,95,0.2)',
+                  }}
+                >
+                  {!user.avatar && (user.name?.charAt(0) || user.username?.charAt(0) || '?')}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: BRAND.navy, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.name || user.username}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 500, textTransform: 'capitalize' }}>
+                    {user.role}
+                  </Typography>
+                </Box>
+              </Box>
+              <List disablePadding>
+                {[
+                  { label: 'Dashboard',    icon: <DashboardIcon fontSize="small" />,   action: handleDashboard,                  color: BRAND.navy },
+                  { label: 'Trang cá nhân', icon: <AccountCircleIcon fontSize="small" />, action: handleProfile,   color: BRAND.navy },
+                  { label: 'Đăng xuất',   icon: <LogoutIcon fontSize="small" />,      action: handleLogout,                     color: BRAND.red  },
+                ].map((item) => (
+                  <ListItemButton
+                    key={item.label}
+                    onClick={item.action}
+                    sx={{
+                      borderRadius: '12px',
+                      px: 2,
+                      py: 1.1,
+                      mb: 0.3,
+                      gap: 1.5,
+                      transition: 'all 0.22s ease',
+                      '&:hover': { bgcolor: `${item.color}10` },
+                    }}
+                  >
+                    <Box sx={{ color: item.color, display: 'flex' }}>{item.icon}</Box>
+                    <ListItemText
+                      primary={item.label}
+                      primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: item.color } }}
+                    />
+                  </ListItemButton>
+                ))}
+              </List>
+            </>
+          ) : (
+            <Box
+              onClick={() => { navigate('/login'); setDrawerOpen(false); }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                py: 1.5,
+                borderRadius: '50px',
+                background: `linear-gradient(135deg, ${BRAND.navy} 0%, ${BRAND.blue} 100%)`,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(30,58,95,0.25)',
+                transition: 'all 0.3s ease',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 22px rgba(30,58,95,0.3)' },
+                '&:active': { transform: 'translateY(0)' },
+              }}
+            >
+              <PersonIcon sx={{ fontSize: 18, color: '#fff' }} />
+              <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>Đăng nhập</Typography>
+            </Box>
+          )}
+        </Box>
+      </Drawer>
+    </>
   );
 };
 
-export default HomeHeader;
+export default React.memo(HomeHeader);
