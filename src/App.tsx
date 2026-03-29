@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import ScrollToTop from './components/common/ScrollToTop';
 
 
 // Import custom theme
@@ -87,6 +88,7 @@ const AppContent: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        <ScrollToTop />
         <Routes>
           {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
           <Route path="/" element={<Home />} />

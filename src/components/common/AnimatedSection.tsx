@@ -146,24 +146,25 @@ const CountUp: React.FC<{ target: number; duration: number; suffix: string }> = 
   const [count, setCount] = React.useState(0);
 
   React.useEffect(() => {
-    const startTime = Date.now();
+    let rafId: number;
+    let startTime: number | null = null;
     const durationMs = duration * 1000;
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / durationMs, 1);
       // Ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(eased * target);
-
-      setCount(current);
+      setCount(Math.round(eased * target));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration]);
 
   return <>{count}{suffix}</>;
