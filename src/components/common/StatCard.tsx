@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Avatar, useTheme, Theme } from '@mui/material';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface StatCardProps {
   title: string;
