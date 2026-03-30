@@ -17,6 +17,7 @@ import 'dayjs/locale/vi';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Cấu hình dayjs để sử dụng tiếng Việt và plugin updateLocale
 dayjs.extend(updateLocale);
@@ -274,40 +275,46 @@ const ServerDay: React.FC<ServerDayProps> = ({ day, lessons, userType, selected,
   const dayStyle: any = {
     ...other.sx,
     position: 'relative',
-    color: '#222',
+    color: '#334155',
     boxShadow: 'none',
+    fontWeight: 500,
+    transition: 'all 0.2s ease-in-out',
     '&.Mui-selected': {
-      backgroundColor: '#1976d2',
+      background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
       color: '#fff',
-      border: '2px solid #1976d2',
+      border: 'none',
       fontWeight: 700,
-      boxShadow: 'none',
+      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+      transform: 'scale(1.05)',
       '&:hover': {
-        backgroundColor: '#1976d2',
+        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
       }
     },
     '&.MuiPickersDay-today:not(.Mui-selected)': {
-      backgroundColor: '#E3F2FD', // light blue
-      border: '2px solid #9e9e9e',
-      color: '#222',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
+      color: '#2563eb',
       fontWeight: 700,
       boxShadow: 'none',
     },
+    '&:hover:not(.Mui-selected)': {
+      backgroundColor: 'rgba(59, 130, 246, 0.05)',
+    }
   };
 
-  // Dấu chấm lịch học: luôn hiển thị trên nền, nếu là selected thì dùng màu trắng viền xanh đậm
+  // Dấu chấm lịch học: hiện đại hơn với hiệu ứng đổ bóng
   const dotStyle = hasLesson
     ? {
         content: '""',
         position: 'absolute',
-        bottom: '4px',
+        bottom: '6px',
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '6px',
-        height: '6px',
-        backgroundColor: isSelected ? '#fff' : '#1976d2',
+        width: '5px',
+        height: '5px',
+        backgroundColor: isSelected ? '#fff' : '#3b82f6',
         borderRadius: '50%',
-        border: isSelected ? '2px solid #1976d2' : 'none',
+        boxShadow: isSelected ? '0 0 4px rgba(255,255,255,0.8)' : '0 1px 3px rgba(59, 130, 246, 0.4)',
         zIndex: 2,
       }
     : {};
@@ -432,86 +439,171 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({ lessons, title, use
           <Paper
             elevation={3}
             sx={{
-              p: 3,
-              backgroundColor: '#fff',
+              p: { xs: 2, sm: 4 },
+              backgroundColor: '#ffffff',
               borderRadius: 4,
-              width: { xs: '100%', lg: '30%' },
+              border: '1px solid rgba(0,0,0,0.03)',
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)',
+              width: { xs: '100%', lg: '35%' },
               minHeight: '530px',
               display: 'flex',
               flexDirection: 'column',
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
-            <Box sx={{ mb: 3, borderBottom: '2px solid #e0e0e0', pb: 0.5 }}>
-              <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 600, mb: 0.5 }}>
-                {userType === 'teacher'
-                  ? `Lịch dạy ${selectedDate ? dayjs(selectedDate).format('dddd') : ''} ngày ${selectedDate ? dayjs(selectedDate).format('DD/MM/YYYY') : ''}`
-                  : `Lịch học ${selectedDate ? dayjs(selectedDate).format('dddd') : ''} ngày ${selectedDate ? dayjs(selectedDate).format('DD/MM/YYYY') : ''}`}
+            {/* Background subtle effect */}
+            <Box sx={{
+              position: 'absolute',
+              top: 0, right: 0,
+              width: '150px', height: '150px',
+              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
+              zIndex: 0
+            }} />
+
+            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #f1f5f9', position: 'relative', zIndex: 1 }}>
+              <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>
+                {userType === 'teacher' ? 'Lịch dạy' : 'Lịch học'}
+              </Typography>
+              <Typography variant="subtitle1" color="primary.main" fontWeight="600">
+                {selectedDate ? dayjs(selectedDate).format('dddd, DD/MM/YYYY') : ''}
               </Typography>
             </Box>
 
-            {lessonsOfDay.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-                <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 1 }}>
-                  {lessonsOfDay.length} {userType === 'teacher' ? 'buổi dạy' : 'buổi học'}
-            </Typography>
-              {lessonsOfDay.map((lesson, idx) => (
-                  <Paper
-                  key={idx}
-                    elevation={2}
-                  sx={{
-                      p: 2,
-                      borderLeft: '6px solid #1976d2',
-                      background: '#f5faff',
-                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.15)',
-                      }
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+              <AnimatePresence mode="wait">
+                {lessonsOfDay.length > 0 ? (
+                  <Box 
+                    component={motion.div}
+                    key="has-lessons"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+                  >
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 1 }}>
+                      Có <Typography component="span" fontWeight="700" color="primary.main">{lessonsOfDay.length}</Typography> {userType === 'teacher' ? 'buổi dạy' : 'buổi học'} trong ngày
+                    </Typography>
+                    
+                    {lessonsOfDay.map((lesson, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                      >
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 3,
+                            border: '1px solid #e2e8f0',
+                            background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1)',
+                              borderColor: '#bae6fd',
+                            },
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: '4px',
+                              background: 'linear-gradient(to bottom, #3b82f6, #60a5fa)',
+                              borderRadius: '4px 0 0 4px',
+                            }
+                          }}
+                        >
+                          <Typography variant="subtitle1" sx={{ color: 'primary.main', fontWeight: 800, mb: 1.5, fontSize: '1.1rem' }}>
+                            {lesson.className}
+                          </Typography>
+                          
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box sx={{ p: 0.5, borderRadius: 1.5, bgcolor: '#f1f5f9', color: '#64748b', display: 'flex' }}>
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </Box>
+                              <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                                {lesson.time}
+                              </Typography>
+                            </Box>
+                            
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box sx={{ p: 0.5, borderRadius: 1.5, bgcolor: '#f1f5f9', color: '#64748b', display: 'flex' }}>
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                              </Box>
+                              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                <Typography component="span" fontWeight="400" color="text.secondary">Phòng:</Typography> {lesson.room || '---'}
+                              </Typography>
+                            </Box>
+                            
+                            {userType !== 'teacher' && lesson.teacher && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Box sx={{ p: 0.5, borderRadius: 1.5, bgcolor: '#f1f5f9', color: '#64748b', display: 'flex' }}>
+                                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                </Box>
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                  <Typography component="span" fontWeight="400" color="text.secondary">GV:</Typography> {lesson.teacher}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Paper>
+                      </motion.div>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box 
+                    component={motion.div}
+                    key="no-lessons"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flex: 1,
+                      textAlign: 'center',
+                      p: 4,
+                      opacity: 0.7
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                      <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600}}>{userType === 'teacher' ? 'Lớp dạy:' : 'Lớp:'}</span>
-                        <span>{lesson.className}</span>
-                      </Typography>
+                    <Box sx={{ 
+                      width: 80, height: 80, mb: 3, 
+                      borderRadius: '50%', 
+                      background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#94a3b8'
+                    }}>
+                      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
-                      <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600 }}>{userType === 'teacher' ? 'Thời gian dạy:' : 'Thời gian:'}</span>
-                        <span>{lesson.time}</span>
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span style={{ fontWeight: 600 }}>Phòng:</span>
-                        <span>{lesson.room || '---'}</span>
-                      </Typography>
-                      {userType !== 'teacher' && lesson.teacher && (
-                        <Typography variant="body1" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <span style={{ fontWeight: 600 }}>Giáo viên:</span>
-                          <span>{lesson.teacher}</span>
-                        </Typography>
-                      )}
-                    </Box>
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-                  <Box sx={{
-                    display: 'flex',
-                flexDirection: 'column',
-                    alignItems: 'center',
-                justifyContent: 'center',
-                flex: 1,
-                textAlign: 'center'
-              }}>
-                <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
-                  {userType === 'teacher' ? 'Không có lịch dạy' : 'Không có lịch học'}
+                    <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1 }}>
+                      Tự do
                     </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {userType === 'teacher' ? 'Chọn một ngày khác để xem lịch dạy' : 'Chọn một ngày khác để xem lịch học'}
+                    <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: '80%' }}>
+                      Bạn {userType === 'teacher' ? 'không có lịch dạy' : 'không có lịch học'} vào ngày này. Hãy tận hưởng thời gian nghỉ ngơi!
                     </Typography>
                   </Box>
-            )}
+                )}
+              </AnimatePresence>
+            </Box>
           </Paper>
         </Box>
       </Box>

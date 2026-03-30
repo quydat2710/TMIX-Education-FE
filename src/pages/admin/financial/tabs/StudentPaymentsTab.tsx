@@ -283,76 +283,135 @@ const StudentPaymentsTab: React.FC<Props> = ({ onTotalsChange }) => {
         </Box>
       </Box>
 
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Học sinh</TableCell>
-              <TableCell>Lớp</TableCell>
-              <TableCell align="center">Tháng</TableCell>
-              <TableCell align="center">Số buổi học</TableCell>
-              <TableCell align="center">Số tiền gốc</TableCell>
-              <TableCell align="center">Giảm giá</TableCell>
-              <TableCell align="center">Số tiền cuối</TableCell>
-              <TableCell align="center">Đã đóng</TableCell>
-              <TableCell align="center">Còn thiếu</TableCell>
-              <TableCell align="center">Trạng thái</TableCell>
-              <TableCell align="center">Thao tác</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {payments.map((p) => (
-              <TableRow key={p.id} hover>
-                <TableCell>{p.student?.name || 'Chưa có tên'}</TableCell>
-                <TableCell>{p.class?.name || 'Chưa có tên lớp'}</TableCell>
-                <TableCell align="center">{p.month}/{p.year}</TableCell>
-                <TableCell align="center">{p.totalLessons || 0}</TableCell>
-                <TableCell align="center">{(p.totalAmount ?? 0).toLocaleString()} ₫</TableCell>
-                <TableCell align="center">{(p.discountAmount ?? 0).toLocaleString()} ₫</TableCell>
-                <TableCell align="center">{((p.totalAmount ?? 0) - (p.discountAmount ?? 0)).toLocaleString()} ₫</TableCell>
-                <TableCell align="center">{(p.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
-                <TableCell align="center">{(((p.totalAmount ?? 0) - (p.discountAmount ?? 0)) - (p.paidAmount ?? 0)).toLocaleString()} ₫</TableCell>
-                <TableCell align="center">
-                  <Box
-                    component="span"
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      px: 1.25,
-                      py: 0.25,
-                      borderRadius: 1,
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      color: p.status === 'paid' ? '#2e7d32' : p.status === 'partial' ? '#f9a825' : '#c62828',
-                      border: `1px solid ${p.status === 'paid' ? '#2e7d32' : p.status === 'partial' ? '#f9a825' : '#c62828'}`,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
-                  </Box>
-                </TableCell>
-                <TableCell align="center">
-                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Tooltip title="Lịch sử thanh toán">
-                      <IconButton onClick={() => onOpenHistory(p)}>
-                        <HistoryIcon />
-                      </IconButton>
-                    </Tooltip>
-                    {p.status !== 'paid' && (
-                      <Tooltip title="Thanh toán">
-                        <IconButton color="primary" onClick={() => onOpenPayDialog(p)}>
-                          <PaymentIcon />
+      <Paper sx={{ 
+        p: { xs: 2, md: 3 }, 
+        borderRadius: 4, 
+        boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+        background: '#ffffff', 
+        border: '1px solid rgba(0,0,0,0.03)', 
+        mb: 3,
+        overflow: 'hidden'
+      }}>
+        <Box mt={1} borderRadius={3} sx={{ 
+          background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+          border: '1px solid #e2e8f0', 
+          p: { xs: 1, sm: 2 } 
+        }}>
+          <TableContainer
+            sx={{ 
+              borderRadius: 2, 
+              boxShadow: 'none', 
+              border: 'none',
+              bgcolor: 'transparent',
+              '& .MuiTableCell-root': {
+                borderColor: 'rgba(226, 232, 240, 0.8)'
+              }
+            }}
+          >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Học sinh</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Lớp</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi học</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền gốc</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số tiền cuối</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Đã đóng</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Còn thiếu</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {payments.map((p) => (
+                <TableRow key={p.id} hover sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.5)' } }}>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="700" color="primary.main">
+                      {p.student?.name || 'Chưa có tên'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="500">
+                      {p.class?.name || 'Chưa có tên lớp'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="body2" fontWeight="600">{p.month}/{p.year}</Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="body2" fontWeight="600">{p.totalLessons || 0}</Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="body2" color="text.secondary" fontWeight="500">
+                      {(p.totalAmount ?? 0).toLocaleString()} ₫
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="body2" color="text.secondary" fontWeight="500">
+                      {(p.discountAmount ?? 0).toLocaleString()} ₫
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="subtitle2" color="primary.main" fontWeight="800">
+                      {((p.totalAmount ?? 0) - (p.discountAmount ?? 0)).toLocaleString()} ₫
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="subtitle2" color="success.main" fontWeight="800">
+                      {(p.paidAmount ?? 0).toLocaleString()} ₫
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="subtitle2" color="error.main" fontWeight="800">
+                      {(((p.totalAmount ?? 0) - (p.discountAmount ?? 0)) - (p.paidAmount ?? 0)).toLocaleString()} ₫
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box
+                      component="span"
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 1.5,
+                        fontSize: '0.8125rem',
+                        fontWeight: 700,
+                        color: p.status === 'paid' ? '#059669' : p.status === 'partial' ? '#d97706' : p.status === 'pending' ? '#2563eb' : '#dc2626',
+                        background: p.status === 'paid' ? 'rgba(16, 185, 129, 0.1)' : p.status === 'partial' ? 'rgba(245, 158, 11, 0.1)' : p.status === 'pending' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        border: `1px solid ${p.status === 'paid' ? 'rgba(16, 185, 129, 0.2)' : p.status === 'partial' ? 'rgba(245, 158, 11, 0.2)' : p.status === 'pending' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng'}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center' }}>
+                      <Tooltip title="Lịch sử thanh toán">
+                        <IconButton size="small" onClick={() => onOpenHistory(p)} sx={{ color: 'info.main', bgcolor: 'info.50', '&:hover': { bgcolor: 'info.100' } }}>
+                          <HistoryIcon fontSize="small"/>
                         </IconButton>
                       </Tooltip>
-                    )}
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                      {p.status !== 'paid' && (
+                        <Tooltip title="Thanh toán">
+                          <IconButton size="small" onClick={() => onOpenPayDialog(p)} sx={{ color: 'primary.main', bgcolor: 'primary.50', '&:hover': { bgcolor: 'primary.100' } }}>
+                            <PaymentIcon fontSize="small"/>
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        </Box>
+      </Paper>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
         <Pagination count={pagination.totalPages} page={pagination.page} onChange={(_, p) => onPageChange(p)} />
       </Box>

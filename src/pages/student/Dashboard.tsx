@@ -6,7 +6,6 @@ import {
   Paper,
   Alert,
   LinearProgress,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -22,6 +21,7 @@ import {
   School as SchoolIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import StatCard from '../../components/common/StatCard';
@@ -148,88 +148,122 @@ const Dashboard = () => {
         </Typography>
 
         {/* Stat Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+        }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Tổng lớp học"
               value={dashboardData.totalClasses}
-              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              icon={<ClassIcon sx={{ fontSize: 32 }} />}
               color="primary"
+              index={0}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Lớp đang học"
               value={dashboardData.activeClasses}
-                icon={<SchoolIcon sx={{ fontSize: 40 }} />}
+              icon={<SchoolIcon sx={{ fontSize: 32 }} />}
               color="success"
+              index={1}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-                title="Lớp hoàn thành"
+              title="Lớp hoàn thành"
               value={dashboardData.completedClasses}
-                icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
+              icon={<TrendingUpIcon sx={{ fontSize: 32 }} />}
               color="info"
+              index={2}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-                title="Tỷ lệ tham gia"
-                value={`${dashboardData.attendance.attendanceRate || 0}%`}
-                icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
+              title="Tỷ lệ tham gia"
+              value={`${dashboardData.attendance.attendanceRate || 0}%`}
+              icon={<ScheduleIcon sx={{ fontSize: 32 }} />}
               color="warning"
+              index={3}
             />
           </Grid>
         </Grid>
 
           {/* Attendance Stats */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
             <StatCard
                 title="Tổng số buổi"
                 value={dashboardData.attendance.totalSessions}
-              icon={<TimeIcon sx={{ fontSize: 40 }} />}
+                icon={<TimeIcon sx={{ fontSize: 32 }} />}
                 color="secondary"
+                index={4}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Buổi có mặt"
                 value={dashboardData.attendance.presentSessions}
-                icon={<PersonIcon sx={{ fontSize: 40 }} />}
-              color="success"
-            />
-          </Grid>
+                icon={<PersonIcon sx={{ fontSize: 32 }} />}
+                color="success"
+                index={5}
+              />
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Buổi vắng"
                 value={dashboardData.attendance.absentSessions}
-                icon={<PersonIcon sx={{ fontSize: 40 }} />}
+                icon={<PersonIcon sx={{ fontSize: 32 }} />}
                 color="error"
+                index={6}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-            <StatCard
+              <StatCard
                 title="Buổi muộn"
                 value={dashboardData.attendance.lateSessions}
-                icon={<TimeIcon sx={{ fontSize: 40 }} />}
+                icon={<TimeIcon sx={{ fontSize: 32 }} />}
                 color="warning"
-            />
-          </Grid>
+                index={7}
+              />
+            </Grid>
           </Grid>
 
           {/* Class List */}
-          <Grid container spacing={3}>
+          <Grid container spacing={3} component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
           <Grid item xs={12}>
-            <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                Danh sách lớp học
+            <Paper sx={{ 
+              p: { xs: 2, md: 4 }, 
+              borderRadius: 4, 
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+              border: '1px solid rgba(0,0,0,0.03)',
+              background: '#ffffff',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <SchoolIcon color="primary" /> Danh sách lớp học
               </Typography>
                 {dashboardData.classList.length > 0 ? (
-                <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
-                <TableContainer sx={commonStyles.tableContainer}>
-                  <Table size="small">
+                <Box mt={2} borderRadius={3} sx={{ 
+                  background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+                  border: '1px solid #e2e8f0', 
+                  p: { xs: 1, sm: 2 } 
+                }}>
+                <TableContainer 
+                  sx={{ 
+                    ...commonStyles.tableContainer, 
+                    borderRadius: 2, 
+                    boxShadow: 'none', 
+                    border: 'none',
+                    bgcolor: 'transparent' 
+                  }}
+                >
+                  <Table size="medium">
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
@@ -271,23 +305,37 @@ const Dashboard = () => {
                               </Typography>
                           </TableCell>
                           <TableCell>
-                            <Chip
-                                    label={
-                                      classItem.status === 'active'
-                                        ? 'Đang học'
-                                        : classItem.status === 'completed'
-                                        ? 'Hoàn thành'
-                                        : classItem.status || 'N/A'
-                                    }
-                                    color={
-                                      classItem.status === 'active'
-                                        ? 'success'
-                                        : classItem.status === 'completed'
-                                        ? 'primary'
-                                        : 'default'
-                                    }
-                              size="small"
-                            />
+                            {(() => {
+                              const isActive = classItem.status === 'active';
+                              const isCompleted = classItem.status === 'completed';
+                              
+                              const statusLabel = isActive ? 'Đang học' : isCompleted ? 'Hoàn thành' : (classItem.status || 'N/A');
+                              const colorCode = isActive ? '#059669' : isCompleted ? '#2563eb' : '#64748b';
+                              const bgCode = isActive ? 'rgba(16, 185, 129, 0.1)' : isCompleted ? 'rgba(59, 130, 246, 0.1)' : 'rgba(100, 116, 139, 0.1)';
+                              const borderCode = isActive ? 'rgba(16, 185, 129, 0.2)' : isCompleted ? 'rgba(59, 130, 246, 0.2)' : 'rgba(100, 116, 139, 0.2)';
+
+                              return (
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: 1.5,
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 700,
+                                    color: colorCode,
+                                    background: bgCode,
+                                    border: `1px solid ${borderCode}`,
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {statusLabel}
+                                </Box>
+                              );
+                            })()}
                           </TableCell>
                         </TableRow>
                             );

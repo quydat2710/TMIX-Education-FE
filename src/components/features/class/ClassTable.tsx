@@ -72,7 +72,6 @@ const ClassTable: React.FC<ClassTableProps> = ({
   onViewSchedule,
   loading = false
 }) => {
-  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -239,25 +238,42 @@ const ClassTable: React.FC<ClassTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} elevation={2}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: theme.palette.primary.main }}>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tên lớp</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Giáo viên</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Năm học</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Học phí mỗi buổi</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Lịch học</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Phòng học</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Trạng thái</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Thao tác</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {classes.map((classItem) => (
-              <TableRow key={classItem.id} hover>
-                <TableCell>
-                  <Typography variant="subtitle1" fontWeight="bold">
+      <Box sx={{ 
+        background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+        border: '1px solid #e2e8f0', 
+        borderRadius: 3,
+        p: { xs: 1, sm: 2 } 
+      }}>
+        <TableContainer sx={{ 
+          bgcolor: 'transparent',
+          boxShadow: 'none',
+          border: 'none',
+          '& .MuiTableCell-root': {
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)'
+          }
+        }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tên lớp</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Giáo viên</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Năm học</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Học phí mỗi buổi</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Lịch học</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Phòng học</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Trạng thái</TableCell>
+                <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px', textAlign: 'center' }}>Thao tác</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {classes.map((classItem) => (
+                <TableRow key={classItem.id} sx={{ 
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)', transform: 'translateY(-1px)' }
+                }}>
+                  <TableCell>
+                    <Typography variant="subtitle1" fontWeight="700" color="primary.main">
                     {classItem.name}
                   </Typography>
                 </TableCell>
@@ -345,6 +361,7 @@ const ClassTable: React.FC<ClassTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
+    </Box>
 
       {/* Action Menu */}
       <Menu

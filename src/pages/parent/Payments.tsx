@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Box, Typography, Grid, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Box, Typography, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, LinearProgress, Alert, Button,
   TextField,
   Paper, Tabs, Tab, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
@@ -17,6 +17,8 @@ import {
   AccountBalanceWallet as WalletIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
+import StatCard from '../../components/common/StatCard';
+import { motion } from 'framer-motion';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { getParentByIdAPI } from '../../services/parents';
 import { getPaymentsByStudentAPI, getQRCodeAPI } from '../../services/payments';
@@ -198,21 +200,7 @@ const Payments: React.FC = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'đã thanh toán':
-        return 'success';
-      case 'pending':
-      case 'chờ thanh toán':
-        return 'warning';
-      case 'overdue':
-      case 'quá hạn':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
+
 
   const getStatusLabel = (status: string): string => {
     switch (status.toLowerCase()) {
@@ -403,66 +391,45 @@ const Payments: React.FC = () => {
           </Typography>
 
           {/* Stat Cards */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <ReceiptIcon color="primary" sx={{ mr: 2, fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="h4">{summary.totalInvoices}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Tổng hóa đơn
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+              <StatCard
+                title="Tổng hóa đơn"
+                value={summary.totalInvoices}
+                icon={<ReceiptIcon sx={{ fontSize: 32 }} />}
+                color="primary"
+                index={0}
+              />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <PaymentIcon color="success" sx={{ mr: 2, fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="h4">{formatCurrency(summary.totalPaid)}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Đã thanh toán
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+              <StatCard
+                title="Đã thanh toán"
+                value={formatCurrency(summary.totalPaid)}
+                icon={<PaymentIcon sx={{ fontSize: 32 }} />}
+                color="success"
+                index={1}
+              />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <MoneyOffIcon color="error" sx={{ mr: 2, fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="h4">{formatCurrency(summary.totalUnpaid)}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Chưa thanh toán
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+              <StatCard
+                title="Chưa thanh toán"
+                value={formatCurrency(summary.totalUnpaid)}
+                icon={<MoneyOffIcon sx={{ fontSize: 32 }} />}
+                color="error"
+                index={2}
+              />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <DiscountIcon color="warning" sx={{ mr: 2, fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="h4">{formatCurrency(summary.totalDiscount)}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Tổng giảm giá
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+              <StatCard
+                title="Tổng giảm giá"
+                value={formatCurrency(summary.totalDiscount)}
+                icon={<DiscountIcon sx={{ fontSize: 32 }} />}
+                color="warning"
+                index={3}
+              />
             </Grid>
           </Grid>
 
@@ -493,31 +460,46 @@ const Payments: React.FC = () => {
           </Paper>
 
           {/* Payment Transactions Table */}
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Danh sách hóa đơn
-              </Typography>
-              <TableContainer>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 2 }}>
+              Danh sách hóa đơn
+            </Typography>
+            <Box sx={{ 
+              background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+              border: '1px solid #e2e8f0', 
+              borderRadius: 3,
+              p: { xs: 1, sm: 2 } 
+            }}>
+              <TableContainer sx={{ 
+                bgcolor: 'transparent',
+                boxShadow: 'none',
+                border: 'none',
+                '& .MuiTableCell-root': {
+                  borderBottom: '1px solid rgba(226, 232, 240, 0.8)'
+                }
+              }}>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tên con</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi học</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tiền gốc</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Giảm giá</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tiền cuối</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Đã thanh toán</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Còn lại</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tên con</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Lớp học</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tháng</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Số buổi học</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tiền gốc</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Giảm giá</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tiền cuối</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Đã thanh toán</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Còn lại</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Trạng thái</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Thao tác</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredInvoices.map((invoice) => (
-                      <TableRow key={invoice.id} sx={commonStyles.tableRow}>
+                      <TableRow key={invoice.id} sx={{ 
+                        transition: 'all 0.2s',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)', transform: 'translateY(-1px)' }
+                      }}>
                         <TableCell align="center">
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {invoice.childName}
@@ -547,13 +529,22 @@ const Payments: React.FC = () => {
                         <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.paidAmount)}</Typography></TableCell>
                         <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.remainingAmount)}</Typography></TableCell>
                         <TableCell align="center">
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
-                            <Chip
-                              label={getStatusLabel(invoice.status)}
-                              color={getStatusColor(invoice.status)}
-                              size="small"
-                              variant="outlined"
-                            />
+                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Box sx={{
+                              px: 1.5, py: 0.5,
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              bgcolor: invoice.status.toLowerCase() === 'paid' || invoice.status.toLowerCase() === 'đã thanh toán' ? 'rgba(76, 175, 80, 0.1)' : 
+                                      invoice.status.toLowerCase() === 'overdue' || invoice.status.toLowerCase() === 'quá hạn' ? 'rgba(211, 47, 47, 0.1)' : 'rgba(255, 152, 0, 0.1)',
+                              color: invoice.status.toLowerCase() === 'paid' || invoice.status.toLowerCase() === 'đã thanh toán' ? 'success.dark' : 
+                                     invoice.status.toLowerCase() === 'overdue' || invoice.status.toLowerCase() === 'quá hạn' ? 'error.dark' : 'warning.dark',
+                              border: '1px solid',
+                              borderColor: invoice.status.toLowerCase() === 'paid' || invoice.status.toLowerCase() === 'đã thanh toán' ? 'rgba(76, 175, 80, 0.2)' : 
+                                          invoice.status.toLowerCase() === 'overdue' || invoice.status.toLowerCase() === 'quá hạn' ? 'rgba(211, 47, 47, 0.2)' : 'rgba(255, 152, 0, 0.2)',
+                            }}>
+                              {getStatusLabel(invoice.status)}
+                            </Box>
                           </Box>
                         </TableCell>
                         <TableCell align="left">
@@ -594,8 +585,8 @@ const Payments: React.FC = () => {
                   </Typography>
                 </Box>
               )}
-            </CardContent>
-          </Card>
+            </Box>
+          </Box>
         </Box>
       </Box>
 

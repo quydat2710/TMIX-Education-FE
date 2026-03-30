@@ -131,14 +131,6 @@ const TuitionPaymentList: React.FC = () => {
     }
   };
 
-  const getRowBgColor = (s: string) => {
-    switch (s) {
-      case 'pending': return 'rgba(211, 47, 47, 0.04)';
-      case 'partial': return 'rgba(255, 152, 0, 0.04)';
-      default: return 'transparent';
-    }
-  };
-
   const getRemainingAmount = (p: PaymentItem) => {
     const discountAmount = (p.totalAmount * (p.discountPercent || 0)) / 100;
     return (p.totalAmount - discountAmount) - p.paidAmount;
@@ -147,18 +139,26 @@ const TuitionPaymentList: React.FC = () => {
   const unpaidCount = payments.filter(p => p.status === 'pending' || p.status === 'partial').length;
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+    <Paper sx={{ 
+      p: { xs: 2, md: 3 }, 
+      borderRadius: 4, 
+      boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+      background: '#ffffff', 
+      border: '1px solid rgba(0,0,0,0.03)', 
+      mb: 3,
+      overflow: 'hidden'
+    }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
             Thanh toán học phí
           </Typography>
           {meta.totalItems > 0 && (
             <Chip
               label={`${meta.totalItems} bản ghi`}
               size="small"
-              sx={{ fontWeight: 500, bgcolor: '#e3f2fd', color: '#1565c0' }}
+              sx={{ fontWeight: 600, bgcolor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}
             />
           )}
         </Box>
@@ -177,13 +177,13 @@ const TuitionPaymentList: React.FC = () => {
       </Box>
 
       {/* Toolbar: Search + Filter */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <TextField
           size="small"
           placeholder="Tìm theo tên học viên hoặc phụ huynh..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ flex: 1, minWidth: 220 }}
+          sx={{ flex: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -211,7 +211,7 @@ const TuitionPaymentList: React.FC = () => {
             label="Trạng thái"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            sx={{ minWidth: 180 }}
+            sx={{ minWidth: 180, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -223,19 +223,19 @@ const TuitionPaymentList: React.FC = () => {
             <MenuItem value="all">Tất cả</MenuItem>
             <MenuItem value="pending">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#d32f2f' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#dc2626' }} />
                 Chờ thanh toán
               </Box>
             </MenuItem>
             <MenuItem value="partial">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ff9800' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#d97706' }} />
                 Thanh toán một phần
               </Box>
             </MenuItem>
             <MenuItem value="paid">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#2e7d32' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#059669' }} />
                 Đã thanh toán
               </Box>
             </MenuItem>
@@ -247,11 +247,11 @@ const TuitionPaymentList: React.FC = () => {
       {status === 'all' && unpaidCount > 0 && (
         <Box sx={{
           display: 'flex', alignItems: 'center', gap: 1,
-          p: 1.5, mb: 2, borderRadius: 1.5,
-          bgcolor: 'rgba(211, 47, 47, 0.06)',
-          border: '1px solid rgba(211, 47, 47, 0.15)',
+          p: 1.5, mb: 3, borderRadius: 2,
+          bgcolor: 'rgba(239, 68, 68, 0.05)',
+          border: '1px solid rgba(239, 68, 68, 0.1)',
         }}>
-          <Typography variant="body2" color="error.main" fontWeight={500}>
+          <Typography variant="body2" color="error.main" fontWeight={600}>
             ⚠️ Có {unpaidCount} học viên chưa hoàn thành thanh toán trong trang này
           </Typography>
           <Button
@@ -259,7 +259,7 @@ const TuitionPaymentList: React.FC = () => {
             color="error"
             variant="text"
             onClick={() => setStatus('pending')}
-            sx={{ ml: 'auto', textTransform: 'none', fontWeight: 600 }}
+            sx={{ ml: 'auto', textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
           >
             Xem ngay →
           </Button>
@@ -267,106 +267,134 @@ const TuitionPaymentList: React.FC = () => {
       )}
 
       {/* Table */}
-      <TableContainer sx={{ maxHeight: 480, overflowY: 'auto' }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Học viên</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Lớp</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Tháng</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Tổng HP</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Đã đóng</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Còn thiếu</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#fafafa' }}>Trạng thái</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading && payments.length === 0 ? (
+      <Box mt={1} borderRadius={3} sx={{ 
+        background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+        border: '1px solid #e2e8f0', 
+        p: { xs: 1, sm: 2 } 
+      }}>
+        <TableContainer 
+          sx={{ 
+            maxHeight: 480, 
+            borderRadius: 2, 
+            boxShadow: 'none', 
+            border: 'none',
+            bgcolor: 'transparent',
+            '& .MuiTableCell-root': {
+              borderColor: 'rgba(226, 232, 240, 0.8)'
+            }
+          }}
+        >
+          <Table size="small" stickyHeader>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
-                  <CircularProgress size={28} />
-                  <Typography variant="body2" sx={{ mt: 1 }}>Đang tải...</Typography>
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Học viên</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Lớp</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tháng</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Tổng HP</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Đã đóng</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Còn thiếu</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
               </TableRow>
-            ) : payments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography color="text.secondary">
-                    {debouncedSearch || status !== 'all'
-                      ? 'Không tìm thấy kết quả phù hợp'
-                      : 'Chưa có thanh toán nào'}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              payments.map((p) => (
-                <TableRow
-                  key={p.id}
-                  sx={{
-                    bgcolor: getRowBgColor(p.status),
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    '&:hover': { bgcolor: 'action.hover' },
-                  }}
-                  onClick={() => setSelectedPayment(p)}
-                >
-                  <TableCell>
-                    <Box>
-                      <Typography variant="body2" fontWeight={600}>{p.name}</Typography>
-                      {p.parentName && p.parentName !== 'Chưa có' && (
-                        <Typography variant="caption" color="text.secondary">
-                          PH: {p.parentName}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{p.className}</Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography variant="body2">{p.month}/{p.year}</Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="body2">{formatCurrency(p.totalAmount)}</Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="body2" color="success.main" fontWeight={500}>
-                      {formatCurrency(p.paidAmount)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      color={getRemainingAmount(p) > 0 ? 'error.main' : 'text.secondary'}
-                    >
-                      {formatCurrency(getRemainingAmount(p))}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={getStatusLabel(p.status)}
-                      color={getStatusColor(p.status)}
-                      size="small"
-                      sx={{ fontWeight: 500 }}
-                    />
+            </TableHead>
+            <TableBody>
+              {loading && payments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                    <CircularProgress size={28} />
+                    <Typography variant="body2" sx={{ mt: 1 }}>Đang tải...</Typography>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              ) : payments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography color="text.secondary">
+                      {debouncedSearch || status !== 'all'
+                        ? 'Không tìm thấy kết quả phù hợp'
+                        : 'Chưa có thanh toán nào'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                payments.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                      bgcolor: 'transparent',
+                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.5)' },
+                    }}
+                    onClick={() => setSelectedPayment(p)}
+                  >
+                    <TableCell>
+                      <Box>
+                        <Typography variant="body2" fontWeight={700} color="primary.main">{p.name}</Typography>
+                        {p.parentName && p.parentName !== 'Chưa có' && (
+                          <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                            PH: {p.parentName}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={500}>{p.className}</Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2" fontWeight={600}>{p.month}/{p.year}</Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>{formatCurrency(p.totalAmount)}</Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="subtitle2" color="success.main" fontWeight={800}>
+                        {formatCurrency(p.paidAmount)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight={800}
+                        color={getRemainingAmount(p) > 0 ? 'error.main' : 'text.secondary'}
+                      >
+                        {formatCurrency(getRemainingAmount(p))}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 1.5,
+                          fontSize: '0.8125rem',
+                          fontWeight: 700,
+                          color: p.status === 'paid' ? '#059669' : p.status === 'partial' ? '#d97706' : p.status === 'pending' ? '#2563eb' : '#dc2626',
+                          background: p.status === 'paid' ? 'rgba(16, 185, 129, 0.1)' : p.status === 'partial' ? 'rgba(245, 158, 11, 0.1)' : p.status === 'pending' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                          border: `1px solid ${p.status === 'paid' ? 'rgba(16, 185, 129, 0.2)' : p.status === 'partial' ? 'rgba(245, 158, 11, 0.2)' : p.status === 'pending' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {p.status === 'paid' ? 'Đã thanh toán' : p.status === 'partial' ? 'Thanh toán một phần' : 'Chờ thanh toán'}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
 
       {/* Pagination */}
       {meta.totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
             count={meta.totalPages}
             page={meta.page}
             onChange={(_, p) => fetchPayments(p)}
-            color="primary"
-            size="small"
           />
         </Box>
       )}
