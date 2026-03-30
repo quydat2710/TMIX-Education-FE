@@ -32,7 +32,6 @@ import {
   Group as GroupIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 import { Class } from '../../../types';
 import { getClassByIdAPI } from '../../../services/classes';
 

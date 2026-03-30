@@ -235,29 +235,7 @@ const Children: React.FC = () => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const getStatusColor = (status: any): 'success' | 'warning' | 'error' | 'default' => {
-    if (!status) return 'default';
-    const s = String(status).toLowerCase();
-    switch (s) {
-      case 'active':
-      case 'đang học':
-        return 'success';
-      case 'upcoming':
-      case 'sắp khai giảng':
-        return 'warning';
-      case 'closed':
-      case 'đã kết thúc':
-        return 'default';
-      case 'completed':
-      case 'hoàn thành':
-        return 'default';
-      case 'pending':
-      case 'chờ':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
+
 
   const getStatusLabel = (status: any): string => {
     if (!status) return 'Không rõ';
