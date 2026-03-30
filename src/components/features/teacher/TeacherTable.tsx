@@ -6,7 +6,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Box,
   Typography
@@ -17,7 +16,6 @@ import {
   Visibility as VisibilityIcon,
   LockReset as LockResetIcon
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 import { Teacher } from '../../../types';
 
 interface TeacherTableProps {
@@ -29,8 +27,6 @@ interface TeacherTableProps {
   loading?: boolean;
 }
 
-
-
 const TeacherTable: React.FC<TeacherTableProps> = ({
   teachers,
   onEdit,
@@ -39,12 +35,6 @@ const TeacherTable: React.FC<TeacherTableProps> = ({
   onResetPassword,
   loading = false
 }) => {
-  const theme = useTheme();
-
-
-
-
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
@@ -62,26 +52,42 @@ const TeacherTable: React.FC<TeacherTableProps> = ({
   }
 
   return (
-    <>
-      <TableContainer component={Paper} elevation={2} sx={{ backgroundColor: 'white' }}>
+    <Box sx={{ 
+      background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+      border: '1px solid #e2e8f0', 
+      borderRadius: 3,
+      p: { xs: 1, sm: 2 } 
+    }}>
+      <TableContainer sx={{ 
+        bgcolor: 'transparent',
+        boxShadow: 'none',
+        border: 'none',
+        '& .MuiTableCell-root': {
+          borderBottom: '1px solid rgba(226, 232, 240, 0.8)'
+        }
+      }}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: theme.palette.primary.main }}>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Họ và tên</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Email</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Số điện thoại</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Lương/buổi</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Bằng cấp</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Chuyên môn</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Trạng thái</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Thao tác</TableCell>
+            <TableRow>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Họ và tên</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Số điện thoại</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Lương/buổi</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Bằng cấp</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Chuyên môn</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Trạng thái</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px', textAlign: 'center' }}>Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {teachers && Array.isArray(teachers) && teachers.map((teacher) => (
-              <TableRow key={teacher.id || teacher.teacher_id} hover>
+              <TableRow key={teacher.id || teacher.teacher_id} sx={{ 
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)', transform: 'translateY(-1px)' }
+              }}>
                 <TableCell>
-                  <Typography variant="body2">
+                  <Typography variant="body1" fontWeight="700" color="primary.main">
                     {teacher.name || teacher.userId?.name}
                   </Typography>
                 </TableCell>
@@ -199,7 +205,7 @@ const TeacherTable: React.FC<TeacherTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+    </Box>
   );
 };
 

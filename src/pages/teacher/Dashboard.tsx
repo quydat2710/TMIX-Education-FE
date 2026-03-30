@@ -19,7 +19,9 @@ import {
   TrendingUp as TrendingUpIcon,
   Payment as PaymentIcon,
   Schedule as ScheduleIcon,
+  School as SchoolIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -153,79 +155,111 @@ const Dashboard = () => {
         </Typography>
 
         {/* Stat Cards - First Row */}
-        <Grid container spacing={6} sx={{ mb: 4 }}>
+        <Grid container spacing={6} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+        }}>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp đang dạy"
-                value={dashboardData.teachingClasses}
-              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              value={dashboardData.teachingClasses}
+              icon={<ClassIcon sx={{ fontSize: 32 }} />}
               color="success"
+              index={0}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp đã kết thúc"
-                value={dashboardData.closedClasses}
-              icon={<ClassIcon sx={{ fontSize: 40 }} />}
+              value={dashboardData.closedClasses}
+              icon={<ClassIcon sx={{ fontSize: 32 }} />}
               color="warning"
+              index={1}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lớp sắp tới"
-                value={dashboardData.upcomingClasses}
-              icon={<ScheduleIcon sx={{ fontSize: 40 }} />}
+              value={dashboardData.upcomingClasses}
+              icon={<ScheduleIcon sx={{ fontSize: 32 }} />}
               color="info"
+              index={2}
             />
           </Grid>
         </Grid>
 
           {/* Salary Stats */}
-        <Grid container spacing={6} sx={{ mb: 4 }}>
+        <Grid container spacing={6} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+        }}>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Tổng lương"
-                value={formatCurrency(dashboardData.paymentInfo?.totalSalary)}
-              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+              value={formatCurrency(dashboardData.paymentInfo?.totalSalary)}
+              icon={<PaymentIcon sx={{ fontSize: 32 }} />}
               color="secondary"
+              index={3}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lương đã nhận"
-                value={formatCurrency(dashboardData.paymentInfo?.totalPaidAmount)}
-              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
+              value={formatCurrency(dashboardData.paymentInfo?.totalPaidAmount)}
+              icon={<TrendingUpIcon sx={{ fontSize: 32 }} />}
               color="success"
+              index={4}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <StatCard
               title="Lương chưa nhận"
-                value={formatCurrency(dashboardData.paymentInfo?.totalUnPaidAmount)}
-              icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+              value={formatCurrency(dashboardData.paymentInfo?.totalUnPaidAmount)}
+              icon={<PaymentIcon sx={{ fontSize: 32 }} />}
               color="error"
+              index={5}
             />
           </Grid>
         </Grid>
 
         {/* Content Sections */}
-        <Grid container spacing={4}>
+        <Grid container spacing={4} component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
           {/* Active Classes */}
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 6px 24px rgba(0,0,0,0.12)', bgcolor: '#fff', border: '1px solid #e0e0e0', mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                Lớp học đang dạy
+              <Paper sx={{ 
+                p: { xs: 2, md: 3 }, 
+                borderRadius: 4, 
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+                background: '#ffffff', 
+                border: '1px solid rgba(0,0,0,0.03)', 
+                mb: 3,
+                height: '100%'
+              }}>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                <SchoolIcon color="success" /> Lớp học đang dạy
               </Typography>
-                <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
+                <Box mt={2} borderRadius={3} sx={{ 
+                  background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+                  border: '1px solid #e2e8f0', 
+                  p: { xs: 1, sm: 1.5 } 
+                }}>
                   {dashboardData.activeClasses.length > 0 ? (
-                    <TableContainer sx={commonStyles.tableContainer}>
+                    <TableContainer 
+                      sx={{ 
+                        ...commonStyles.tableContainer, 
+                        borderRadius: 2, 
+                        boxShadow: 'none', 
+                        border: 'none',
+                        bgcolor: 'transparent' 
+                      }}
+                    >
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Lớp học</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Phòng học</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Lịch học</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Thời gian</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Lớp</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Phòng</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Lịch</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Giờ</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                           </TableRow>
                         </TableHead>
@@ -233,24 +267,24 @@ const Dashboard = () => {
                           {dashboardData.activeClasses.map((classItem: any, index: number) => {
                             const schedule = formatSchedule(classItem.schedule);
                             return (
-                              <TableRow key={index} sx={commonStyles.tableRow}>
+                              <TableRow key={index} sx={{...commonStyles.tableRow, '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.5)' }}}>
                                 <TableCell>
-                                  <Typography variant="body2" fontWeight="medium">
+                                  <Typography variant="body2" fontWeight="700" color="primary.main">
                                     {classItem.name}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
-                                  <Typography variant="body2">
+                                  <Typography variant="body2" fontWeight="500">
                                     {classItem.room || 'N/A'}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
-                                  <Typography variant="body2">
+                                  <Typography variant="body2" color="text.secondary">
                                     {schedule.days}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
-                                  <Typography variant="body2">
+                                  <Typography variant="body2" color="text.secondary">
                                     {schedule.time}
                                   </Typography>
                                 </TableCell>
@@ -259,6 +293,7 @@ const Dashboard = () => {
                                     label="Đang dạy"
                                     color="success"
                                     size="small"
+                                    sx={{ fontWeight: 600, px: 1 }}
                                   />
                                 </TableCell>
                               </TableRow>
@@ -268,7 +303,7 @@ const Dashboard = () => {
                       </Table>
                     </TableContainer>
                   ) : (
-                    <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4, fontWeight: 500 }}>
                       Chưa có lớp học nào đang dạy
                     </Typography>
                   )}
@@ -278,36 +313,71 @@ const Dashboard = () => {
 
           {/* Recent Salary */}
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 6px 24px rgba(0,0,0,0.12)', bgcolor: '#fff', border: '1px solid #e0e0e0', mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                  Lương tháng gần đây
+              <Paper sx={{ 
+                p: { xs: 2, md: 4 }, 
+                borderRadius: 4, 
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+                background: '#ffffff', 
+                border: '1px solid rgba(0,0,0,0.03)', 
+                mb: 3,
+                height: '100%'
+              }}>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                  <PaymentIcon color="secondary" /> Lương tháng gần đây
                 </Typography>
                 {dashboardData.recentlySalary && Object.keys(dashboardData.recentlySalary).length > 0 ? (
-                  <Box mt={2} bgcolor="#f5f6fa" borderRadius={2} border="1px solid #e0e0e0" p={2}>
-                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={3} justifyContent="space-between" alignItems="flex-start">
-                      <Box flex={1}>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                          <strong>Tháng/Năm:</strong> {formatMonthYear(dashboardData.recentlySalary.month, dashboardData.recentlySalary.year)}
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                          <strong>Tổng buổi:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{dashboardData.recentlySalary.totalLessons || 0}</span>
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                          <strong>Lương/buổi:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency(dashboardData.recentlySalary.salaryPerLesson)}</span>
-                        </Typography>
+                  <Box mt={2} borderRadius={3} sx={{ 
+                    background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+                    border: '1px solid #e2e8f0', 
+                    p: 3
+                  }}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={4} justifyContent="space-between" alignItems="flex-start">
+                      <Box flex={1} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box>
+                          <Typography variant="overline" color="text.secondary" fontWeight="600" letterSpacing={1}>Tháng / Năm</Typography>
+                          <Typography variant="h6" color="primary.main" fontWeight="700">
+                            {formatMonthYear(dashboardData.recentlySalary.month, dashboardData.recentlySalary.year)}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="overline" color="text.secondary" fontWeight="600" letterSpacing={1}>Tổng buổi dạy</Typography>
+                          <Typography variant="h6" fontWeight="600">
+                            {dashboardData.recentlySalary.totalLessons || 0} <Typography component="span" variant="body2" color="text.secondary">buổi</Typography>
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="overline" color="text.secondary" fontWeight="600" letterSpacing={1}>Lương mỗi buổi</Typography>
+                          <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
+                            {formatCurrency(dashboardData.recentlySalary.salaryPerLesson)}
+                          </Typography>
+                        </Box>
                       </Box>
-                      <Box flex={1}>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                          <strong>Tổng lương:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency((dashboardData.recentlySalary.totalLessons || 0) * (dashboardData.recentlySalary.salaryPerLesson || 0))}</span>
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                          <strong>Đã thanh toán:</strong> <span style={{ color: 'text.secondary', fontWeight: 600 }}>{formatCurrency(dashboardData.recentlySalary.paidAmount)}</span>
-                        </Typography>
+                      
+                      <Box flex={1} sx={{ 
+                        display: 'flex', flexDirection: 'column', gap: 2, 
+                        pl: { sm: 4 }, 
+                        borderLeft: { sm: '1px dashed #cbd5e1' },
+                        pt: { xs: 2, sm: 0 },
+                        borderTop: { xs: '1px dashed #cbd5e1', sm: 'none' }
+                      }}>
+                        <Box>
+                          <Typography variant="overline" color="text.secondary" fontWeight="600" letterSpacing={1}>Tổng lương</Typography>
+                          <Typography variant="h5" color="success.main" fontWeight="800">
+                            {formatCurrency((dashboardData.recentlySalary.totalLessons || 0) * (dashboardData.recentlySalary.salaryPerLesson || 0))}
+                          </Typography>
+                        </Box>
+                        
+                        <Box sx={{ mt: 'auto', p: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', borderRadius: 2 }}>
+                          <Typography variant="caption" color="success.main" fontWeight="700" display="block" gutterBottom>ĐÃ THANH TOÁN</Typography>
+                          <Typography variant="h6" color="success.dark" fontWeight="700">
+                            {formatCurrency(dashboardData.recentlySalary.paidAmount)}
+                          </Typography>
+                        </Box>
                       </Box>
                     </Box>
                   </Box>
                 ) : (
-                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4, fontWeight: 500 }}>
                     Chưa có thông tin lương gần đây
                   </Typography>
                 )}

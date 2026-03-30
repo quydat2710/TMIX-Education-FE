@@ -10,7 +10,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   LinearProgress,
   Alert,
   TextField,
@@ -24,6 +23,7 @@ import {
   Payment as PaymentIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAuth } from '../../contexts/AuthContext';
 import { commonStyles } from '../../utils/styles';
@@ -173,14 +173,6 @@ const Dashboard: React.FC = () => {
     }).format(amount || 0);
   };
 
-  const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
-    switch (status) {
-      case 'paid': return 'success';
-      case 'partial': return 'warning';
-      case 'pending': return 'error';
-      default: return 'default';
-    }
-  };
 
   const getStatusLabel = (status: string): string => {
     switch (status) {
@@ -225,13 +217,17 @@ const Dashboard: React.FC = () => {
 
 
           {/* Stat Cards - First Row */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng số lớp học"
                 value={dashboardData.activeClasses + dashboardData.upcomingClasses + dashboardData.closedClasses}
                 icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
                 color="secondary"
+                index={0}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -240,6 +236,7 @@ const Dashboard: React.FC = () => {
                 value={dashboardData.activeClasses}
                 icon={<ClassIcon sx={{ fontSize: 40 }} />}
                 color="success"
+                index={1}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -248,6 +245,7 @@ const Dashboard: React.FC = () => {
                 value={dashboardData.upcomingClasses}
                 icon={<ClassIcon sx={{ fontSize: 40 }} />}
                 color="info"
+                index={2}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -256,18 +254,23 @@ const Dashboard: React.FC = () => {
                 value={dashboardData.closedClasses}
                 icon={<ClassIcon sx={{ fontSize: 40 }} />}
                 color="warning"
+                index={3}
               />
             </Grid>
           </Grid>
 
           {/* Stat Cards - Second Row */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng giáo viên"
                 value={dashboardData.totalTeacher}
                 icon={<PersonIcon sx={{ fontSize: 40 }} />}
                 color="secondary"
+                index={4}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -276,6 +279,7 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.paymentInfo.totalRevenue)}
                 icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
                 color="primary"
+                index={5}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -284,6 +288,7 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.paymentInfo.totalPaidAmount)}
                 icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
                 color="success"
+                index={6}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -292,18 +297,23 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.paymentInfo.totalUnPaidAmount)}
                 icon={<WarningIcon sx={{ fontSize: 40 }} />}
                 color="warning"
+                index={7}
               />
             </Grid>
           </Grid>
 
           {/* Stat Cards - Third Row */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.4 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng học viên"
                 value={dashboardData.totalStudent}
                 icon={<SchoolIcon sx={{ fontSize: 40 }} />}
                 color="primary"
+                index={8}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -312,6 +322,7 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalSalary)}
                 icon={<PaymentIcon sx={{ fontSize: 40 }} />}
                 color="secondary"
+                index={9}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -320,6 +331,7 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalPaidAmount)}
                 icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
                 color="success"
+                index={10}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -328,12 +340,13 @@ const Dashboard: React.FC = () => {
                 value={formatCurrency(dashboardData.teacherPaymentInfo.totalUnPaidAmount)}
                 icon={<WarningIcon sx={{ fontSize: 40 }} />}
                 color="warning"
+                index={11}
               />
             </Grid>
           </Grid>
 
           {/* Revenue Chart */}
-          <Paper sx={{ p: 3, mb: 4, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <Paper component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }} sx={{ p: 3, mb: 4, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Box>
                 <Typography variant="h6" fontWeight={600}>
@@ -407,7 +420,7 @@ const Dashboard: React.FC = () => {
           </Paper>
 
           {/* Content Sections */}
-          <Grid container spacing={3}>
+          <Grid container spacing={3} component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 }}>
             {/* Tuition Payments - Full Width */}
             <Grid item xs={12}>
               <TuitionPaymentList />
@@ -415,47 +428,93 @@ const Dashboard: React.FC = () => {
 
             {/* Recent Salary Payments */}
             <Grid item xs={12}>
-              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-                  Thanh toán lương
+              <Paper sx={{ 
+                p: { xs: 2, md: 3 }, 
+                borderRadius: 4, 
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+                background: '#ffffff', 
+                border: '1px solid rgba(0,0,0,0.03)', 
+                mb: 3,
+                overflow: 'hidden'
+              }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <PaymentIcon color="secondary" /> Thanh toán lương gần đây
                 </Typography>
                 {dashboardData.recentlySalary.length > 0 ? (
-                  <TableContainer sx={commonStyles.tableContainer}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Số tiền đã thanh toán</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {dashboardData.recentlySalary.map((salary, index) => (
-                          <TableRow key={index} sx={commonStyles.tableRow}>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
-                                {salary.name}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" align="center">
-                                {formatCurrency(salary.paidAmount)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={getStatusLabel(salary.status)}
-                                color={getStatusColor(salary.status)}
-                                size="small"
-                              />
-                            </TableCell>
+                  <Box mt={1} borderRadius={3} sx={{ 
+                    background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+                    border: '1px solid #e2e8f0', 
+                    p: { xs: 1, sm: 2 } 
+                  }}>
+                    <TableContainer 
+                      sx={{ 
+                        borderRadius: 2, 
+                        boxShadow: 'none', 
+                        border: 'none',
+                        bgcolor: 'transparent',
+                        '& .MuiTableCell-root': {
+                          borderColor: 'rgba(226, 232, 240, 0.8)'
+                        }
+                      }}
+                    >
+                      <Table size="small" stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Giáo viên</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số Đã Trả</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                          {dashboardData.recentlySalary.map((salary, index) => (
+                            <TableRow 
+                              key={index} 
+                              sx={{
+                                cursor: 'default',
+                                transition: 'background-color 0.2s',
+                                bgcolor: 'transparent',
+                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.5)' },
+                              }}
+                            >
+                              <TableCell>
+                                <Typography variant="body2" fontWeight={700} color="primary.main">
+                                  {salary.name}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="subtitle2" color="success.main" fontWeight={800}>
+                                  {formatCurrency(salary.paidAmount)}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: 1.5,
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 700,
+                                    color: salary.status === 'paid' ? '#059669' : salary.status === 'partial' ? '#d97706' : salary.status === 'pending' ? '#2563eb' : '#dc2626',
+                                    background: salary.status === 'paid' ? 'rgba(16, 185, 129, 0.1)' : salary.status === 'partial' ? 'rgba(245, 158, 11, 0.1)' : salary.status === 'pending' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    border: `1px solid ${salary.status === 'paid' ? 'rgba(16, 185, 129, 0.2)' : salary.status === 'partial' ? 'rgba(245, 158, 11, 0.2)' : salary.status === 'pending' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {getStatusLabel(salary.status)}
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
                 ) : (
-                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4, fontWeight: 500 }}>
                     Chưa có thanh toán lương nào gần đây
                   </Typography>
                 )}

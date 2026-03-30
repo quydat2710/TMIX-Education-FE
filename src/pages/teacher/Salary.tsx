@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Grid, Button, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Grid, Button, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { getTeacherPaymentsAPI, getTeacherPaymentByIdAPI } from '../../services/payments';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -12,6 +12,7 @@ import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from '../../contexts/AuthContext';
+import { motion } from 'framer-motion';
 import PaymentHistoryModal from '../../components/common/PaymentHistoryModal';
 
 const Salary = () => {
@@ -129,106 +130,168 @@ const Salary = () => {
                   </Box>
         {/* Stat Cards */}
         <Box sx={{ mb: 4 }}>
-          <Grid container spacing={3}>
+          <Grid container spacing={4} component={motion.div} initial="hidden" animate="visible" variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+          }}>
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Số tháng có lương"
                 value={payments.length}
-                icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+                icon={<PaymentIcon sx={{ fontSize: 32 }} />}
                 color="primary"
+                index={0}
               />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Tổng lương"
                 value={totalSalary.toLocaleString() + ' ₫'}
-                icon={<PaymentIcon sx={{ fontSize: 40 }} />}
+                icon={<PaymentIcon sx={{ fontSize: 32 }} />}
                 color="success"
+                index={1}
               />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Đã nhận"
                 value={totalPaid.toLocaleString() + ' ₫'}
-                icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
+                icon={<CheckCircleIcon sx={{ fontSize: 32 }} />}
                 color="info"
+                index={2}
               />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Còn lại"
                 value={totalUnpaid.toLocaleString() + ' ₫'}
-                icon={<MoneyOffIcon sx={{ fontSize: 40 }} />}
+                icon={<MoneyOffIcon sx={{ fontSize: 32 }} />}
                 color="warning"
+                index={3}
               />
             </Grid>
           </Grid>
         </Box>
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ 
+          p: { xs: 2, md: 4 }, 
+          borderRadius: 4, 
+          boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', 
+          background: '#ffffff', 
+          border: '1px solid rgba(0,0,0,0.03)', 
+          mb: 3,
+        }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer sx={commonStyles.tableContainer}>
-              <Table>
+            <Box mt={2} borderRadius={3} sx={{ 
+              background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+              border: '1px solid #e2e8f0', 
+              p: { xs: 1, sm: 2 } 
+            }}>
+            <TableContainer 
+              sx={{ 
+                ...commonStyles.tableContainer, 
+                borderRadius: 2, 
+                boxShadow: 'none', 
+                border: 'none',
+                bgcolor: 'transparent' 
+              }}
+            >
+              <Table size="medium">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center">Tháng/Năm</TableCell>
-                    <TableCell align="right">Số buổi</TableCell>
-                    <TableCell align="right">Lương/buổi</TableCell>
-                    <TableCell align="right">Tổng lương</TableCell>
-                    <TableCell align="right">Đã nhận</TableCell>
-                    <TableCell align="center">Trạng thái</TableCell>
-                    <TableCell align="center">Thao tác</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Tháng/Năm</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Số buổi</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Lương/buổi</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Tổng lương</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Đã nhận</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {payments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">Không có dữ liệu lương</TableCell>
+                      <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary', fontWeight: 500 }}>
+                        Không có dữ liệu lương
+                      </TableCell>
                     </TableRow>
                   ) : (
                     payments.map((payment: any) => (
-                      <TableRow key={payment.id} hover sx={commonStyles.tableRow}>
-                        <TableCell align="center">{payment.month}/{payment.year}</TableCell>
+                      <TableRow key={payment.id} sx={{ 
+                        transition: 'all 0.2s',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)', transform: 'translateY(-1px)' }
+                      }}>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="700" color="primary.main">
+                            {payment.month}/{payment.year}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="body2" fontWeight="600">
+                            {payment.classes && Array.isArray(payment.classes)
+                              ? payment.classes.reduce((sum: number, classItem: any) => sum + (classItem.totalLessons || 0), 0)
+                              : 0
+                            }
+                          </Typography>
+                        </TableCell>
                         <TableCell align="right">
-                          {payment.classes && Array.isArray(payment.classes)
-                            ? payment.classes.reduce((sum: number, classItem: any) => sum + (classItem.totalLessons || 0), 0)
-                            : 0
-                          }
+                          <Typography variant="body2" color="text.secondary" fontWeight="500">
+                            {(payment.teacher?.salaryPerLesson ?? 0).toLocaleString()} ₫
+                          </Typography>
                         </TableCell>
-                        <TableCell align="right">{(payment.teacher?.salaryPerLesson ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="right">{(payment.totalAmount ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="right">{(payment.paidAmount ?? 0).toLocaleString()} ₫</TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={
-                              payment.status === 'paid' ? 'Đã nhận' :
-                              payment.status === 'partial' ? 'Nhận một phần' :
-                              payment.status === 'pending' ? 'Chờ nhận' :
-                              'Chưa nhận'
-                            }
-                            color={
-                              payment.status === 'paid' ? 'success' :
-                              payment.status === 'partial' ? 'warning' :
-                              payment.status === 'pending' ? 'info' :
-                              'error'
-                            }
-                            size="small"
-                          />
+                        <TableCell align="right">
+                          <Typography variant="subtitle2" color="primary.main" fontWeight="800">
+                            {(payment.totalAmount ?? 0).toLocaleString()} ₫
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="subtitle2" color="success.main" fontWeight="800">
+                            {(payment.paidAmount ?? 0).toLocaleString()} ₫
+                          </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Tooltip title="Xem chi tiết">
-                            <IconButton size="small" color="primary" onClick={() => handleViewDetail(payment)}>
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Lịch sử thanh toán">
-                            <IconButton size="small" color="info" onClick={() => handleViewHistory(payment)}>
-                              <HistoryIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Box sx={{
+                              px: 1.5, py: 0.5,
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              bgcolor: payment.status === 'paid' ? 'rgba(76, 175, 80, 0.1)' : 
+                                      payment.status === 'partial' ? 'rgba(255, 152, 0, 0.1)' : 
+                                      payment.status === 'pending' ? 'rgba(33, 150, 243, 0.1)' : 'rgba(211, 47, 47, 0.1)',
+                              color: payment.status === 'paid' ? 'success.dark' : 
+                                     payment.status === 'partial' ? 'warning.dark' : 
+                                     payment.status === 'pending' ? 'info.dark' : 'error.dark',
+                              border: '1px solid',
+                              borderColor: payment.status === 'paid' ? 'rgba(76, 175, 80, 0.2)' : 
+                                          payment.status === 'partial' ? 'rgba(255, 152, 0, 0.2)' : 
+                                          payment.status === 'pending' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(211, 47, 47, 0.2)',
+                            }}>
+                              {
+                                payment.status === 'paid' ? 'Đã nhận' :
+                                payment.status === 'partial' ? 'Nhận một phần' :
+                                payment.status === 'pending' ? 'Chờ nhận' :
+                                'Chưa nhận'
+                              }
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            <Tooltip title="Xem chi tiết">
+                              <IconButton size="small" sx={{ color: 'primary.main', bgcolor: 'primary.50', '&:hover': { bgcolor: 'primary.100' } }} onClick={() => handleViewDetail(payment)}>
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Lịch sử thanh toán">
+                              <IconButton size="small" sx={{ color: 'info.main', bgcolor: 'info.50', '&:hover': { bgcolor: 'info.100' } }} onClick={() => handleViewHistory(payment)}>
+                                <HistoryIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     ))
@@ -236,6 +299,7 @@ const Salary = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            </Box>
           )}
         </Paper>
 

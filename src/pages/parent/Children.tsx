@@ -21,6 +21,7 @@ import { getStudentByIdAPI } from '../../services/students';
 import { getSessionsByStudentAPI } from '../../services/sessions';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
+import { motion } from 'framer-motion';
 
 interface ChildClass {
   id?: string;
@@ -112,6 +113,17 @@ const Children: React.FC = () => {
           const classes = rawClasses.map((c: any) => {
             // If class data is nested under 'class' property
             const classData = c.class || c;
+            const rawStatus = String(classData.status || '').toLowerCase();
+            const isExplicitlyInactive = ['closed', 'completed', 'đã kết thúc', 'hoàn thành', 'inactive', 'ngừng học'].includes(rawStatus);
+            
+            // Determine isActive boolean
+            let finalIsActive = true;
+            if (isExplicitlyInactive) {
+              finalIsActive = false;
+            } else if (c.isActive !== undefined) {
+              finalIsActive = c.isActive;
+            }
+
             return {
               id: String(classData.id || c.classId || ''),
               classId: classData.id || c.classId,
@@ -122,8 +134,8 @@ const Children: React.FC = () => {
               feePerLesson: classData.feePerLesson,
               schedule: classData.schedule,
               description: classData.description,
-              status: c.isActive ? 'active' : 'inactive',
-              isActive: c.isActive,
+              status: classData.status || (finalIsActive ? 'active' : 'inactive'),
+              isActive: finalIsActive,
               discountPercent: c.discountPercent,
               enrollmentDate: c.enrollmentDate,
             };
@@ -131,8 +143,8 @@ const Children: React.FC = () => {
           // eslint-disable-next-line no-console
           console.log('[Children] Mapped classes for', s.id, classes);
           const classCount = classes.length;
-          const activeCount = classes.filter((c: any) => c.isActive === true).length;
-          const completedCount = classes.filter((c: any) => c.isActive === false).length;
+          const activeCount = classes.filter((c: any) => c.isActive).length;
+          const completedCount = classes.filter((c: any) => !c.isActive).length;
 
           // Fetch attendance/session data for this student
           let attendanceStats = {
@@ -396,66 +408,45 @@ const Children: React.FC = () => {
         </Box>
 
         {/* Summary Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4 }} component={motion.div} initial="hidden" animate="visible" variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+        }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <FamilyIcon color="primary" sx={{ mr: 2, fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4">{childrenData.totalChildren}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Tổng số con
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+            <StatCard
+              title="Tổng số con"
+              value={childrenData.totalChildren}
+              icon={<FamilyIcon sx={{ fontSize: 32 }} />}
+              color="primary"
+              index={0}
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <SchoolIcon color="success" sx={{ mr: 2, fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4">{childrenData.totalClasses}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Tổng lớp học
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+            <StatCard
+              title="Tổng lớp học"
+              value={childrenData.totalClasses}
+              icon={<SchoolIcon sx={{ fontSize: 32 }} />}
+              color="success"
+              index={1}
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <TrendingUpIcon color="info" sx={{ mr: 2, fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4">{childrenData.activeClasses}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Lớp đang học
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+            <StatCard
+              title="Lớp đang học"
+              value={childrenData.activeClasses}
+              icon={<TrendingUpIcon sx={{ fontSize: 32 }} />}
+              color="info"
+              index={2}
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <ClassIcon sx={{ mr: 2, fontSize: 40, color: 'text.secondary' }} />
-                  <Box>
-                    <Typography variant="h4">{childrenData.completedClasses}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Lớp đã kết thúc
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+            <StatCard
+              title="Lớp đã kết thúc"
+              value={childrenData.completedClasses}
+              icon={<ClassIcon sx={{ fontSize: 32 }} />}
+              color="error" // "completed" can be error (gray/red) or default. Let's use warning or error. I'll use default gray/secondary. StatCard doesn't support 'secondary' officially but 'error' is fine if it means done/closed. Wait, Admin uses 'warning' for completed? Let's use 'warning'.
+              index={3}
+            />
           </Grid>
         </Grid>
 
@@ -463,106 +454,138 @@ const Children: React.FC = () => {
         <Grid container spacing={3}>
           {childrenData.children.map((child) => (
             <Grid item xs={12} md={6} key={child.id}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+              <Box sx={{
+                background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                borderRadius: 4,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+                p: { xs: 2, md: 3 },
+                transition: 'all 0.3s ease',
+                border: '1px solid #f1f5f9',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.08)'
+                }
+              }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
                     <Box display="flex" alignItems="center">
-                      <Avatar sx={{ mr: 2, width: 56, height: 56 }}>
-                        <PersonIcon />
+                      <Avatar sx={{ 
+                        mr: 2, 
+                        width: 64, 
+                        height: 64,
+                        bgcolor: 'rgba(211, 47, 47, 0.1)',
+                        color: '#D32F2F',
+                        border: '2px solid rgba(211, 47, 47, 0.2)'
+                      }}>
+                        <PersonIcon fontSize="large" />
                       </Avatar>
                       <Box>
-                        <Typography variant="h6">{child.name}</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{child.name}</Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Học sinh</Typography>
                       </Box>
                     </Box>
-                    <Box />
                   </Box>
 
-                  <Grid container spacing={2} mb={2}>
+                  <Grid container spacing={2} mb={3}>
                     <Grid item xs={4}>
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
+                      <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5, textTransform: 'uppercase' }}>
                           Lớp đang học
                         </Typography>
-                        <Typography variant="h6" color="primary">
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
                           {child.activeClasses}
                         </Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={4}>
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
+                      <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5, textTransform: 'uppercase' }}>
                           Tỷ lệ tham gia
                         </Typography>
-                        <Typography variant="h6" color="success.main">
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main' }}>
                           {child.attendanceRate}%
                         </Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={4}>
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
+                      <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5, textTransform: 'uppercase' }}>
                           Tổng lớp học
                         </Typography>
-                        <Typography variant="h6" color="default">
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
                           {child.totalClasses}
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
 
-                  <LinearProgress
-                    variant="determinate"
-                    value={child.attendanceRate}
-                    sx={{ mb: 2, height: 8, borderRadius: 4 }}
-                  />
+                  <Box sx={{ mb: 3 }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Tiến độ chuyên cần</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: child.attendanceRate >= 80 ? 'success.main' : 'warning.main' }}>{child.attendanceRate}%</Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={child.attendanceRate}
+                      sx={{ 
+                        height: 8, 
+                        borderRadius: 4,
+                        bgcolor: 'background.default',
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: child.attendanceRate >= 80 ? 'success.main' : 'warning.main',
+                          borderRadius: 4
+                        }
+                      }}
+                    />
+                  </Box>
 
                   {child.attendanceStats && child.attendanceStats.totalSessions > 0 && (
                     <Box sx={{
-                      bgcolor: 'rgba(0, 0, 0, 0.02)',
-                      p: 1.5,
-                      borderRadius: 1,
-                      mb: 2
+                      bgcolor: 'rgba(255, 255, 255, 0.5)',
+                      p: 2,
+                      borderRadius: 3,
+                      border: '1px solid #e2e8f0',
+                      mb: 3
                     }}>
-                      <Typography variant="caption" color="textSecondary" gutterBottom display="block">
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}>
                         Chi tiết điểm danh
                       </Typography>
                       <Grid container spacing={1}>
                         <Grid item xs={3}>
                           <Box textAlign="center">
-                            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom sx={{ fontWeight: 600 }}>
                               Tổng
                             </Typography>
-                            <Typography variant="h6" fontWeight={700}>
+                            <Typography variant="h6" fontWeight={800} color="text.primary">
                               {child.attendanceStats.totalSessions}
                             </Typography>
                           </Box>
                         </Grid>
                         <Grid item xs={3}>
                           <Box textAlign="center">
-                            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom sx={{ fontWeight: 600 }}>
                               Có mặt
                             </Typography>
-                            <Typography variant="h6" fontWeight={700} color="success.main">
+                            <Typography variant="h6" fontWeight={800} color="success.main">
                               {child.attendanceStats.presentSessions}
                             </Typography>
                           </Box>
                         </Grid>
                         <Grid item xs={3}>
                           <Box textAlign="center">
-                            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom sx={{ fontWeight: 600 }}>
                               Vắng
                             </Typography>
-                            <Typography variant="h6" fontWeight={700} color="error.main">
+                            <Typography variant="h6" fontWeight={800} color="error.main">
                               {child.attendanceStats.absentSessions}
                             </Typography>
                           </Box>
                         </Grid>
                         <Grid item xs={3}>
                           <Box textAlign="center">
-                            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom sx={{ fontWeight: 600 }}>
                               Muộn
                             </Typography>
-                            <Typography variant="h6" fontWeight={700} color="warning.main">
+                            <Typography variant="h6" fontWeight={800} color="warning.main">
                               {child.attendanceStats.lateSessions}
                             </Typography>
                           </Box>
@@ -571,18 +594,26 @@ const Children: React.FC = () => {
                     </Box>
                   )}
 
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="flex-end" alignItems="center">
                     <Button
-                      size="small"
-                      color="primary"
+                      size="medium"
                       onClick={() => handleViewChildDetails(child)}
+                      sx={{ 
+                        fontWeight: 700, 
+                        borderRadius: 2, 
+                        textTransform: 'none',
+                        px: 3,
+                        bgcolor: 'rgba(211, 47, 47, 0.1)',
+                        color: 'primary.main',
+                        '&:hover': {
+                          bgcolor: 'rgba(211, 47, 47, 0.2)'
+                        }
+                      }}
                     >
                       Xem chi tiết
                     </Button>
-
                   </Box>
-                </CardContent>
-              </Card>
+              </Box>
             </Grid>
           ))}
         </Grid>
@@ -646,8 +677,19 @@ const Children: React.FC = () => {
 
                     return (
                       <Grid item xs={12} key={classId}>
-                        <Card sx={{ mb: 2 }}>
-                          <CardContent>
+                        <Box sx={{ 
+                          mb: 2,
+                          background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                          borderRadius: 3,
+                          boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+                          border: '1px solid #e2e8f0',
+                          transition: 'all 0.2s',
+                          overflow: 'hidden',
+                          '&:hover': {
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
+                          }
+                        }}>
+                          <Box sx={{ p: 2, px: 3 }}>
                             <Box
                               display="flex"
                               justifyContent="space-between"
@@ -659,27 +701,38 @@ const Children: React.FC = () => {
                               }))}
                             >
                               <Box display="flex" alignItems="center" gap={2}>
-                                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
                                   Lớp {classData.name || 'Không xác định'}
-                    </Typography>
-                                <Chip
-                                  label={getStatusLabel(classData.status)}
-                                  color={getStatusColor(classData.status)}
-                                  size="small"
-                                />
+                                </Typography>
+                                <Box sx={{
+                                  px: 1.5, py: 0.5,
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  bgcolor: String(classData.status || '').toLowerCase() === 'active' || String(classData.status || '').toLowerCase() === 'đang hoạt động' ? 'rgba(76, 175, 80, 0.1)' : 
+                                          String(classData.status || '').toLowerCase() === 'completed' || String(classData.status || '').toLowerCase() === 'hoàn thành' ? 'rgba(33, 150, 243, 0.1)' : 'rgba(211, 47, 47, 0.1)',
+                                  color: String(classData.status || '').toLowerCase() === 'active' || String(classData.status || '').toLowerCase() === 'đang hoạt động' ? 'success.dark' : 
+                                         String(classData.status || '').toLowerCase() === 'completed' || String(classData.status || '').toLowerCase() === 'hoàn thành' ? 'info.dark' : 'error.dark',
+                                  border: '1px solid',
+                                  borderColor: String(classData.status || '').toLowerCase() === 'active' || String(classData.status || '').toLowerCase() === 'đang hoạt động' ? 'rgba(76, 175, 80, 0.2)' : 
+                                              String(classData.status || '').toLowerCase() === 'completed' || String(classData.status || '').toLowerCase() === 'hoàn thành' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(211, 47, 47, 0.2)'
+                                }}>
+                                  {getStatusLabel(classData.status)}
+                                </Box>
                                 <Chip
                                   label={`Khối ${classData.grade || 'N/A'}`}
                                   variant="outlined"
                                   size="small"
+                                  sx={{ fontWeight: 600, color: 'text.secondary', borderColor: 'divider' }}
                                 />
                               </Box>
-                              <IconButton size="small">
+                              <IconButton size="small" sx={{ color: 'text.secondary' }}>
                                 {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                               </IconButton>
                             </Box>
 
                             <Collapse in={expanded}>
-                              <Divider sx={{ my: 2 }} />
+                              <Divider sx={{ my: 2, borderColor: 'rgba(226, 232, 240, 0.8)' }} />
 
                               {/* Thông tin cơ bản */}
                               <Paper elevation={0} sx={{ p: 2.5, mb: 2, bgcolor: 'rgba(0, 0, 0, 0.02)', borderRadius: 2 }}>
@@ -1031,8 +1084,8 @@ const Children: React.FC = () => {
                                  </>
                                )}
                              </Collapse>
-                           </CardContent>
-                         </Card>
+                           </Box>
+                         </Box>
                        </Grid>
                      );
                    })}

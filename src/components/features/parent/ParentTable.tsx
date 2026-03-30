@@ -6,7 +6,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Box,
   Typography,
@@ -17,7 +16,6 @@ import {
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 import { Parent } from '../../../types';
 
 interface ParentTableProps {
@@ -28,10 +26,6 @@ interface ParentTableProps {
   loading?: boolean;
 }
 
-
-
-
-
 const ParentTable: React.FC<ParentTableProps> = ({
   parents,
   onEdit,
@@ -39,12 +33,6 @@ const ParentTable: React.FC<ParentTableProps> = ({
   onViewDetails,
   loading = false
 }) => {
-  const theme = useTheme();
-
-
-
-
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
@@ -62,44 +50,41 @@ const ParentTable: React.FC<ParentTableProps> = ({
   }
 
   return (
-    <>
-      <TableContainer
-        component={Paper}
-        elevation={2}
-        sx={{
-          backgroundColor: 'white',
-          '& .MuiTableBody-root .MuiTableCell-root': {
-            color: 'black !important'
-          },
-          '& .MuiTableBody-root .MuiTypography-root': {
-            color: 'inherit !important'
-          }
-        }}
-      >
+    <Box sx={{ 
+      background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)',
+      border: '1px solid #e2e8f0', 
+      borderRadius: 3,
+      p: { xs: 1, sm: 2 } 
+    }}>
+      <TableContainer sx={{ 
+        bgcolor: 'transparent',
+        boxShadow: 'none',
+        border: 'none',
+        '& .MuiTableCell-root': {
+          borderBottom: '1px solid rgba(226, 232, 240, 0.8)'
+        }
+      }}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: theme.palette.primary.main }}>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Họ và tên</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Email</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Số điện thoại</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Con</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Giới tính</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Xem thông tin giáo viên</TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Thao tác</TableCell>
+            <TableRow>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Họ và tên</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Số điện thoại</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Con</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Giới tính</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Xem thông tin giáo viên</TableCell>
+              <TableCell sx={{ fontWeight: '800', color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px', textAlign: 'center' }}>Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {parents && Array.isArray(parents) && parents.map((parent) => (
-              <TableRow key={parent.id} hover sx={{
-                '& .MuiTableCell-root': { color: '#000000 !important' },
-                '& .MuiTypography-root': { color: '#000000 !important' },
-                '& .MuiTableCell-root .MuiTypography-root': { color: '#000000 !important' },
-                '& .MuiTableCell-root > *:not(.MuiSvgIcon-root):not(.MuiIconButton-root):not(.MuiChip-root)': {
-                  color: '#000000 !important'
-                }
+              <TableRow key={parent.id} sx={{ 
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)', transform: 'translateY(-1px)' }
               }}>
                 <TableCell>
-                  <Typography variant="body1" fontWeight="medium">
+                  <Typography variant="body1" fontWeight="700" color="primary.main">
                     {parent.name}
                   </Typography>
                 </TableCell>
@@ -187,7 +172,7 @@ const ParentTable: React.FC<ParentTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+    </Box>
   );
 };
 
