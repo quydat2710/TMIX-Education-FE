@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Button, Paper, Table, TableBody, TableCell,
+    Box, Typography, Button, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Chip, IconButton,
     Dialog, DialogTitle, DialogContent, DialogActions,
     Tooltip, Alert, CircularProgress, MenuItem,
@@ -29,16 +29,17 @@ import { commonStyles } from '../../utils/styles';
 import { uploadMaterial, getMaterialsByClass, deleteMaterial, Material, getFileAccessUrl } from '../../services/materials';
 import { getTeacherScheduleAPI } from '../../services/teachers';
 import { useAuth } from '../../contexts/AuthContext';
+import { motion } from 'framer-motion';
 
 const CATEGORIES = [
-    { value: 'all', label: 'Tất cả' },
-    { value: 'grammar', label: '📖 Grammar' },
-    { value: 'vocabulary', label: '📝 Vocabulary' },
-    { value: 'listening', label: '🎧 Listening' },
-    { value: 'reading', label: '📚 Reading' },
-    { value: 'writing', label: '✍️ Writing' },
-    { value: 'speaking', label: '🗣️ Speaking' },
-    { value: 'other', label: '📁 Khác' },
+    { value: 'all', label: 'Tất cả', color: 'default' },
+    { value: 'grammar', label: '📖 Grammar', color: 'primary' },
+    { value: 'vocabulary', label: '📝 Vocabulary', color: 'secondary' },
+    { value: 'listening', label: '🎧 Listening', color: 'info' },
+    { value: 'reading', label: '📚 Reading', color: 'success' },
+    { value: 'writing', label: '✍️ Writing', color: 'warning' },
+    { value: 'speaking', label: '🗣️ Speaking', color: 'error' },
+    { value: 'other', label: '📁 Khác', color: 'default' },
 ];
 
 const MaterialManagement: React.FC = () => {
@@ -196,19 +197,41 @@ const MaterialManagement: React.FC = () => {
     };
 
     const getFileIcon = (fileType: string) => {
+        let icon;
+        let color = 'primary';
         switch (fileType) {
-            case 'pdf': return <PdfIcon color="error" />;
-            case 'image': return <ImageIcon color="primary" />;
-            case 'audio': return <AudioIcon color="secondary" />;
-            case 'video': return <VideoIcon color="warning" />;
-            case 'document': return <DocIcon color="info" />;
-            default: return <FileIcon />;
+            case 'pdf': icon = <PdfIcon color="error" />; color = 'error'; break;
+            case 'image': icon = <ImageIcon color="primary" />; color = 'primary'; break;
+            case 'audio': icon = <AudioIcon color="secondary" />; color = 'secondary'; break;
+            case 'video': icon = <VideoIcon color="warning" />; color = 'warning'; break;
+            case 'document': icon = <DocIcon color="info" />; color = 'info'; break;
+            default: icon = <FileIcon color="action" />; color = 'inherit'; break;
         }
+        return (
+            <Box sx={{
+                width: 40, height: 40, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: color !== 'inherit' ? `${color}.100` : 'action.selected',
+            }}>
+                {icon}
+            </Box>
+        );
     };
 
     const getCategoryChip = (category: string) => {
         const cat = CATEGORIES.find(c => c.value === category);
-        return <Chip label={cat?.label || category} size="small" variant="outlined" />;
+        return (
+            <Chip 
+                label={cat?.label || category} 
+                size="small" 
+                color={(cat?.color as any) || 'default'}
+                sx={{ 
+                    fontWeight: 600, 
+                    borderRadius: '8px',
+                    '& .MuiChip-label': { px: 2 }
+                }} 
+            />
+        );
     };
 
     const formatFileSize = (bytes: number) => {
@@ -256,23 +279,31 @@ const MaterialManagement: React.FC = () => {
                 )}
 
                 {/* Class selector */}
-                <Paper sx={{ p: 2, mb: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Class selector */}
+                <Box sx={{ 
+                    p: 2, mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap',
+                    background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                    borderRadius: 4,
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+                    border: '1px solid #e2e8f0'
+                }}>
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Chọn lớp</InputLabel>
                         <Select
                             value={selectedClassId}
                             label="Chọn lớp"
                             onChange={(e) => setSelectedClassId(e.target.value)}
+                            sx={{ borderRadius: 2 }}
                         >
                             {classes.map((cls) => (
                                 <MenuItem key={cls.id} value={cls.id}>{cls.name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', fontWeight: 600 }}>
                         Tổng: {materials.length} tài liệu
                     </Typography>
-                </Paper>
+                </Box>
 
                 {/* Materials table */}
                 {loading ? (
@@ -280,13 +311,21 @@ const MaterialManagement: React.FC = () => {
                         <CircularProgress />
                     </Box>
                 ) : !selectedClassId ? (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <Box sx={{ 
+                        p: 6, textAlign: 'center',
+                        background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                        borderRadius: 4, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0'
+                    }}>
                         <Typography variant="h6" color="text.secondary">
                             Vui lòng chọn lớp để xem tài liệu
                         </Typography>
-                    </Paper>
+                    </Box>
                 ) : materials.length === 0 ? (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <Box sx={{ 
+                        p: 6, textAlign: 'center',
+                        background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                        borderRadius: 4, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0'
+                    }}>
                         <Typography variant="h6" color="text.secondary" gutterBottom>
                             Chưa có tài liệu nào
                         </Typography>
@@ -297,76 +336,129 @@ const MaterialManagement: React.FC = () => {
                             variant="contained"
                             startIcon={<UploadIcon />}
                             onClick={() => setUploadOpen(true)}
-                            sx={commonStyles.primaryButton}
+                            sx={{ ...commonStyles.primaryButton, borderRadius: 2 }}
                         >
                             Upload tài liệu
                         </Button>
-                    </Paper>
+                    </Box>
                 ) : (
-                    <TableContainer component={Paper} sx={commonStyles.tableContainer}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Loại</TableCell>
-                                    <TableCell>Tiêu đề</TableCell>
-                                    <TableCell>Danh mục</TableCell>
-                                    <TableCell>Tên file</TableCell>
-                                    <TableCell align="right">Kích thước</TableCell>
-                                    <TableCell>Ngày upload</TableCell>
-                                    <TableCell align="center">Thao tác</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {materials.map((material) => (
-                                    <TableRow key={material.id} sx={commonStyles.tableRow}>
-                                        <TableCell>{getFileIcon(material.fileType)}</TableCell>
-                                        <TableCell>
-                                            <Typography fontWeight={600}>{material.title}</Typography>
-                                            {material.description && (
-                                                <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 300 }}>
-                                                    {material.description}
-                                                </Typography>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>{getCategoryChip(material.category)}</TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                                                {material.originalFileName}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell align="right">{formatFileSize(material.fileSize)}</TableCell>
-                                        <TableCell>{formatDate(material.createdAt)}</TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                                                <Tooltip title="Xem trực tiếp">
-                                                    <IconButton size="small" color="primary" onClick={() => handlePreview(material)}>
-                                                        <PreviewIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Tải về">
-                                                    <IconButton size="small" color="inherit" onClick={() => handleDownload(material)}>
-                                                        <DownloadIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Xóa">
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => {
-                                                            setSelectedMaterial(material);
-                                                            setDeleteDialogOpen(true);
-                                                        }}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
+                    <Box sx={{
+                        background: 'linear-gradient(to bottom right, #ffffff, #f8fafc)',
+                        borderRadius: 4,
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+                        border: '1px solid #e2e8f0',
+                        overflow: 'hidden'
+                    }}>
+                        <TableContainer>
+                            <Table component={motion.table} initial="hidden" animate="visible" variants={{
+                                hidden: { opacity: 0 },
+                                visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                            }}>
+                                <TableHead sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Loại</TableCell>
+                                        <TableCell sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tiêu đề</TableCell>
+                                        <TableCell sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Danh mục</TableCell>
+                                        <TableCell sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Tên file</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Kích thước</TableCell>
+                                        <TableCell sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Ngày upload</TableCell>
+                                        <TableCell align="center" sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>Thao tác</TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                </TableHead>
+                                <TableBody>
+                                    {materials.map((material) => (
+                                        <TableRow 
+                                            key={material.id} 
+                                            component={motion.tr}
+                                            variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+                                            sx={{ 
+                                                transition: 'all 0.3s ease',
+                                                position: 'relative',
+                                                '& td': { 
+                                                    borderBottom: '1px solid #f1f5f9',
+                                                    transition: 'all 0.3s ease'
+                                                },
+                                                '&:last-child td': { borderBottom: 'none' },
+                                                '&:hover td': { 
+                                                    bgcolor: 'rgba(25, 118, 210, 0.04)',
+                                                },
+                                                '&:hover td:first-of-type': {
+                                                    boxShadow: 'inset 4px 0 0 0 #1976d2',
+                                                }
+                                            }}
+                                        >
+                                            <TableCell>{getFileIcon(material.fileType)}</TableCell>
+                                            <TableCell>
+                                                <Typography fontWeight={600} color="text.primary">{material.title}</Typography>
+                                                {material.description && (
+                                                    <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 300 }}>
+                                                        {material.description}
+                                                    </Typography>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>{getCategoryChip(material.category)}</TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
+                                                    {material.originalFileName}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right"><Typography variant="body2" fontWeight={500}>{formatFileSize(material.fileSize)}</Typography></TableCell>
+                                            <TableCell><Typography variant="body2" color="text.secondary">{formatDate(material.createdAt)}</Typography></TableCell>
+                                            <TableCell align="center">
+                                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                                                    <Tooltip title="Xem trực tiếp">
+                                                        <IconButton 
+                                                            size="small" 
+                                                            color="primary" 
+                                                            onClick={() => handlePreview(material)} 
+                                                            sx={{ 
+                                                                bgcolor: 'rgba(25, 118, 210, 0.08)', 
+                                                                transition: 'all 0.2s',
+                                                                '&:hover': { bgcolor: 'primary.main', color: '#fff', transform: 'scale(1.1)' } 
+                                                            }}
+                                                        >
+                                                            <PreviewIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Tải về">
+                                                        <IconButton 
+                                                            size="small" 
+                                                            color="inherit" 
+                                                            onClick={() => handleDownload(material)} 
+                                                            sx={{ 
+                                                                bgcolor: 'rgba(0, 0, 0, 0.04)', 
+                                                                transition: 'all 0.2s',
+                                                                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.12)', transform: 'scale(1.1)' } 
+                                                            }}
+                                                        >
+                                                            <DownloadIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Xóa">
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => {
+                                                                setSelectedMaterial(material);
+                                                                setDeleteDialogOpen(true);
+                                                            }}
+                                                            sx={{ 
+                                                                bgcolor: 'rgba(211, 47, 47, 0.08)', 
+                                                                transition: 'all 0.2s',
+                                                                '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } 
+                                                            }}
+                                                        >
+                                                            <DeleteIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
                 )}
 
                 {/* Upload Dialog */}
@@ -425,36 +517,50 @@ const MaterialManagement: React.FC = () => {
                                     }}
                                 />
                                 <Card
+                                    component={motion.div}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
                                     variant="outlined"
                                     sx={{
-                                        p: 3, textAlign: 'center', cursor: 'pointer',
+                                        p: 4, textAlign: 'center', cursor: 'pointer',
                                         border: '2px dashed',
-                                        borderColor: uploadFile ? 'success.main' : 'divider',
-                                        bgcolor: uploadFile ? 'success.50' : 'background.default',
-                                        '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' },
+                                        borderColor: uploadFile ? 'success.main' : 'primary.main',
+                                        bgcolor: uploadFile ? 'success.50' : 'rgba(25, 118, 210, 0.02)',
+                                        borderRadius: 4,
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': { 
+                                            borderColor: 'primary.dark', 
+                                            bgcolor: 'rgba(25, 118, 210, 0.05)',
+                                            boxShadow: '0 8px 32px rgba(25, 118, 210, 0.1)'
+                                        },
                                     }}
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <CardContent>
                                         {uploadFile ? (
-                                            <>
-                                                <Typography variant="body1" fontWeight={600} color="success.main">
-                                                    ✅ {uploadFile.name}
+                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 60, height: 60, borderRadius: '50%', bgcolor: 'success.100', color: 'success.main', mb: 2 }}>
+                                                    <FileIcon fontSize="large" />
+                                                </Box>
+                                                <Typography variant="body1" fontWeight={700} color="success.dark" fontSize="1.1rem" gutterBottom>
+                                                    {uploadFile.name}
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {formatFileSize(uploadFile.size)} — Nhấn để đổi file
+                                                <Typography variant="body2" color="success.main" fontWeight={500}>
+                                                    {formatFileSize(uploadFile.size)} — Nhấn để chọn file khác
                                                 </Typography>
-                                            </>
+                                            </motion.div>
                                         ) : (
-                                            <>
-                                                <UploadIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
-                                                <Typography variant="body1" color="text.secondary">
-                                                    Nhấn để chọn file
+                                            <Box>
+                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', bgcolor: 'primary.50', color: 'primary.main', mb: 2 }}>
+                                                    <UploadIcon sx={{ fontSize: 32 }} />
+                                                </Box>
+                                                <Typography variant="h6" fontWeight={700} color="text.primary" gutterBottom>
+                                                    Kéo thả hoặc nhấn để chọn file
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    PDF, Word, Hình ảnh, Audio, Video
+                                                <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                                                    Hỗ trợ: PDF, Word, Hình ảnh, Audio, Video (Tối đa 50MB)
                                                 </Typography>
-                                            </>
+                                            </Box>
                                         )}
                                     </CardContent>
                                 </Card>
