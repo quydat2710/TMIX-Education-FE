@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   };
 
   // ─── Common menu-item button sx ───
-  const getMenuButtonSx = (isSelected: boolean) => ({
+  const getMenuButtonSx = () => ({
     minHeight: 48,
     justifyContent: open ? 'initial' : 'center',
     px: 2.5,
@@ -236,7 +236,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                   <ListItemButton
                     selected={isSelected}
                     onClick={() => handleNavigate(item.path)}
-                    sx={getMenuButtonSx(isSelected)}
+                    sx={getMenuButtonSx()}
                   >
                     <ListItemIcon
                       sx={{
@@ -282,7 +282,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                       }
                       setUsersOpen((v) => !v);
                     }}
-                    sx={getMenuButtonSx(isSelected)}
+                    sx={getMenuButtonSx()}
                   >
                     <ListItemIcon
                       sx={{
@@ -384,7 +384,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                     }
                     setStatsOpen((v) => !v);
                   }}
-                  sx={getMenuButtonSx(isSelected)}
+                  sx={getMenuButtonSx()}
                 >
                   <ListItemIcon
                     sx={{
