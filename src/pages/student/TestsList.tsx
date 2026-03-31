@@ -1,7 +1,7 @@
 // Student Test List Page
-// Displays available tests and past attempts
+// Displays available tests, past attempts, and statistics
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Typography,
@@ -33,23 +33,79 @@ import {
     Schedule as ScheduleIcon,
     CheckCircle as CheckCircleIcon,
     Cancel as CancelIcon,
-    ArrowBack as ArrowBackIcon,
     Quiz as QuizIcon,
     EmojiEvents as TrophyIcon,
     School as SchoolIcon,
     Person as PersonIcon,
     Star as StarIcon,
+    BarChart as BarChartIcon,
+    TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
+import {
+    XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+    ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend,
+    AreaChart, Area,
+} from 'recharts';
 import { getStudentAvailableTests, getStudentAttempts } from '../../services/tests';
 import { StudentTestItem, TestAttempt } from '../../types/test';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { COLORS } from '../../utils/colors';
+
+const SKILL_LABELS: Record<string, string> = {
+    reading: 'Reading',
+    listening: 'Listening',
+    writing: 'Writing',
+    speaking: 'Speaking',
+};
+
+const CHART_COLORS = ['#667eea', '#38bdf8', '#4ade80', '#fbbf24', '#f87171', '#f093fb'];
+
+// 3D Bar Shape Component
+const Bar3D = (props: any) => {
+    const { x, y, width, height, fill } = props;
+    if (!height || height <= 0) return null;
+    const depth = 14;
+    const topSkew = 12;
+    // Front face base color
+    const frontFill = fill || '#667eea';
+    return (
+        <g>
+            {/* Right side face (Darkened) */}
+            <path
+                d={`M${x + width},${y} L${x + width + depth},${y - topSkew} L${x + width + depth},${y + height - topSkew} L${x + width},${y + height} Z`}
+                fill={frontFill}
+            />
+            {/* Shadow overlay for right side */}
+            <path
+                d={`M${x + width},${y} L${x + width + depth},${y - topSkew} L${x + width + depth},${y + height - topSkew} L${x + width},${y + height} Z`}
+                fill="#000"
+                opacity={0.35}
+            />
+            {/* Top face (Lightened) */}
+            <path
+                d={`M${x},${y} L${x + depth},${y - topSkew} L${x + width + depth},${y - topSkew} L${x + width},${y} Z`}
+                fill={frontFill}
+            />
+            {/* Highlight overlay for top side */}
+            <path
+                d={`M${x},${y} L${x + depth},${y - topSkew} L${x + width + depth},${y - topSkew} L${x + width},${y} Z`}
+                fill="#fff"
+                opacity={0.3}
+            />
+            {/* Front face */}
+            <rect x={x} y={y} width={width} height={height} fill={frontFill} rx={2} ry={2} />
+            {/* Gloss highlight on front face */}
+            <rect x={x + 2} y={y + 2} width={width * 0.4} height={Math.min(height - 4, 60)} fill="rgba(255,255,255,0.2)" rx={2} ry={2} />
+        </g>
+    );
+};
 
 const TestsList: React.FC = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState(0);
     const [availableTests, setAvailableTests] = useState<StudentTestItem[]>([]);
     const [attempts, setAttempts] = useState<TestAttempt[]>([]);
+    const [statsAttempts, setStatsAttempts] = useState<TestAttempt[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -65,9 +121,13 @@ const TestsList: React.FC = () => {
             if (activeTab === 0) {
                 const response = await getStudentAvailableTests();
                 setAvailableTests(response.data);
-            } else {
+            } else if (activeTab === 1) {
                 const response = await getStudentAttempts();
                 setAttempts(response.data.result || []);
+            } else if (activeTab === 2) {
+                // Load all attempts for statistics (larger limit)
+                const response = await getStudentAttempts({ limit: 100 } as any);
+                setStatsAttempts(response.data.result || []);
             }
         } catch (err: any) {
             setError(err.message || 'Không thể tải dữ liệu');
@@ -88,44 +148,73 @@ const TestsList: React.FC = () => {
         return new Date(dateString).toLocaleString('vi-VN');
     };
 
+    // ============ Statistics Computed Data ============
+    const scoreOverTime = useMemo(() => {
+        if (!statsAttempts.length) return [];
+        return [...statsAttempts]
+            .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime())
+            .map((a) => ({
+                date: new Date(a.submittedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+                percentage: Math.round(a.percentage * 10) / 10,
+                testName: a.test?.title || 'Bài kiểm tra',
+            }));
+    }, [statsAttempts]);
+
+    const avgBySkill = useMemo(() => {
+        if (!statsAttempts.length) return [];
+        const grouped: Record<string, { total: number; count: number }> = {};
+        statsAttempts.forEach((a) => {
+            const skill = (a.test as any)?.skillType || 'reading';
+            if (!grouped[skill]) grouped[skill] = { total: 0, count: 0 };
+            grouped[skill].total += a.percentage;
+            grouped[skill].count += 1;
+        });
+        return Object.entries(grouped).map(([skill, { total, count }]) => ({
+            skill: SKILL_LABELS[skill] || skill,
+            avg: Math.round((total / count) * 10) / 10,
+        }));
+    }, [statsAttempts]);
+
+    const passFailData = useMemo(() => {
+        if (!statsAttempts.length) return [];
+        const passed = statsAttempts.filter((a) => a.passed).length;
+        const failed = statsAttempts.length - passed;
+        return [
+            { name: 'Đạt', value: passed },
+            { name: 'Chưa đạt', value: failed },
+        ];
+    }, [statsAttempts]);
+
+    const overallStats = useMemo(() => {
+        if (!statsAttempts.length) return { avg: 0, highest: 0, total: 0, passRate: 0 };
+        const percentages = statsAttempts.map((a) => a.percentage);
+        const passed = statsAttempts.filter((a) => a.passed).length;
+        return {
+            avg: Math.round((percentages.reduce((s, p) => s + p, 0) / percentages.length) * 10) / 10,
+            highest: Math.round(Math.max(...percentages) * 10) / 10,
+            total: statsAttempts.length,
+            passRate: Math.round((passed / statsAttempts.length) * 1000) / 10,
+        };
+    }, [statsAttempts]);
+
     return (
         <DashboardLayout role="student">
             <Box sx={{ p: { xs: 2, md: 3 } }}>
                 {/* Header */}
-                <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    mb: 4,
-                }}>
-                    <Tooltip title="Quay lại">
-                        <IconButton
-                            onClick={() => navigate('/student')}
-                            sx={{
-                                bgcolor: 'white',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                '&:hover': { bgcolor: '#f5f5f5', transform: 'scale(1.05)' },
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            <ArrowBackIcon sx={{ color: COLORS.primary.main }} />
-                        </IconButton>
-                    </Tooltip>
-                    <Box>
-                        <Typography variant="h4" sx={{
-                            fontWeight: 700,
-                            color: COLORS.primary.main,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                        }}>
-                            <QuizIcon sx={{ fontSize: 36 }} />
-                            Bài kiểm tra
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-                            Làm bài kiểm tra và xem kết quả của bạn
-                        </Typography>
-                    </Box>
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 700,
+                        color: COLORS.primary.main,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                    }}>
+                        <QuizIcon sx={{ fontSize: 36 }} />
+                        Bài kiểm tra
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Làm bài kiểm tra và xem kết quả của bạn
+                    </Typography>
                 </Box>
 
                 {/* Tabs */}
@@ -160,6 +249,11 @@ const TestsList: React.FC = () => {
                         <Tab
                             label="Lịch sử làm bài"
                             icon={<TrophyIcon sx={{ fontSize: 20 }} />}
+                            iconPosition="start"
+                        />
+                        <Tab
+                            label="Thống kê"
+                            icon={<BarChartIcon sx={{ fontSize: 20 }} />}
                             iconPosition="start"
                         />
                     </Tabs>
@@ -489,6 +583,277 @@ const TestsList: React.FC = () => {
                                     </Table>
                                 </TableContainer>
                             </Paper>
+                        )}
+                        {/* Statistics Tab */}
+                        {activeTab === 2 && (
+                            <Box sx={{
+                                position: 'relative',
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: -100,
+                                    left: -100,
+                                    right: -100,
+                                    bottom: -100,
+                                    background: 'radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(240, 147, 251, 0.08) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(74, 222, 128, 0.05) 0%, transparent 60%)',
+                                    zIndex: 0,
+                                    pointerEvents: 'none',
+                                }
+                            }}>
+                                {statsAttempts.length === 0 ? (
+                                    <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 4, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                                        <BarChartIcon sx={{ fontSize: 64, color: '#ccc', mb: 2 }} />
+                                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                                            Chưa có dữ liệu thống kê
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Hãy làm bài kiểm tra để xem thống kê ở đây
+                                        </Typography>
+                                    </Paper>
+                                ) : (
+                                    <>
+                                        {/* Summary Cards - Clean Premium */}
+                                        <Grid container spacing={2.5} sx={{ mb: 3 }}>
+                                            {[
+                                                { label: 'Tổng lần thi', value: overallStats.total, color: '#6366f1', icon: <QuizIcon /> },
+                                                { label: 'Điểm TB', value: `${overallStats.avg}%`, color: '#ec4899', icon: <TrendingUpIcon /> },
+                                                { label: 'Điểm cao nhất', value: `${overallStats.highest}%`, color: '#10b981', icon: <StarIcon /> },
+                                                { label: 'Tỷ lệ đạt', value: `${overallStats.passRate}%`, color: '#f59e0b', icon: <CheckCircleIcon /> },
+                                            ].map((item, i) => (
+                                                <Grid item xs={6} md={3} key={i}>
+                                                    <Paper sx={{
+                                                        p: 2.5,
+                                                        borderRadius: 4,
+                                                        bgcolor: '#ffffff',
+                                                        border: '1px solid #f1f5f9',
+                                                        boxShadow: '0 4px 16px rgba(148, 163, 184, 0.08)',
+                                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                        cursor: 'default',
+                                                        position: 'relative',
+                                                        overflow: 'hidden',
+                                                        '&:hover': {
+                                                            transform: 'translateY(-4px)',
+                                                            boxShadow: '0 12px 24px rgba(148, 163, 184, 0.15)',
+                                                            borderColor: `${item.color}40`,
+                                                        },
+                                                    }}>
+                                                        {/* Subtle top accent line */}
+                                                        <Box sx={{
+                                                            position: 'absolute', top: 0, left: 0, right: 0,
+                                                            height: 3,
+                                                            bgcolor: item.color,
+                                                            opacity: 0.9,
+                                                        }} />
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, mt: 0.5 }}>
+                                                            <Box sx={{
+                                                                p: 1.5,
+                                                                borderRadius: '50%',
+                                                                bgcolor: `${item.color}15`,
+                                                                color: item.color,
+                                                                display: 'flex',
+                                                            }}>
+                                                                {item.icon}
+                                                            </Box>
+                                                            <Box>
+                                                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b', mb: 0.5 }}>
+                                                                    {item.label}
+                                                                </Typography>
+                                                                <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
+                                                                    {item.value}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+                                                    </Paper>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+
+                                        {/* Charts Row */}
+                                        <Grid container spacing={3}>
+                                            {/* Area Chart - Score over time */}
+                                            <Grid item xs={12} lg={8}>
+                                                <Paper sx={{
+                                                    p: 3,
+                                                    borderRadius: 4,
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                                                    border: '1px solid rgba(102,126,234,0.08)',
+                                                    background: 'linear-gradient(180deg, #fefefe 0%, #f8f9ff 100%)',
+                                                }}>
+                                                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1e293b' }}>
+                                                        📈 Tiến trình điểm theo thời gian
+                                                    </Typography>
+                                                    <ResponsiveContainer width="100%" height={300}>
+                                                        <AreaChart data={scoreOverTime}>
+                                                            <defs>
+                                                                <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="0%" stopColor="#667eea" stopOpacity={0.35} />
+                                                                    <stop offset="95%" stopColor="#667eea" stopOpacity={0.02} />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#e8ecf4" />
+                                                            <XAxis dataKey="date" fontSize={12} tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+                                                            <YAxis domain={[0, 100]} fontSize={12} tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+                                                            <RechartsTooltip
+                                                                contentStyle={{
+                                                                    borderRadius: 14,
+                                                                    border: 'none',
+                                                                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                                                                    background: 'rgba(255,255,255,0.95)',
+                                                                    backdropFilter: 'blur(8px)',
+                                                                    padding: '12px 16px',
+                                                                }}
+                                                                formatter={(value: number) => [`${value}%`, 'Điểm']}
+                                                            />
+                                                            <Area
+                                                                type="natural"
+                                                                dataKey="percentage"
+                                                                stroke="#667eea"
+                                                                strokeWidth={4}
+                                                                fill="url(#scoreGradient)"
+                                                                style={{ filter: 'drop-shadow(0 8px 12px rgba(102,126,234,0.45))' }}
+                                                                dot={{ fill: '#fff', stroke: '#667eea', strokeWidth: 2.5, r: 5 }}
+                                                                activeDot={{ r: 8, fill: '#667eea', stroke: '#fff', strokeWidth: 3, filter: 'drop-shadow(0 2px 4px rgba(102,126,234,0.6))' }}
+                                                            />
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                </Paper>
+                                            </Grid>
+
+                                            {/* Pie Chart - Pass/Fail */}
+                                            <Grid item xs={12} lg={4}>
+                                                <Paper sx={{
+                                                    p: 3,
+                                                    borderRadius: 4,
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                                                    border: '1px solid rgba(74,222,128,0.1)',
+                                                    height: '100%',
+                                                    background: 'linear-gradient(180deg, #fefefe 0%, #f0fdf4 100%)',
+                                                }}>
+                                                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1e293b' }}>
+                                                        🎯 Tỷ lệ Đạt / Chưa đạt
+                                                    </Typography>
+                                                    <Box sx={{
+                                                        perspective: '800px',
+                                                        '& .recharts-wrapper': {
+                                                            transform: 'rotateX(12deg)',
+                                                            transformOrigin: 'center center',
+                                                        },
+                                                    }}>
+                                                        <ResponsiveContainer width="100%" height={300}>
+                                                            <PieChart>
+                                                                <defs>
+                                                                    <linearGradient id="piePass" x1="0" y1="0" x2="1" y2="1">
+                                                                        <stop offset="0%" stopColor="#4ade80" />
+                                                                        <stop offset="100%" stopColor="#22c55e" />
+                                                                    </linearGradient>
+                                                                    <linearGradient id="pieFail" x1="0" y1="0" x2="1" y2="1">
+                                                                        <stop offset="0%" stopColor="#f87171" />
+                                                                        <stop offset="100%" stopColor="#ef4444" />
+                                                                    </linearGradient>
+                                                                    <filter id="pieShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                                                        <feDropShadow dx="0" dy="6" stdDeviation="4" floodColor="#000" floodOpacity="0.15" />
+                                                                    </filter>
+                                                                </defs>
+                                                                {/* Shadow layer for 3D depth */}
+                                                                <Pie
+                                                                    data={passFailData}
+                                                                    cx="50%"
+                                                                    cy="48%"
+                                                                    innerRadius={50}
+                                                                    outerRadius={90}
+                                                                    paddingAngle={5}
+                                                                    dataKey="value"
+                                                                    isAnimationActive={false}
+                                                                    style={{ filter: 'url(#pieShadow)', opacity: 0.3 }}
+                                                                >
+                                                                    <Cell fill="#166534" />
+                                                                    <Cell fill="#991b1b" />
+                                                                </Pie>
+                                                                {/* Main pie */}
+                                                                <Pie
+                                                                    data={passFailData}
+                                                                    cx="50%"
+                                                                    cy="44%"
+                                                                    innerRadius={50}
+                                                                    outerRadius={90}
+                                                                    paddingAngle={5}
+                                                                    dataKey="value"
+                                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                                    style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
+                                                                >
+                                                                    <Cell fill="url(#piePass)" />
+                                                                    <Cell fill="url(#pieFail)" />
+                                                                </Pie>
+                                                                <Legend
+                                                                    iconType="circle"
+                                                                    wrapperStyle={{ paddingTop: 12 }}
+                                                                    formatter={(value) => (
+                                                                        <span style={{ marginRight: 24, color: '#475569', fontWeight: 500 }}>{value}</span>
+                                                                    )}
+                                                                    payload={
+                                                                        passFailData.map((item, index) => ({
+                                                                            id: item.name,
+                                                                            type: 'circle',
+                                                                            value: item.name,
+                                                                            color: index === 0 ? '#22c55e' : '#ef4444',
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </Box>
+                                                </Paper>
+                                            </Grid>
+
+                                            {/* Bar Chart - Average by Skill */}
+                                            <Grid item xs={12}>
+                                                <Paper sx={{
+                                                    p: 3,
+                                                    borderRadius: 4,
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                                                    border: '1px solid rgba(248,113,251,0.08)',
+                                                    background: 'linear-gradient(180deg, #fefefe 0%, #fdf4ff 100%)',
+                                                }}>
+                                                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1e293b' }}>
+                                                        📊 Điểm trung bình theo kỹ năng
+                                                    </Typography>
+                                                    <ResponsiveContainer width="100%" height={320}>
+                                                        <BarChart data={avgBySkill} barSize={50} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                                            <defs>
+                                                                {CHART_COLORS.map((color, i) => (
+                                                                    <linearGradient key={`barGrad-${i}`} id={`barGrad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="0%" stopColor={color} stopOpacity={1} />
+                                                                        <stop offset="100%" stopColor={color} stopOpacity={0.7} />
+                                                                    </linearGradient>
+                                                                ))}
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0e8f8" />
+                                                            <XAxis dataKey="skill" fontSize={13} tick={{ fill: '#475569', fontWeight: 600 }} axisLine={{ stroke: '#e2e8f0' }} />
+                                                            <YAxis domain={[0, 100]} fontSize={12} tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+                                                            <RechartsTooltip
+                                                                contentStyle={{
+                                                                    borderRadius: 14,
+                                                                    border: 'none',
+                                                                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                                                                    background: 'rgba(255,255,255,0.95)',
+                                                                    backdropFilter: 'blur(8px)',
+                                                                    padding: '12px 16px',
+                                                                }}
+                                                                formatter={(value: number) => [`${value}%`, 'Điểm TB']}
+                                                            />
+                                                            <Bar dataKey="avg" shape={<Bar3D />}>
+                                                                {avgBySkill.map((_, index) => (
+                                                                    <Cell key={`bar-${index}`} fill={`url(#barGrad-${index % CHART_COLORS.length})`} />
+                                                                ))}
+                                                            </Bar>
+                                                        </BarChart>
+                                                    </ResponsiveContainer>
+                                                </Paper>
+                                            </Grid>
+                                        </Grid>
+                                    </>
+                                )}
+                            </Box>
                         )}
                     </>
                 )}
