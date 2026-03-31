@@ -175,13 +175,15 @@ const NotificationBell: React.FC = () => {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{
           paper: {
-            elevation: 8,
+            elevation: 0,
             sx: {
               width: { xs: 320, sm: 380 },
               maxHeight: 480,
-              borderRadius: 3,
-              mt: 1,
+              borderRadius: 4,
+              mt: 1.5,
               overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+              border: '1px solid rgba(0,0,0,0.04)',
             },
           },
         }}
@@ -194,9 +196,8 @@ const NotificationBell: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            bgcolor: '#fafafa',
+            borderBottom: '1px solid rgba(0,0,0,0.06)',
+            background: 'linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%)',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -258,9 +259,10 @@ const NotificationBell: React.FC = () => {
                     px: 2,
                     py: 1.5,
                     bgcolor: notification.isRead ? 'transparent' : 'rgba(25, 118, 210, 0.04)',
+                    transition: 'all 0.2s ease',
                     '&:hover': {
                       bgcolor: notification.isRead
-                        ? 'rgba(0, 0, 0, 0.04)'
+                        ? '#f5f5ff'
                         : 'rgba(25, 118, 210, 0.08)',
                     },
                     alignItems: 'flex-start',
@@ -325,9 +327,9 @@ const NotificationBell: React.FC = () => {
         {notifications.length > 0 && (
           <Box
             sx={{
-              borderTop: '1px solid',
-              borderColor: 'divider',
+              borderTop: '1px solid rgba(0,0,0,0.06)',
               textAlign: 'center',
+              background: 'linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%)',
             }}
           >
             <Button
