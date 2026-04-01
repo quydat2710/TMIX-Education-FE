@@ -20,6 +20,13 @@ import {
   Cancel as CancelIcon,
   Lock as LockIcon,
   VerifiedUser as VerifiedUserIcon,
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  Home as HomeIcon,
+  Wc as GenderIcon,
+  AdminPanelSettings as AdminIcon,
+  Shield as ShieldIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateUserAPI } from '../../services/users';
@@ -142,8 +149,6 @@ const AdminProfile: React.FC = () => {
     setIsEditing(false);
   };
 
-
-
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Chưa cập nhật';
     const date = new Date(dateString);
@@ -187,28 +192,66 @@ const AdminProfile: React.FC = () => {
             <Grid item xs={12} md={4}>
               <Card sx={{
                 height: 'fit-content',
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                overflow: 'visible'
+                borderRadius: 4,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+                overflow: 'hidden',
+                transition: 'box-shadow 0.3s ease',
+                '&:hover': { boxShadow: '0 8px 32px rgba(0,0,0,0.12)' },
               }}>
-                <CardContent sx={{ p: 4, textAlign: 'center' }}>
-                  {/* Profile Picture */}
-                  <Box sx={{ mb: 3 }}>
-                    <AvatarUpload
-                      currentAvatar={user.avatar}
-                      userName={user.name}
-                      size={200}
-                      onAvatarUpdate={(newAvatarUrl) => {
-                        // Avatar will be updated through the context
-                        console.log('Avatar updated:', newAvatarUrl);
-                      }}
-                    />
+                {/* Gradient Cover Banner */}
+                <Box sx={{
+                  height: 100,
+                  background: 'linear-gradient(135deg, #D32F2F 0%, #b71c1c 30%, #1E3A5F 100%)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: -30,
+                    right: -30,
+                    width: 100,
+                    height: 100,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                  },
+                }} />
+                <CardContent sx={{ p: 4, textAlign: 'center', mt: -8 }}>
+                  {/* Profile Picture with gradient ring */}
+                  <Box sx={{
+                    mb: 2,
+                    display: 'inline-flex',
+                    p: '4px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #D32F2F, #ff6b6b, #1E3A5F, #fbbf24)',
+                    boxShadow: '0 4px 20px rgba(211,47,47,0.3)',
+                    '@keyframes subtlePulse': {
+                      '0%, 100%': { boxShadow: '0 4px 20px rgba(211,47,47,0.3)' },
+                      '50%': { boxShadow: '0 4px 28px rgba(211,47,47,0.45)' },
+                    },
+                    animation: 'subtlePulse 3s ease-in-out infinite',
+                  }}>
+                    <Box sx={{ borderRadius: '50%', border: '3px solid #fff', position: 'relative' }}>
+                      <AvatarUpload
+                        currentAvatar={user.avatar}
+                        userName={user.name}
+                        size={160}
+                        onAvatarUpdate={(newAvatarUrl) => {
+                          console.log('Avatar updated:', newAvatarUrl);
+                        }}
+                      />
+                    </Box>
                   </Box>
 
                   {/* User Name */}
-                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1e293b' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e293b', mb: 0.5 }}>
                     {user.name}
                   </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                    <ShieldIcon sx={{ fontSize: 16, color: '#D32F2F' }} />
+                    <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+                      Quản trị viên
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
@@ -216,62 +259,25 @@ const AdminProfile: React.FC = () => {
             {/* Right Panel - Profile Details */}
             <Grid item xs={12} md={8}>
               <Card sx={{
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                borderRadius: 4,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+                transition: 'box-shadow 0.3s ease',
+                '&:hover': { boxShadow: '0 8px 32px rgba(0,0,0,0.12)' },
               }}>
                 <CardContent sx={{ p: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e293b' }}>
+                    Thông tin cá nhân
+                  </Typography>
                   <Grid container spacing={3}>
                     {/* Left Column */}
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Email
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          value={user.email}
-                          size="small"
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Ngày sinh
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                          {formatDate(user.dayOfBirth || '')}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Địa chỉ
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                          {user.address || 'Chưa cập nhật'}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Trạng thái email
-                        </Typography>
-                        <Chip
-                          label={user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
-                          color={user.isEmailVerified ? 'success' : 'warning'}
-                          size="small"
-                          icon={<VerifiedUserIcon />}
-                        />
-                      </Box>
-                    </Grid>
-
-                    {/* Right Column */}
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Họ và tên
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <PersonIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Họ và tên
+                          </Typography>
+                        </Box>
                         {isEditing ? (
                           <TextField
                             fullWidth
@@ -289,9 +295,87 @@ const AdminProfile: React.FC = () => {
                       </Box>
 
                       <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Số điện thoại
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <HomeIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Địa chỉ
+                          </Typography>
+                        </Box>
+                        {isEditing ? (
+                          <TextField
+                            fullWidth
+                            value={formData.address}
+                            onChange={(e) => handleInputChange('address', e.target.value)}
+                            error={!!errors.address}
+                            helperText={errors.address}
+                            size="small"
+                          />
+                        ) : (
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {user.address || 'Chưa cập nhật'}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <VerifiedUserIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Trạng thái xác thực email
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+                          color={user.isEmailVerified ? 'success' : 'warning'}
+                          size="small"
+                          icon={<VerifiedUserIcon />}
+                        />
+                      </Box>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <AdminIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Vai trò
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label="Quản trị viên"
+                          size="small"
+                          sx={{
+                            bgcolor: '#fef2f2',
+                            color: '#D32F2F',
+                            fontWeight: 600,
+                            border: '1px solid #fecaca',
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+
+                    {/* Right Column */}
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <EmailIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Email
+                          </Typography>
+                        </Box>
+                        <TextField
+                          fullWidth
+                          value={user.email}
+                          size="small"
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Box>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <PhoneIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Số điện thoại
+                          </Typography>
+                        </Box>
                         {isEditing ? (
                           <TextField
                             fullWidth
@@ -309,9 +393,12 @@ const AdminProfile: React.FC = () => {
                       </Box>
 
                       <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Giới tính
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <GenderIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Giới tính
+                          </Typography>
+                        </Box>
                         {isEditing ? (
                           <FormControl fullWidth size="small">
                             <Select
@@ -330,37 +417,7 @@ const AdminProfile: React.FC = () => {
                           </Typography>
                         )}
                       </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                          Vai trò
-                        </Typography>
-                        <Chip
-                          label="Quản trị viên"
-                          color="primary"
-                          size="small"
-                        />
-                      </Box>
                     </Grid>
-
-                    {/* Address Field - Full Width */}
-                    {isEditing && (
-                      <Grid item xs={12}>
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                            Địa chỉ
-                          </Typography>
-                          <TextField
-                            fullWidth
-                            value={formData.address}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            error={!!errors.address}
-                            helperText={errors.address}
-                            size="small"
-                          />
-                        </Box>
-                      </Grid>
-                    )}
                   </Grid>
 
                   {/* Action Buttons */}
@@ -414,9 +471,9 @@ const AdminProfile: React.FC = () => {
                           borderRadius: 2,
                           px: 3,
                           py: 1,
-                          bgcolor: '#3b82f6',
+                          background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
                           '&:hover': {
-                            bgcolor: '#2563eb'
+                            background: 'linear-gradient(135deg, #b71c1c 0%, #152c4a 100%)',
                           }
                         }}
                       >
@@ -452,9 +509,9 @@ const AdminProfile: React.FC = () => {
                             borderRadius: 2,
                             px: 3,
                             py: 1,
-                            bgcolor: '#3b82f6',
+                            background: 'linear-gradient(135deg, #D32F2F 0%, #1E3A5F 100%)',
                             '&:hover': {
-                              bgcolor: '#2563eb'
+                              background: 'linear-gradient(135deg, #b71c1c 0%, #152c4a 100%)',
                             }
                           }}
                         >

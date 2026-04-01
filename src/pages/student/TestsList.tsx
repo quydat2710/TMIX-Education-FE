@@ -733,10 +733,12 @@ const TestsList: React.FC = () => {
                                                         🎯 Tỷ lệ Đạt / Chưa đạt
                                                     </Typography>
                                                     <Box sx={{
-                                                        perspective: '800px',
+                                                        overflow: 'visible',
                                                         '& .recharts-wrapper': {
-                                                            transform: 'rotateX(12deg)',
-                                                            transformOrigin: 'center center',
+                                                            overflow: 'visible !important',
+                                                        },
+                                                        '& .recharts-surface': {
+                                                            overflow: 'visible',
                                                         },
                                                     }}>
                                                         <ResponsiveContainer width="100%" height={300}>
@@ -758,9 +760,9 @@ const TestsList: React.FC = () => {
                                                                 <Pie
                                                                     data={passFailData}
                                                                     cx="50%"
-                                                                    cy="48%"
-                                                                    innerRadius={50}
-                                                                    outerRadius={90}
+                                                                    cy="45%"
+                                                                    innerRadius={45}
+                                                                    outerRadius={80}
                                                                     paddingAngle={5}
                                                                     dataKey="value"
                                                                     isAnimationActive={false}
@@ -773,12 +775,24 @@ const TestsList: React.FC = () => {
                                                                 <Pie
                                                                     data={passFailData}
                                                                     cx="50%"
-                                                                    cy="44%"
-                                                                    innerRadius={50}
-                                                                    outerRadius={90}
+                                                                    cy="42%"
+                                                                    innerRadius={45}
+                                                                    outerRadius={80}
                                                                     paddingAngle={5}
                                                                     dataKey="value"
-                                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                                    label={({ name, percent, x, y, textAnchor }) => (
+                                                                        <text
+                                                                            x={x}
+                                                                            y={y}
+                                                                            textAnchor={textAnchor}
+                                                                            dominantBaseline="central"
+                                                                            fill="#334155"
+                                                                            fontSize={12}
+                                                                            fontWeight={600}
+                                                                        >
+                                                                            {`${name} ${(percent * 100).toFixed(0)}%`}
+                                                                        </text>
+                                                                    )}
                                                                     style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
                                                                 >
                                                                     <Cell fill="url(#piePass)" />
@@ -841,7 +855,7 @@ const TestsList: React.FC = () => {
                                                                 }}
                                                                 formatter={(value: number) => [`${value}%`, 'Điểm TB']}
                                                             />
-                                                            <Bar dataKey="avg" shape={<Bar3D />}>
+                                                            <Bar dataKey="avg" shape={<Bar3D />} isAnimationActive={true} animationDuration={1200} animationBegin={200} animationEasing="ease-out">
                                                                 {avgBySkill.map((_, index) => (
                                                                     <Cell key={`bar-${index}`} fill={`url(#barGrad-${index % CHART_COLORS.length})`} />
                                                                 ))}
