@@ -149,11 +149,6 @@ const AdminProfile: React.FC = () => {
     setIsEditing(false);
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Chưa cập nhật';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-  };
 
   if (!user) {
     return (
