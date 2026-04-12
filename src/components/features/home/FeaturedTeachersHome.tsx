@@ -6,11 +6,11 @@ import {
   CardContent,
   CardMedia,
   CircularProgress,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
@@ -95,7 +95,9 @@ const FeaturedTeachersHome = () => {
 
   const handleTeacherClick = (teacher: Teacher) => {
     const slug = createSlug(teacher.name);
-    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}-${teacher.id}`, { state: { teacherId: teacher.id, isTypical: true } });
+    navigate(`/gioi-thieu/doi-ngu-giang-vien/${slug}-${teacher.id}`, {
+      state: { teacherId: teacher.id, isTypical: true },
+    });
   };
 
   const formatSpecializations = (specializations: string[]) => {
@@ -103,19 +105,25 @@ const FeaturedTeachersHome = () => {
     return specializations.join(', ');
   };
 
+  // ── Slider settings – centerMode highlights the active teacher ──
   const sliderSettings = {
     dots: false,
     infinite: true,
-    speed: 500,
+    speed: 700,
+    cssEase: 'cubic-bezier(0.45, 0, 0.15, 1)',
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 2500,
     pauseOnHover: true,
+    arrows: false,
+    centerMode: true,                              // Added for active highlight
+    centerPadding: '0px',
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 2, slidesToScroll: 1 } },
-      { breakpoint: 600, settings: { slidesToShow: 1, slidesToScroll: 1 } }
-    ]
+      { breakpoint: 1024, settings: { slidesToShow: 3, centerMode: true } },
+      { breakpoint: 900, settings: { slidesToShow: 1, centerMode: true, centerPadding: '15%' } },
+      { breakpoint: 600, settings: { slidesToShow: 1, centerMode: true, centerPadding: '10%' } },
+    ],
   };
 
   if (loading) {
@@ -139,7 +147,7 @@ const FeaturedTeachersHome = () => {
   return (
     <AnimatedSection variant="fadeUp">
       <Box sx={{ position: 'relative', px: 4 }}>
-        {/* Section Title */}
+        {/* Section Title – exactly as original */}
         <Box sx={{ textAlign: 'center', mb: 5 }}>
           <Typography
             variant="overline"
@@ -156,16 +164,14 @@ const FeaturedTeachersHome = () => {
           </Typography>
           <Typography
             variant="h4"
-            sx={{
-              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
-            }}
+            sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}
           >
             <span style={{ color: '#333333', fontWeight: 600 }}>Giáo viên </span>
             <span style={{ color: '#D32F2F', fontWeight: 700 }}>tiêu biểu</span>
           </Typography>
         </Box>
 
-        {/* Navigation Arrows */}
+        {/* Navigation Arrows – premium styling */}
         <Box sx={{ position: 'relative' }}>
           <IconButton
             onClick={() => sliderRef.current?.slickPrev()}
@@ -175,18 +181,21 @@ const FeaturedTeachersHome = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2,
-              bgcolor: 'rgba(255,255,255,0.9)',
+              bgcolor: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               width: 44,
               height: 44,
-              transition: 'all 0.3s ease',
+              border: '1.5px solid rgba(30,58,95,0.08)',
+              transition: 'all 0.28s cubic-bezier(0.34,1.2,0.64,1)',
               '&:hover': {
                 bgcolor: '#e53935',
                 color: 'white',
-                transform: 'translateY(-50%) scale(1.1)',
+                borderColor: '#e53935',
+                transform: 'translateY(-50%) scale(1.12)',
+                boxShadow: '0 8px 28px rgba(229,57,53,0.35)',
               },
-              '@media (max-width: 600px)': { left: -10 }
+              '@media (max-width: 600px)': { left: -10 },
             }}
           >
             <ChevronLeftIcon />
@@ -200,25 +209,47 @@ const FeaturedTeachersHome = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2,
-              bgcolor: 'rgba(255,255,255,0.9)',
+              bgcolor: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               width: 44,
               height: 44,
-              transition: 'all 0.3s ease',
+              border: '1.5px solid rgba(30,58,95,0.08)',
+              transition: 'all 0.28s cubic-bezier(0.34,1.2,0.64,1)',
               '&:hover': {
                 bgcolor: '#e53935',
                 color: 'white',
-                transform: 'translateY(-50%) scale(1.1)',
+                borderColor: '#e53935',
+                transform: 'translateY(-50%) scale(1.12)',
+                boxShadow: '0 8px 28px rgba(229,57,53,0.35)',
               },
-              '@media (max-width: 600px)': { right: -10 }
+              '@media (max-width: 600px)': { right: -10 },
             }}
           >
             <ChevronRightIcon />
           </IconButton>
 
-          {/* Slider */}
-          <Box sx={{ px: 2 }}>
+          {/* Slider – original card structure preserved exactly */}
+          <Box
+            sx={{
+              px: { xs: 0, md: 2 },
+              '& .slick-slide': {
+                opacity: 0.5,
+                transform: 'scale(0.85)',
+                transition: 'all 0.5s cubic-bezier(0.45, 0, 0.15, 1)',
+                py: 2, // padding to allow scale up without clipping
+              },
+              '& .slick-center': {
+                opacity: 1,
+                transform: 'scale(1)',
+                zIndex: 1,
+              },
+              '& .slick-track': {
+                display: 'flex',
+                alignItems: 'center',
+              },
+            }}
+          >
             <Slider ref={sliderRef} {...sliderSettings}>
               {teachers.map((teacher) => (
                 <Box key={teacher.id} sx={{ px: 1.5 }}>
@@ -237,16 +268,12 @@ const FeaturedTeachersHome = () => {
                       '&:hover': {
                         transform: 'translateY(-12px) scale(1.02)',
                         boxShadow: '0 25px 50px rgba(229, 57, 53, 0.15), 0 10px 25px rgba(0,0,0,0.08)',
-                        '& .teacher-overlay': {
-                          opacity: 1,
-                        },
-                        '& .teacher-img': {
-                          transform: 'scale(1.08)',
-                        },
-                      }
+                        '& .teacher-overlay': { opacity: 1 },
+                        '& .teacher-img': { transform: 'scale(1.08)' },
+                      },
                     }}
                   >
-                    {/* Image with gradient overlay */}
+                    {/* Image – original paddingTop:100% square ratio preserved */}
                     <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
                       {teacher.avatar ? (
                         <CardMedia
@@ -278,13 +305,13 @@ const FeaturedTeachersHome = () => {
                             background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
                             color: '#999',
                             fontSize: '4rem',
-                            fontWeight: 'bold'
+                            fontWeight: 'bold',
                           }}
                         >
                           {teacher.name.charAt(0).toUpperCase()}
                         </Box>
                       )}
-                      {/* Gradient overlay on hover */}
+                      {/* Hover overlay */}
                       <Box
                         className="teacher-overlay"
                         sx={{
@@ -301,13 +328,7 @@ const FeaturedTeachersHome = () => {
                           p: 2,
                         }}
                       >
-                        <Typography
-                          sx={{
-                            color: 'white',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                          }}
-                        >
+                        <Typography sx={{ color: 'white', fontWeight: 600, fontSize: '0.9rem' }}>
                           Xem chi tiết →
                         </Typography>
                       </Box>
@@ -317,23 +338,13 @@ const FeaturedTeachersHome = () => {
                     <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
                       <Typography
                         variant="h6"
-                        sx={{
-                          fontWeight: 700,
-                          color: '#1E3A5F',
-                          mb: 0.5,
-                          fontSize: '1.1rem',
-                        }}
+                        sx={{ fontWeight: 700, color: '#1E3A5F', mb: 0.5, fontSize: '1.1rem' }}
                       >
                         {teacher.name}
                       </Typography>
                       <Typography
                         variant="subtitle2"
-                        sx={{
-                          color: '#e53935',
-                          fontWeight: 600,
-                          mb: 1.5,
-                          fontSize: '0.85rem',
-                        }}
+                        sx={{ color: '#e53935', fontWeight: 600, mb: 1.5, fontSize: '0.85rem' }}
                       >
                         {formatSpecializations(teacher.specializations)}
                       </Typography>
