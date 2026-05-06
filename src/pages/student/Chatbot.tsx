@@ -1,17 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     Box, Typography, TextField, IconButton, Paper, Avatar,
-    CircularProgress, Chip,
+    CircularProgress, Chip, Tooltip, Switch,
 } from '@mui/material';
 import {
     Send as SendIcon,
     Person as PersonIcon,
     FiberManualRecord as DotIcon,
+    VolumeUp as VolumeUpIcon,
+    RecordVoiceOver as AutoReadIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { COLORS } from '../../utils/colors';
 import axiosInstance from '../../utils/axios.customize';
 import AiSparkleIcon from '../../components/icons/AiSparkleIcon';
+import { useTTS } from '../../components/TTSButton';
 
 // ─── Keyframes injected once ───
 const KEYFRAMES_STYLE = `
@@ -39,6 +42,39 @@ interface ChatMessage {
     timestamp: Date;
 }
 
+/**
+ * Inline TTS button for chatbot messages.
+ * Uses Piper TTS (VITS model) via backend API.
+ */
+const ChatTTSButton: React.FC<{ text: string }> = ({ text }) => {
+    const { speak, stop, isSpeaking, isLoading } = useTTS();
+    return (
+        <IconButton
+            size="small"
+            onClick={() => isSpeaking ? stop() : speak(text)}
+            sx={{
+                color: isSpeaking ? '#dc2626' : '#9ca3af',
+                '&:hover': { color: isSpeaking ? '#dc2626' : '#7c3aed', bgcolor: 'rgba(124,58,237,0.08)' },
+                p: 0.5,
+                ...(isSpeaking && {
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                    '@keyframes pulse': {
+                        '0%, 100%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.15)' },
+                    },
+                }),
+            }}
+            title={isSpeaking ? 'Dừng đọc' : 'Nghe phản hồi AI (Piper TTS)'}
+        >
+            {isLoading ? (
+                <CircularProgress size={16} sx={{ color: '#7c3aed' }} />
+            ) : (
+                <VolumeUpIcon sx={{ fontSize: 18 }} />
+            )}
+        </IconButton>
+    );
+};
+
 const ChatbotPage: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -49,8 +85,31 @@ const ChatbotPage: React.FC = () => {
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [autoRead, setAutoRead] = useState(() => {
+        try { return localStorage.getItem('chatbot_autoread') === 'true'; } catch { return false; }
+    });
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const autoReadTts = useTTS(); // Shared TTS instance for auto-read
+    const prevMsgCountRef = useRef(messages.length);
+
+    // Persist auto-read preference
+    useEffect(() => {
+        try { localStorage.setItem('chatbot_autoread', String(autoRead)); } catch {}
+    }, [autoRead]);
+
+    // Auto-read: speak the latest AI message when it arrives
+    useEffect(() => {
+        if (!autoRead) return;
+        if (messages.length > prevMsgCountRef.current) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.role === 'assistant' && !lastMsg.content.startsWith('❌')) {
+                // Small delay so the UI renders first
+                setTimeout(() => autoReadTts.speak(lastMsg.content), 300);
+            }
+        }
+        prevMsgCountRef.current = messages.length;
+    }, [messages, autoRead]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -178,24 +237,53 @@ const ChatbotPage: React.FC = () => {
                                 </Typography>
                             </Box>
                         </Box>
-                        {/* ─── Status badge ─── */}
-                        <Box sx={{
-                            display: 'flex', alignItems: 'center', gap: 0.7,
-                            bgcolor: 'rgba(255,255,255,0.15)',
-                            backdropFilter: 'blur(8px)',
-                            borderRadius: '20px',
-                            px: 1.5, py: 0.5,
-                            border: '1px solid rgba(255,255,255,0.2)',
-                        }}>
-                            <DotIcon sx={{
-                                fontSize: 12,
-                                color: '#4ade80',
-                                filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.6))',
-                                animation: 'pulseGlow 2s ease-in-out infinite',
-                            }} />
-                            <Typography variant="caption" sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}>
-                                Đang hoạt động
-                            </Typography>
+                        {/* ─── Auto-read toggle + Status badges ─── */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {/* Auto-read toggle */}
+                            <Tooltip title={autoRead ? 'Tắt tự động đọc' : 'Bật tự động đọc phản hồi AI'}>
+                                <Box
+                                    onClick={() => {
+                                        if (autoRead) autoReadTts.stop();
+                                        setAutoRead(!autoRead);
+                                    }}
+                                    sx={{
+                                        display: 'flex', alignItems: 'center', gap: 0.5,
+                                        bgcolor: autoRead ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.12)',
+                                        backdropFilter: 'blur(8px)',
+                                        borderRadius: '20px',
+                                        px: 1.2, py: 0.4,
+                                        border: autoRead ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(255,255,255,0.15)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': { bgcolor: autoRead ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.2)' },
+                                    }}
+                                >
+                                    <AutoReadIcon sx={{ fontSize: 14, color: 'white', opacity: autoRead ? 1 : 0.6 }} />
+                                    <Typography variant="caption" sx={{ color: 'white', fontWeight: 600, fontSize: '0.7rem', opacity: autoRead ? 1 : 0.7 }}>
+                                        {autoRead ? '🔊 Auto' : '🔇 Auto'}
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
+
+                            {/* Status badge */}
+                            <Box sx={{
+                                display: 'flex', alignItems: 'center', gap: 0.7,
+                                bgcolor: 'rgba(255,255,255,0.15)',
+                                backdropFilter: 'blur(8px)',
+                                borderRadius: '20px',
+                                px: 1.5, py: 0.5,
+                                border: '1px solid rgba(255,255,255,0.2)',
+                            }}>
+                                <DotIcon sx={{
+                                    fontSize: 12,
+                                    color: '#4ade80',
+                                    filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.6))',
+                                    animation: 'pulseGlow 2s ease-in-out infinite',
+                                }} />
+                                <Typography variant="caption" sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}>
+                                    Đang hoạt động
+                                </Typography>
+                            </Box>
                         </Box>
                     </Box>
                 </Paper>
@@ -261,12 +349,17 @@ const ChatbotPage: React.FC = () => {
                                     }}
                                 >
                                     <Typography variant="body1">{msg.content}</Typography>
-                                    <Typography variant="caption" sx={{
-                                        display: 'block', mt: 0.5, textAlign: 'right',
-                                        opacity: 0.5, fontSize: '0.7rem',
-                                    }}>
-                                        {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+                                        {msg.role === 'assistant' && (
+                                            <ChatTTSButton text={msg.content} />
+                                        )}
+                                        <Typography variant="caption" sx={{
+                                            opacity: 0.5, fontSize: '0.7rem',
+                                            ml: 'auto',
+                                        }}>
+                                            {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                        </Typography>
+                                    </Box>
                                 </Paper>
                             </Box>
                         </Box>

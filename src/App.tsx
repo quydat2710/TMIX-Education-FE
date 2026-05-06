@@ -1,84 +1,90 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Box, CircularProgress } from '@mui/material';
 
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ScrollToTop from './components/common/ScrollToTop';
 
-
 // Import custom theme
 import theme from './theme';
 
-// Pages
+// ── Lazy loading fallback ──
+const LazyFallback = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <CircularProgress sx={{ color: '#7c3aed' }} />
+  </Box>
+);
+
+// ── Core Pages (static imports — needed on first load) ──
 import Home from './pages/home/InteractiveHome'
 import Login from './pages/auth/Login';
-// StaffLogin removed - unified into Login page
 import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import UnauthorizedAccess from './pages/auth/UnauthorizedAccess';
 
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard';
-import AdvertisementManagement from './pages/admin/AdvertisementManagement';
-import ClassManagement from './pages/admin/ClassManagement';
-import StudentManagement from './pages/admin/StudentManagement';
-import TeacherManagement from './pages/admin/TeacherManagement';
-import ParentManagement from './pages/admin/ParentManagement';
-import Statistics from './pages/admin/Statistics';
-import FinancialStatistics from './pages/admin/FinancialStatistics';
-import StudentStatistics from './pages/admin/StudentStatistics';
-import RoleManagement from './pages/admin/RoleManagement';
-import RegistrationManagement from './pages/admin/RegistrationManagement';
+// ── Admin Pages (lazy loaded — only downloaded when admin visits) ──
+const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'));
+const AdvertisementManagement = React.lazy(() => import('./pages/admin/AdvertisementManagement'));
+const ClassManagement = React.lazy(() => import('./pages/admin/ClassManagement'));
+const StudentManagement = React.lazy(() => import('./pages/admin/StudentManagement'));
+const TeacherManagement = React.lazy(() => import('./pages/admin/TeacherManagement'));
+const ParentManagement = React.lazy(() => import('./pages/admin/ParentManagement'));
+const Statistics = React.lazy(() => import('./pages/admin/Statistics'));
+const FinancialStatistics = React.lazy(() => import('./pages/admin/FinancialStatistics'));
+const StudentStatistics = React.lazy(() => import('./pages/admin/StudentStatistics'));
+const RoleManagement = React.lazy(() => import('./pages/admin/RoleManagement'));
+const RegistrationManagement = React.lazy(() => import('./pages/admin/RegistrationManagement'));
+const MenuManagement = React.lazy(() => import('./pages/admin/MenuManagement'));
+const TestimonialsManagement = React.lazy(() => import('./pages/admin/TestimonialsManagement'));
+const AdminProfile = React.lazy(() => import('./pages/profile/AdminProfile'));
+const AuditLog = React.lazy(() => import('./pages/admin/AuditLog'));
+const LayoutBuilder = React.lazy(() => import('./pages/admin/LayoutBuilder'));
 
+// ── Teacher Pages (lazy loaded) ──
+const TeacherDashboard = React.lazy(() => import('./pages/teacher/Dashboard'));
+const TeacherMyClasses = React.lazy(() => import('./pages/teacher/MyClasses'));
+const TeacherSchedule = React.lazy(() => import('./pages/teacher/Schedule'));
+const TeacherProfile = React.lazy(() => import('./pages/profile/TeacherProfile'));
+const TeacherDetail = React.lazy(() => import('./pages/teacher/TeacherDetail'));
+const Salary = React.lazy(() => import('./pages/teacher/Salary'));
+const TeacherTestManagement = React.lazy(() => import('./pages/teacher/TestManagement'));
+const TeacherCreateEditTest = React.lazy(() => import('./pages/teacher/CreateEditTest'));
+const TeacherTestStatistics = React.lazy(() => import('./pages/teacher/TestStatistics'));
+const TeacherReviewAttempt = React.lazy(() => import('./pages/teacher/ReviewAttempt'));
+const TeacherMaterialManagement = React.lazy(() => import('./pages/teacher/MaterialManagement'));
 
-import MenuManagement from './pages/admin/MenuManagement';
-import TestimonialsManagement from './pages/admin/TestimonialsManagement';
-import AdminProfile from './pages/profile/AdminProfile';
-import AuditLog from './pages/admin/AuditLog';
+// ── Student Pages (lazy loaded) ──
+const StudentDashboard = React.lazy(() => import('./pages/student/Dashboard'));
+const StudentMyClasses = React.lazy(() => import('./pages/student/MyClasses'));
+const StudentSchedule = React.lazy(() => import('./pages/student/Schedule'));
+const StudentProfile = React.lazy(() => import('./pages/profile/StudentProfile'));
+const StudentTestsList = React.lazy(() => import('./pages/student/TestsList'));
+const TakeTest = React.lazy(() => import('./pages/student/TakeTest'));
+const TestResults = React.lazy(() => import('./pages/student/TestResults'));
+const StudentChatbot = React.lazy(() => import('./pages/student/Chatbot'));
+const StudentMaterials = React.lazy(() => import('./pages/student/Materials'));
+const PronunciationPractice = React.lazy(() => import('./pages/student/PronunciationPractice'));
+const DictationPractice = React.lazy(() => import('./pages/student/DictationPractice'));
 
-// Teacher Pages
-import TeacherDashboard from './pages/teacher/Dashboard';
-import TeacherMyClasses from './pages/teacher/MyClasses';
-import TeacherSchedule from './pages/teacher/Schedule';
-import TeacherProfile from './pages/profile/TeacherProfile';
-import TeacherDetail from './pages/teacher/TeacherDetail';
-import Salary from './pages/teacher/Salary';
-import TeacherTestManagement from './pages/teacher/TestManagement';
-import TeacherCreateEditTest from './pages/teacher/CreateEditTest';
-import TeacherTestStatistics from './pages/teacher/TestStatistics';
-import TeacherReviewAttempt from './pages/teacher/ReviewAttempt';
-import TeacherMaterialManagement from './pages/teacher/MaterialManagement';
-
-// Student Pages
-import StudentDashboard from './pages/student/Dashboard';
-import StudentMyClasses from './pages/student/MyClasses';
-import StudentSchedule from './pages/student/Schedule';
-import StudentProfile from './pages/profile/StudentProfile';
-import StudentTestsList from './pages/student/TestsList';
-import TakeTest from './pages/student/TakeTest';
-import TestResults from './pages/student/TestResults';
-import StudentChatbot from './pages/student/Chatbot';
-import StudentMaterials from './pages/student/Materials';
-
-// Parent Pages
-import ParentDashboard from './pages/parent/Dashboard';
-import ParentChildren from './pages/parent/Children';
-import ParentPayments from './pages/parent/Payments';
-import ParentProfile from './pages/profile/ParentProfile';
+// ── Parent Pages (lazy loaded) ──
+const ParentDashboard = React.lazy(() => import('./pages/parent/Dashboard'));
+const ParentChildren = React.lazy(() => import('./pages/parent/Children'));
+const ParentPayments = React.lazy(() => import('./pages/parent/Payments'));
+const ParentProfile = React.lazy(() => import('./pages/profile/ParentProfile'));
 
 import { USER_ROLES } from './constants';
 
-// Dynamic Menu Pages
-import DynamicMenuPage from './pages/DynamicMenuPage';
-import LayoutBuilder from './pages/admin/LayoutBuilder';
-import AllTeachersPage from './pages/AllTeachersPage';
-import AboutPage from './pages/AboutPage';
-import CoursesPage from './pages/CoursesPage';
-import SchedulePage from './pages/SchedulePage';
-import TestimonialsPage from './pages/TestimonialsPage';
-import NotificationsPage from './pages/NotificationsPage';
+// ── Public Pages (lazy loaded) ──
+const DynamicMenuPage = React.lazy(() => import('./pages/DynamicMenuPage'));
+const AllTeachersPage = React.lazy(() => import('./pages/AllTeachersPage'));
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const CoursesPage = React.lazy(() => import('./pages/CoursesPage'));
+const SchedulePage = React.lazy(() => import('./pages/SchedulePage'));
+const TestimonialsPage = React.lazy(() => import('./pages/TestimonialsPage'));
+const NotificationsPage = React.lazy(() => import('./pages/NotificationsPage'));
 import DashboardLayout from './components/layouts/DashboardLayout';
 
 const AppContent: React.FC = () => {
@@ -89,6 +95,7 @@ const AppContent: React.FC = () => {
       <CssBaseline />
       <Router>
         <ScrollToTop />
+        <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Trang chủ chung - hiển thị khác nhau tùy trạng thái đăng nhập */}
           <Route path="/" element={<Home />} />
@@ -238,6 +245,8 @@ const AppContent: React.FC = () => {
                   <Route path="tests/results/:attemptId" element={<TestResults />} />
                   <Route path="chatbot" element={<StudentChatbot />} />
                   <Route path="materials" element={<StudentMaterials />} />
+                  <Route path="pronunciation" element={<PronunciationPractice />} />
+                  <Route path="dictation" element={<DictationPractice />} />
                   <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                 </Routes>
               </ProtectedRoute>
@@ -263,6 +272,7 @@ const AppContent: React.FC = () => {
           {/* Catch all route - redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </Router>
     </ThemeProvider>
   );

@@ -17,6 +17,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import MenuIcon from '@mui/icons-material/Menu';
 import SecurityIcon from '@mui/icons-material/Security';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import MicIcon from '@mui/icons-material/Mic';
+import HearingIcon from '@mui/icons-material/Hearing';
 import AiSparkleIcon from '../icons/AiSparkleIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,6 +40,8 @@ const ICON_STYLE_MAP: Record<string, { bg: string; color: string; glow: string }
   '/student/tests':     { bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', color: '#d97706', glow: '0 4px 14px rgba(217,119,6,0.30)' },
   '/student/chatbot':   { bg: 'linear-gradient(135deg, #ede9fe, #ddd6fe)', color: '#7c3aed', glow: '0 4px 14px rgba(124,58,237,0.35)' },
   '/student/materials': { bg: 'linear-gradient(135deg, #fce7f3, #fbcfe8)', color: '#db2777', glow: '0 4px 14px rgba(219,39,119,0.30)' },
+  '/student/pronunciation': { bg: 'linear-gradient(135deg, #ffedd5, #fed7aa)', color: '#ea580c', glow: '0 4px 14px rgba(234,88,12,0.30)' },
+  '/student/dictation':     { bg: 'linear-gradient(135deg, #dbeafe, #93c5fd)', color: '#2563eb', glow: '0 4px 14px rgba(37,99,235,0.30)' },
   // Teacher
   '/teacher/dashboard': { bg: 'linear-gradient(135deg, #fee2e2, #fecaca)', color: '#dc2626', glow: '0 4px 14px rgba(220,38,38,0.30)' },
   '/teacher/schedule':  { bg: 'linear-gradient(135deg, #dbeafe, #bfdbfe)', color: '#2563eb', glow: '0 4px 14px rgba(37,99,235,0.30)' },
@@ -107,6 +111,8 @@ const getMenuItemsByRole = (role: string): MenuItem[] => {
         { text: 'Lớp học của tôi', icon: <SchoolIcon />, path: '/student/classes' },
         { text: 'Bài kiểm tra', icon: <ListAltIcon />, path: '/student/tests' },
         { text: 'Trợ lý AI', icon: <AiSparkleIcon size={22} />, path: '/student/chatbot' },
+        { text: 'Luyện phát âm', icon: <MicIcon />, path: '/student/pronunciation' },
+        { text: 'Luyện chính tả', icon: <HearingIcon />, path: '/student/dictation' },
         { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/student/materials' },
       ];
     case 'parent':

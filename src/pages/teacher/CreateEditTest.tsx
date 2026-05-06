@@ -31,6 +31,7 @@ import { uploadFileAPI } from '../../services/files';
 import { MCQuestion, TestFormData, SkillType } from '../../types/test';
 import { useAuth } from '../../contexts/AuthContext';
 import { getTeacherScheduleAPI } from '../../services/teachers';
+import axiosInstance from '../../utils/axios.customize';
 
 const emptyMCQuestion = (): MCQuestion => ({
     id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -87,6 +88,12 @@ const CreateEditTest: React.FC = () => {
     const [classes, setClasses] = useState<any[]>([]);
     const [publishDialogOpen, setPublishDialogOpen] = useState(false);
     const [audioUploading, setAudioUploading] = useState(false);
+    const [audioMode, setAudioMode] = useState<'upload' | 'tts'>('tts'); // Default to TTS mode
+    const [ttsTranscript, setTtsTranscript] = useState('');
+    const [ttsSpeed, setTtsSpeed] = useState(1.0);
+    const [ttsPause, setTtsPause] = useState(0.8);
+    const [ttsPreviewUrl, setTtsPreviewUrl] = useState('');
+    const [ttsGenerating, setTtsGenerating] = useState(false);
 
     const [formData, setFormData] = useState<TestFormData>({
         title: '',
@@ -272,6 +279,70 @@ const CreateEditTest: React.FC = () => {
         await handleSave(false);
     };
 
+    // ── TTS Audio Generation Handlers ──
+
+    /** Preview audio from transcript (streams directly, not saved) */
+    const handleTtsPreview = async () => {
+        if (!ttsTranscript.trim()) return;
+        try {
+            setTtsGenerating(true);
+            setError('');
+            // Revoke old preview URL
+            if (ttsPreviewUrl) URL.revokeObjectURL(ttsPreviewUrl);
+
+            const response = await axiosInstance.post('/tts/preview-audio',
+                { transcript: ttsTranscript, speed: ttsSpeed, pauseBetweenLines: ttsPause },
+                { responseType: 'blob', timeout: 120000 },
+            );
+
+            const audioBlob = new Blob([response.data], { type: 'audio/wav' });
+            const url = URL.createObjectURL(audioBlob);
+            setTtsPreviewUrl(url);
+            setSuccess('Preview audio đã sẵn sàng! Bấm Play để nghe.');
+        } catch (err: any) {
+            console.error('TTS preview failed:', err);
+            setError(err?.response?.status === 503
+                ? 'TTS Server chưa khởi động. Hãy chạy TMix-TTS-Server trước.'
+                : 'Tạo preview audio thất bại. Vui lòng thử lại.');
+        } finally {
+            setTtsGenerating(false);
+        }
+    };
+
+    /** Generate audio, save to server, and set audioUrl in form */
+    const handleTtsGenerate = async () => {
+        if (!ttsTranscript.trim()) return;
+        try {
+            setTtsGenerating(true);
+            setError('');
+
+            const response = await axiosInstance.post('/tts/generate-audio',
+                { transcript: ttsTranscript, speed: ttsSpeed, pauseBetweenLines: ttsPause },
+                { timeout: 120000 },
+            );
+
+            const data = response?.data?.data || response?.data;
+            if (data?.url) {
+                // Build full URL for audio playback
+                const backendUrl = axiosInstance.defaults.baseURL?.replace('/api/v1', '') || '';
+                const fullUrl = backendUrl + data.url;
+                handleFieldChange('audioUrl', fullUrl);
+                // Also save transcript to passage field for reference
+                handleFieldChange('passage', ttsTranscript);
+                setSuccess(`✅ Audio đã tạo thành công! (${data.sizeFormatted}, ${data.durationEstimate})`);
+            } else {
+                setError('Phản hồi không hợp lệ từ server.');
+            }
+        } catch (err: any) {
+            console.error('TTS generate failed:', err);
+            setError(err?.response?.status === 503
+                ? 'TTS Server chưa khởi động. Hãy chạy TMix-TTS-Server trước.'
+                : 'Tạo audio thất bại. Vui lòng thử lại.');
+        } finally {
+            setTtsGenerating(false);
+        }
+    };
+
     const totalPoints = formData.questions.reduce((sum, q) => sum + (q.points || 1), 0);
 
     if (loading) {
@@ -452,18 +523,36 @@ const CreateEditTest: React.FC = () => {
                         />
                     )}
 
-                    {/* Audio Upload for Listening */}
+                    {/* Audio for Listening — Upload OR TTS Generate */}
                     {formData.skillType === 'listening' && (
                         <Box sx={{ mt: 2 }}>
                             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                                🎧 File âm thanh (MP3)
+                                🎧 Nguồn âm thanh bài nghe
                             </Typography>
-                            {formData.audioUrl ? (
-                                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f3ff', border: '1px solid #ddd6fe' }}>
+
+                            {/* Tab: Upload vs TTS Generate */}
+                            <ToggleButtonGroup
+                                value={audioMode}
+                                exclusive
+                                onChange={(_, v) => v && setAudioMode(v)}
+                                sx={{ mb: 2 }}
+                                size="small"
+                            >
+                                <ToggleButton value="upload" sx={{ px: 3, gap: 1 }}>
+                                    📁 Upload file
+                                </ToggleButton>
+                                <ToggleButton value="tts" sx={{ px: 3, gap: 1 }}>
+                                    🤖 Tạo bằng AI (VITS)
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+
+                            {/* ── Current audio player ── */}
+                            {formData.audioUrl && (
+                                <Box sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: '#f5f3ff', border: '1px solid #ddd6fe' }}>
                                     <audio controls src={formData.audioUrl} style={{ width: '100%', marginBottom: 8 }} />
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Typography variant="body2" color="text.secondary">
-                                            ✅ Đã tải lên thành công
+                                            ✅ Audio sẵn sàng
                                         </Typography>
                                         <Button
                                             size="small" color="error" variant="outlined"
@@ -473,13 +562,16 @@ const CreateEditTest: React.FC = () => {
                                         </Button>
                                     </Box>
                                 </Box>
-                            ) : (
+                            )}
+
+                            {/* ── Mode: Upload file ── */}
+                            {audioMode === 'upload' && !formData.audioUrl && (
                                 <Button
                                     variant="outlined"
                                     component="label"
                                     disabled={audioUploading}
                                     startIcon={audioUploading ? <CircularProgress size={18} /> : <ListeningIcon />}
-                                    sx={{ borderRadius: 2, borderStyle: 'dashed', py: 2, px: 4 }}
+                                    sx={{ borderRadius: 2, borderStyle: 'dashed', py: 2, px: 4, mb: 2 }}
                                 >
                                     {audioUploading ? 'Đang tải lên...' : 'Chọn file MP3/WAV'}
                                     <input
@@ -503,6 +595,80 @@ const CreateEditTest: React.FC = () => {
                                         }}
                                     />
                                 </Button>
+                            )}
+
+                            {/* ── Mode: TTS Generate from Transcript ── */}
+                            {audioMode === 'tts' && (
+                                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: '#faf5ff', borderColor: '#ddd6fe' }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: '#7c3aed' }}>
+                                        🎙️ Tạo audio bằng VITS Neural TTS
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                                        Nhập transcript bài nghe. Hỗ trợ cả dạng plain text và hội thoại [A]: ... [B]: ...
+                                    </Typography>
+
+                                    <TextField
+                                        fullWidth multiline rows={6}
+                                        label="Transcript bài nghe"
+                                        placeholder={`Dạng đoạn văn:\nGood morning class. Today we will learn about present perfect tense.\n\nDạng hội thoại:\n[A]: Good morning. Can I help you?\n[B]: Yes, I'd like to book a room please.\n[A]: Sure. For how many nights?\n[C]: Excuse me, is this the reception?`}
+                                        value={ttsTranscript}
+                                        onChange={(e) => setTtsTranscript(e.target.value)}
+                                        sx={{ mb: 2, bgcolor: 'white', borderRadius: 1 }}
+                                    />
+
+                                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                                        <Grid item xs={6} md={3}>
+                                            <TextField
+                                                fullWidth size="small" type="number"
+                                                label="Tốc độ đọc"
+                                                value={ttsSpeed}
+                                                onChange={(e) => setTtsSpeed(Math.max(0.5, Math.min(2.0, parseFloat(e.target.value) || 1.0)))}
+                                                inputProps={{ min: 0.5, max: 2.0, step: 0.1 }}
+                                                helperText="0.5x - 2.0x"
+                                            />
+                                        </Grid>
+                                        <Grid item xs={6} md={3}>
+                                            <TextField
+                                                fullWidth size="small" type="number"
+                                                label="Ngắt nghỉ giữa câu (s)"
+                                                value={ttsPause}
+                                                onChange={(e) => setTtsPause(Math.max(0.3, Math.min(3.0, parseFloat(e.target.value) || 0.8)))}
+                                                inputProps={{ min: 0.3, max: 3.0, step: 0.1 }}
+                                                helperText="0.3s - 3.0s"
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={handleTtsPreview}
+                                                disabled={ttsGenerating || !ttsTranscript.trim()}
+                                                startIcon={ttsGenerating ? <CircularProgress size={18} /> : <ListeningIcon />}
+                                                sx={{ borderColor: '#7c3aed', color: '#7c3aed', '&:hover': { borderColor: '#6d28d9', bgcolor: '#f5f3ff' } }}
+                                            >
+                                                {ttsGenerating ? 'Đang tạo...' : ' Nghe thử'}
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleTtsGenerate}
+                                                disabled={ttsGenerating || !ttsTranscript.trim()}
+                                                startIcon={ttsGenerating ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+                                                sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' } }}
+                                            >
+                                                {ttsGenerating ? 'Đang tạo...' : 'Tạo & lưu audio'}
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    {/* Preview audio player */}
+                                    {ttsPreviewUrl && (
+                                        <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: '#e8f5e9', border: '1px solid #a5d6a7' }}>
+                                            <Typography variant="caption" fontWeight={600} color="#2e7d32" sx={{ mb: 0.5, display: 'block' }}>
+                                                🔊 Preview Audio
+                                            </Typography>
+                                            <audio controls src={ttsPreviewUrl} style={{ width: '100%' }} />
+                                        </Box>
+                                    )}
+                                </Paper>
                             )}
 
                             <TextField
