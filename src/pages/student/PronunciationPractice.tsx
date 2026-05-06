@@ -12,12 +12,11 @@ import React, { useState, useRef, useCallback } from 'react';
 import {
     Box, Typography, Button, Paper, TextField, Grid,
     CircularProgress, Alert, Chip, LinearProgress,
-    Card, CardContent, IconButton, Tooltip, Divider,
+    Card, CardContent, Tooltip, Divider,
 } from '@mui/material';
 import {
     Mic as MicIcon,
     Stop as StopIcon,
-    PlayArrow as PlayIcon,
     VolumeUp as VolumeUpIcon,
     Refresh as RefreshIcon,
     CheckCircle as CheckIcon,
@@ -28,7 +27,6 @@ import {
     GpsFixed as AccuracyIcon,
     MenuBook as VocabIcon,
     Hearing as HearingIcon,
-    Assessment as AssessmentIcon,
     EmojiEvents as TrophyIcon,
     TrendingUp as TrendingUpIcon,
     Edit as EditIcon,

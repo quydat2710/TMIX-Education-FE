@@ -10,18 +10,17 @@
  *    - Wrong → highlight correct/wrong words, do NOT reveal original
  *    - 100% correct → reveal original sentence + congrats
  */
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Box, Typography, Button, Paper, TextField, Grid,
     CircularProgress, Alert, Chip, LinearProgress,
-    Card, CardContent, Slider, Divider, IconButton, Tooltip,
+    Card, CardContent, Slider, IconButton, Tooltip,
 } from '@mui/material';
 import {
     Hearing as HearingIcon,
     VolumeUp as VolumeUpIcon,
     Replay as ReplayIcon,
     Send as SendIcon,
-    Refresh as RefreshIcon,
     CheckCircle as CheckIcon,
     Cancel as WrongIcon,
     Speed as SpeedIcon,

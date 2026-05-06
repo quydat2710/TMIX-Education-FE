@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     Box, Typography, TextField, IconButton, Paper, Avatar,
-    CircularProgress, Chip, Tooltip, Switch,
+    CircularProgress, Chip, Tooltip,
 } from '@mui/material';
 import {
     Send as SendIcon,
