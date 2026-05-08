@@ -180,15 +180,6 @@ const Dashboard: React.FC = () => {
     return amount.toString();
   };
 
-  const getStatusLabel = (status: string): string => {
-    switch (status) {
-      case 'paid': return 'Đã thanh toán';
-      case 'partial': return 'Một phần';
-      case 'pending': return 'Chờ thanh toán';
-      default: return status;
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return { color: '#059669', bg: 'rgba(5, 150, 105, 0.08)' };

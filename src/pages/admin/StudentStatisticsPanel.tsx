@@ -4,8 +4,8 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, ComposedChart, Area, Legend,
+  Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Line, PieChart, Pie, Cell, ComposedChart, Area, Legend,
 } from 'recharts';
 import {
   TrendingUp as TrendingUpIcon,
@@ -15,11 +15,9 @@ import {
   Groups as GroupsIcon,
   ShowChart as ShowChartIcon,
 } from '@mui/icons-material';
-import { commonStyles } from '../../utils/styles';
 import { getMonthlyStudentChangeAPI } from '../../services/students';
 
 // ─── Design tokens ───
-const NAVY = '#1e3a8a';
 const CHART_COLORS = {
   primary: '#3b82f6',
   success: '#10b981',

@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Box, Paper, Tabs, Tab, Skeleton } from '@mui/material';
+import { Box, Paper, Tabs, Tab } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 
 // ─── Sub-components ───
