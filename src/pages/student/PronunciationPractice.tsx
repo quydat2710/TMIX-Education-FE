@@ -32,6 +32,16 @@ import {
     Edit as EditIcon,
     FitnessCenter as PracticeIcon,
     ArrowBack as ArrowBackIcon,
+    Home as HomeIcon,
+    Restaurant as RestaurantIcon,
+    FlightTakeoff as FlightIcon,
+    Map as MapIcon,
+    School as SchoolIcon,
+    BusinessCenter as BusinessIcon,
+    Biotech as ScienceIcon,
+    TheaterComedy as CultureIcon,
+    FilterList as FilterListIcon,
+    GraphicEq as GraphicEqIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useTTS } from '../../components/TTSButton';
@@ -56,6 +66,20 @@ const levelColors: Record<string, string> = {
     Hard: '#dc2626',
 };
 
+const getCategoryIcon = (category: string) => {
+    switch (category) {
+        case 'Daily Life': return <HomeIcon sx={{ fontSize: 16 }} />;
+        case 'Restaurant': return <RestaurantIcon sx={{ fontSize: 16 }} />;
+        case 'Travel': return <FlightIcon sx={{ fontSize: 16 }} />;
+        case 'Direction': return <MapIcon sx={{ fontSize: 16 }} />;
+        case 'Education': return <SchoolIcon sx={{ fontSize: 16 }} />;
+        case 'Business': return <BusinessIcon sx={{ fontSize: 16 }} />;
+        case 'Culture': return <CultureIcon sx={{ fontSize: 16 }} />;
+        case 'Science': return <ScienceIcon sx={{ fontSize: 16 }} />;
+        default: return <InfoIcon sx={{ fontSize: 16 }} />;
+    }
+};
+
 interface GradingResult {
     overallScore: number;
     transcription: string;
@@ -70,6 +94,8 @@ interface GradingResult {
 const PronunciationPractice: React.FC = () => {
     const [referenceText, setReferenceText] = useState(SAMPLE_SENTENCES[0].text);
     const [customMode, setCustomMode] = useState(false);
+    const [filterCategory, setFilterCategory] = useState<string>('All');
+    const [filterLevel, setFilterLevel] = useState<string>('All');
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [audioUrl, setAudioUrl] = useState('');
@@ -185,6 +211,97 @@ const PronunciationPractice: React.FC = () => {
         return '#dc2626';
     };
 
+    const filteredSentences = SAMPLE_SENTENCES.filter(s => {
+        const matchCategory = filterCategory === 'All' || s.category === filterCategory;
+        const matchLevel = filterLevel === 'All' || s.level === filterLevel;
+        return matchCategory && matchLevel;
+    });
+
+    const categories = ['All', ...Array.from(new Set(SAMPLE_SENTENCES.map(s => s.category)))];
+    const levels = ['All', 'Easy', 'Medium', 'Hard'];
+
+    // ── Helper: Render Audio Controls ──
+    const renderAudioControls = () => (
+        <Box>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center' }}>
+                <Button
+                    variant="outlined"
+                    onClick={handleListen}
+                    disabled={!referenceText.trim()}
+                    startIcon={tts.isLoading ? <CircularProgress size={18} /> : <VolumeUpIcon />}
+                    sx={{
+                        borderColor: '#7c3aed', color: '#7c3aed',
+                        '&:hover': { borderColor: '#6d28d9', bgcolor: '#f5f3ff' },
+                        px: 3, py: 1.5, borderRadius: 3, minWidth: 160,
+                        ...(tts.isSpeaking && {
+                            animation: 'pulse 1.5s ease-in-out infinite',
+                            '@keyframes pulse': { '0%,100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.03)' } },
+                        }),
+                    }}
+                >
+                    {tts.isSpeaking ? 'Đang phát...' : 'Nghe mẫu'}
+                </Button>
+
+                <Button
+                    variant={isRecording ? 'contained' : 'outlined'}
+                    onClick={isRecording ? stopRecording : startRecording}
+                    startIcon={isRecording ? <StopIcon /> : <MicIcon />}
+                    sx={{
+                        px: 3, py: 1.5, borderRadius: 3, minWidth: 180,
+                        ...(isRecording ? {
+                            bgcolor: '#dc2626', '&:hover': { bgcolor: '#b91c1c' },
+                            boxShadow: '0 0 15px rgba(220,38,38,0.5)',
+                        } : {
+                            borderColor: '#dc2626', color: '#dc2626',
+                            '&:hover': { borderColor: '#b91c1c', bgcolor: '#fef2f2' },
+                        }),
+                    }}
+                >
+                    {isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}
+                </Button>
+
+                {/* Simulated Waveform while recording */}
+                {isRecording && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 2, color: '#dc2626' }}>
+                        <GraphicEqIcon sx={{ animation: 'bounce 0.8s infinite alternate', '@keyframes bounce': { '0%': { transform: 'scaleY(0.5)' }, '100%': { transform: 'scaleY(1.5)' } } }} />
+                        <GraphicEqIcon sx={{ animation: 'bounce 0.8s infinite alternate-reverse 0.2s' }} />
+                        <GraphicEqIcon sx={{ animation: 'bounce 0.8s infinite alternate 0.4s' }} />
+                        <Typography variant="caption" sx={{ ml: 1, fontWeight: 600 }}>Đang thu âm...</Typography>
+                    </Box>
+                )}
+            </Box>
+
+            {/* Playback & Submit */}
+            {audioUrl && !isRecording && (
+                <Box sx={{ mt: 3, p: 2.5, borderRadius: 3, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                    <Typography variant="body2" fontWeight={700} color="#16a34a" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckIcon sx={{ fontSize: 18 }} /> Đã thu âm xong
+                    </Typography>
+                    <audio controls src={audioUrl} style={{ width: '100%', height: 40, marginBottom: 12 }} />
+                    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                        <Button
+                            variant="contained"
+                            onClick={handleEvaluate}
+                            disabled={evaluating}
+                            startIcon={evaluating ? <CircularProgress size={18} color="inherit" /> : <SpeakIcon />}
+                            sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, borderRadius: 2, px: 3 }}
+                        >
+                            {evaluating ? 'Đang phân tích AI...' : 'Chấm điểm phát âm'}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={handleReset}
+                            startIcon={<RefreshIcon />}
+                            sx={{ borderRadius: 2, color: '#64748b', borderColor: '#cbd5e1' }}
+                        >
+                            Thu âm lại
+                        </Button>
+                    </Box>
+                </Box>
+            )}
+        </Box>
+    );
+
     return (
         <DashboardLayout>
             <Box sx={{ maxWidth: 900, mx: 'auto', p: { xs: 2, md: 3 } }}>
@@ -193,165 +310,171 @@ const PronunciationPractice: React.FC = () => {
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 3, mb: 3, borderRadius: 4,
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #a855f7 100%)',
+                        p: 3, mb: 4, borderRadius: 4,
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
                         color: 'white',
-                        boxShadow: '0 8px 32px rgba(118,75,162,0.35)',
+                        boxShadow: '0 10px 30px -5px rgba(124,58,237,0.4)',
+                        position: 'relative', overflow: 'hidden'
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <MicIcon sx={{ fontSize: 36 }} />
+                    <Box sx={{ position: 'absolute', right: -20, top: -20, opacity: 0.1, transform: 'rotate(15deg)' }}>
+                        <MicIcon sx={{ fontSize: 180 }} />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, position: 'relative', zIndex: 1 }}>
+                        <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1.5, borderRadius: 3, backdropFilter: 'blur(10px)' }}>
+                            <SpeakIcon sx={{ fontSize: 32 }} />
+                        </Box>
                         <Box>
-                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                                Luyện Phát Âm
+                            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5, letterSpacing: '-0.5px' }}>
+                                Luyện Phát Âm AI
                             </Typography>
-                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                Nghe mẫu — Ghi âm — Nhận đánh giá phát âm
+                            <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
+                                Nghe mẫu chuẩn xác — Thu âm trực tiếp — AI phân tích từng âm tiết
                             </Typography>
                         </Box>
                     </Box>
                 </Paper>
 
-                {/* ═══ Step 1: Choose reference text ═══ */}
-                <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip label="1" size="small" sx={{ bgcolor: '#7c3aed', color: 'white', fontWeight: 700 }} />
-                        Chọn câu luyện tập
-                    </Typography>
-
+                {/* ═══ Main Practice Area ═══ */}
+                <Paper sx={{ p: { xs: 2, md: 4 }, mb: 3, borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                    
                     {!customMode ? (
                         <>
-                            <Grid container spacing={1.5} sx={{ mb: 2 }}>
-                                {SAMPLE_SENTENCES.map((s, i) => (
-                                    <Grid item xs={12} sm={6} key={i}>
-                                        <Card
-                                            variant="outlined"
-                                            onClick={() => { setReferenceText(s.text); handleReset(); }}
-                                            sx={{
-                                                cursor: 'pointer',
-                                                borderColor: referenceText === s.text ? '#7c3aed' : '#e5e7eb',
-                                                bgcolor: referenceText === s.text ? '#f5f3ff' : 'white',
-                                                transition: 'all 0.2s',
-                                                '&:hover': { borderColor: '#7c3aed', boxShadow: '0 2px 8px rgba(124,58,237,0.15)' },
-                                            }}
-                                        >
-                                            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                                <Box sx={{ display: 'flex', gap: 1, mb: 0.5 }}>
-                                                    <Chip label={s.level} size="small"
-                                                        sx={{ bgcolor: levelColors[s.level] + '18', color: levelColors[s.level], fontWeight: 600, fontSize: '0.7rem' }}
-                                                    />
-                                                    <Chip label={s.category} size="small" variant="outlined" sx={{ fontSize: '0.7rem' }} />
-                                                </Box>
-                                                <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#374151' }}>
-                                                    "{s.text}"
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                                <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <PracticeIcon sx={{ color: '#7c3aed' }} /> Chọn câu luyện tập
+                                </Typography>
+                                <Button size="small" variant="outlined" onClick={() => { setCustomMode(true); handleReset(); setReferenceText(''); }} sx={{ borderRadius: 2, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>
+                                    <EditIcon sx={{ fontSize: 16, mr: 0.5 }} /> Tự nhập câu
+                                </Button>
+                            </Box>
+
+                            {/* Filters */}
+                            <Box sx={{ display: 'flex', gap: 1, mb: 4, flexWrap: 'wrap', alignItems: 'center', bgcolor: '#f8fafc', p: 1.5, borderRadius: 3 }}>
+                                <FilterListIcon sx={{ color: '#64748b', mx: 1 }} />
+                                {levels.map(level => (
+                                    <Chip 
+                                        key={level} label={level === 'All' ? 'Tất cả' : level}
+                                        onClick={() => setFilterLevel(level)}
+                                        sx={{ 
+                                            bgcolor: filterLevel === level ? (level === 'All' ? '#1e293b' : levelColors[level]) : 'white',
+                                            color: filterLevel === level ? 'white' : '#64748b',
+                                            fontWeight: filterLevel === level ? 700 : 500,
+                                            boxShadow: filterLevel === level ? '0 2px 8px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
+                                            '&:hover': { bgcolor: filterLevel === level ? undefined : '#f1f5f9' }
+                                        }}
+                                    />
                                 ))}
+                                <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+                                {categories.filter(c => c !== 'All').map(cat => (
+                                    <Chip 
+                                        key={cat} icon={getCategoryIcon(cat)} label={cat}
+                                        onClick={() => setFilterCategory(filterCategory === cat ? 'All' : cat)}
+                                        variant={filterCategory === cat ? 'filled' : 'outlined'}
+                                        sx={{ 
+                                            borderColor: filterCategory === cat ? '#7c3aed' : '#e2e8f0',
+                                            bgcolor: filterCategory === cat ? '#f5f3ff' : 'white',
+                                            color: filterCategory === cat ? '#7c3aed' : '#64748b',
+                                            fontWeight: filterCategory === cat ? 600 : 500,
+                                            '& .MuiChip-icon': { color: 'inherit' }
+                                        }}
+                                    />
+                                ))}
+                            </Box>
+
+                            {/* Sentences List */}
+                            <Grid container spacing={2}>
+                                {filteredSentences.map((s, i) => {
+                                    const isSelected = referenceText === s.text && !customMode;
+                                    return (
+                                        <Grid item xs={12} key={i}>
+                                            <Card
+                                                variant="outlined"
+                                                onClick={() => { if (!isSelected) { setReferenceText(s.text); handleReset(); } }}
+                                                sx={{
+                                                    cursor: isSelected ? 'default' : 'pointer',
+                                                    borderColor: isSelected ? '#7c3aed' : '#e2e8f0',
+                                                    bgcolor: isSelected ? '#faf5ff' : 'white',
+                                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    transform: isSelected ? 'scale(1.005)' : 'translateY(0)',
+                                                    boxShadow: isSelected ? '0 12px 24px -8px rgba(124, 58, 237, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
+                                                    '&:hover': { 
+                                                        transform: isSelected ? 'scale(1.005)' : 'translateY(-2px)', 
+                                                        boxShadow: isSelected ? undefined : '0 6px 16px rgba(0,0,0,0.06)',
+                                                        borderColor: isSelected ? '#7c3aed' : '#cbd5e1'
+                                                    },
+                                                }}
+                                            >
+                                                <CardContent sx={{ p: { xs: 2.5, md: 3 }, '&:last-child': { pb: { xs: 2.5, md: 3 } } }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                                                        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                                                            <Chip label={s.level} size="small"
+                                                                sx={{ bgcolor: levelColors[s.level] + '18', color: levelColors[s.level], fontWeight: 800, fontSize: '0.7rem', px: 0.5, borderRadius: 1.5 }}
+                                                            />
+                                                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                {getCategoryIcon(s.category)} {s.category}
+                                                            </Typography>
+                                                        </Box>
+                                                        {isSelected && <CheckIcon sx={{ color: '#7c3aed', fontSize: 28 }} />}
+                                                    </Box>
+                                                    
+                                                    <Typography variant="body1" sx={{ 
+                                                        fontWeight: 600, 
+                                                        color: isSelected ? '#1e293b' : '#334155', 
+                                                        fontSize: isSelected ? '1.25rem' : '1.1rem', 
+                                                        mb: isSelected ? 3 : 0,
+                                                        transition: 'all 0.3s'
+                                                    }}>
+                                                        "{s.text}"
+                                                    </Typography>
+                                                    
+                                                    {/* Audio Controls Expanded */}
+                                                    {isSelected && (
+                                                        <Box sx={{ pt: 3, borderTop: '1px dashed #c4b5fd', animation: 'fadeIn 0.5s', '@keyframes fadeIn': { from: { opacity: 0, transform: 'translateY(-10px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
+                                                            {renderAudioControls()}
+                                                        </Box>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                })}
+                                {filteredSentences.length === 0 && (
+                                    <Grid item xs={12}>
+                                        <Typography color="text.secondary" textAlign="center" py={4}>Không tìm thấy câu phù hợp. Vui lòng chọn bộ lọc khác.</Typography>
+                                    </Grid>
+                                )}
                             </Grid>
-                            <Button size="small" onClick={() => setCustomMode(true)} sx={{ color: '#7c3aed' }}>
-                                <EditIcon sx={{ fontSize: 14, mr: 0.5 }} /> Hoặc nhập câu tùy chỉnh
-                            </Button>
                         </>
                     ) : (
-                        <>
+                        // Custom Mode
+                        <Box sx={{ animation: 'fadeIn 0.3s' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <EditIcon sx={{ color: '#7c3aed' }} /> Luyện câu tùy chỉnh
+                                </Typography>
+                                <Button size="small" onClick={() => { setCustomMode(false); setReferenceText(SAMPLE_SENTENCES[0].text); handleReset(); }} sx={{ color: '#64748b' }}>
+                                    <ArrowBackIcon sx={{ fontSize: 16, mr: 0.5 }} /> Quay lại kho câu mẫu
+                                </Button>
+                            </Box>
+                            
                             <TextField
-                                fullWidth multiline rows={2}
-                                label="Nhập câu bạn muốn luyện"
-                                placeholder="Type any English sentence..."
+                                fullWidth multiline rows={3}
+                                placeholder="Ví dụ: Hello, I am learning English today."
                                 value={referenceText}
                                 onChange={(e) => { setReferenceText(e.target.value); handleReset(); }}
-                                sx={{ mb: 1 }}
+                                sx={{ 
+                                    mb: 4, 
+                                    '& .MuiOutlinedInput-root': { 
+                                        borderRadius: 3, bgcolor: '#f8fafc', fontSize: '1.2rem', fontWeight: 500, p: 2.5,
+                                        '&.Mui-focused': { bgcolor: 'white' }
+                                    } 
+                                }}
                             />
-                            <Button size="small" onClick={() => setCustomMode(false)} sx={{ color: '#7c3aed' }}>
-                                <ArrowBackIcon sx={{ fontSize: 14, mr: 0.5 }} /> Quay lại câu mẫu
-                            </Button>
-                        </>
-                    )}
-                </Paper>
-
-                {/* ═══ Step 2: Listen + Record ═══ */}
-                <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip label="2" size="small" sx={{ bgcolor: '#7c3aed', color: 'white', fontWeight: 700 }} />
-                        Nghe mẫu & Ghi âm
-                    </Typography>
-
-                    {/* Reference text display */}
-                    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, bgcolor: '#faf5ff', borderColor: '#ddd6fe' }}>
-                        <Typography variant="h6" sx={{ fontStyle: 'italic', color: '#1f2937', lineHeight: 1.8, textAlign: 'center' }}>
-                            "{referenceText}"
-                        </Typography>
-                    </Paper>
-
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-                        {/* Listen button */}
-                        <Button
-                            variant="outlined"
-                            onClick={handleListen}
-                            disabled={!referenceText.trim()}
-                            startIcon={tts.isLoading ? <CircularProgress size={18} /> : <VolumeUpIcon />}
-                            sx={{
-                                borderColor: '#7c3aed', color: '#7c3aed',
-                                '&:hover': { borderColor: '#6d28d9', bgcolor: '#f5f3ff' },
-                                px: 3, py: 1.5, borderRadius: 3,
-                                ...(tts.isSpeaking && {
-                                    animation: 'pulse 1.5s ease-in-out infinite',
-                                    '@keyframes pulse': { '0%,100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.03)' } },
-                                }),
-                            }}
-                        >
-                            {tts.isSpeaking ? 'Đang phát...' : 'Nghe mẫu'}
-                        </Button>
-
-                        {/* Record button */}
-                        <Button
-                            variant={isRecording ? 'contained' : 'outlined'}
-                            onClick={isRecording ? stopRecording : startRecording}
-                            startIcon={isRecording ? <StopIcon /> : <MicIcon />}
-                            sx={{
-                                px: 3, py: 1.5, borderRadius: 3,
-                                ...(isRecording ? {
-                                    bgcolor: '#dc2626', '&:hover': { bgcolor: '#b91c1c' },
-                                    animation: 'pulse 1s ease-in-out infinite',
-                                    '@keyframes pulse': { '0%,100%': { boxShadow: '0 0 0 0 rgba(220,38,38,0.4)' }, '70%': { boxShadow: '0 0 0 10px rgba(220,38,38,0)' } },
-                                } : {
-                                    borderColor: '#dc2626', color: '#dc2626',
-                                    '&:hover': { borderColor: '#b91c1c', bgcolor: '#fef2f2' },
-                                }),
-                            }}
-                        >
-                            {isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}
-                        </Button>
-                    </Box>
-
-                    {/* Playback */}
-                    {audioUrl && (
-                        <Box sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                            <Typography variant="caption" fontWeight={600} color="#16a34a" sx={{ mb: 0.5, display: 'block' }}>
-                                <CheckIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
-                                Đã ghi âm xong — Nghe lại:
-                            </Typography>
-                            <audio controls src={audioUrl} style={{ width: '100%' }} />
-                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleEvaluate}
-                                    disabled={evaluating}
-                                    startIcon={evaluating ? <CircularProgress size={18} color="inherit" /> : <CheckIcon />}
-                                    sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, borderRadius: 2 }}
-                                >
-                                    {evaluating ? 'Đang đánh giá...' : 'Đánh giá phát âm'}
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    onClick={handleReset}
-                                    startIcon={<RefreshIcon />}
-                                    sx={{ borderRadius: 2 }}
-                                >
-                                    Ghi lại
-                                </Button>
+                            
+                            {/* Render controls directly for custom mode */}
+                            <Box sx={{ p: 3, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: 'white' }}>
+                                {renderAudioControls()}
                             </Box>
                         </Box>
                     )}
