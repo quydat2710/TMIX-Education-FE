@@ -35,6 +35,7 @@ const ParentManagement: React.FC = () => {
     loadingTable,
     page,
     totalPages,
+    totalRecords,
     searchQuery,
     setSearchQuery,
     deleteParent,
@@ -94,9 +95,14 @@ const ParentManagement: React.FC = () => {
       <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
-            <Typography sx={commonStyles.pageTitle}>
-              Phụ huynh
-            </Typography>
+            <Box>
+              <Typography sx={commonStyles.pageTitle}>
+                Phụ huynh
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                Tổng: {totalRecords} phụ huynh
+              </Typography>
+            </Box>
             <Button
               variant="contained"
               startIcon={<AddIcon />}

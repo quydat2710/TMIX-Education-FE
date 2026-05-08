@@ -37,6 +37,7 @@ const StudentManagement: React.FC = () => {
     loadingTable,
     page,
     totalPages,
+    totalRecords,
     searchQuery,
     setSearchQuery,
     fetchStudents,
@@ -161,9 +162,14 @@ const StudentManagement: React.FC = () => {
       <Box sx={commonStyles.pageContainer}>
         <Box sx={commonStyles.contentContainer}>
           <Box sx={commonStyles.pageHeader}>
-            <Typography sx={commonStyles.pageTitle}>
-              Học viên
-            </Typography>
+            <Box>
+              <Typography sx={commonStyles.pageTitle}>
+                Học viên
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                Tổng: {totalRecords} học viên
+              </Typography>
+            </Box>
             <Button
               variant="contained"
               startIcon={<AddIcon />}

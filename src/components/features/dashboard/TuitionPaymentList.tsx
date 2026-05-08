@@ -64,7 +64,7 @@ const TuitionPaymentList: React.FC = () => {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 10, totalItems: 0, totalPages: 1 });
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState('pending');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(null);

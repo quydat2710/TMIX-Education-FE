@@ -51,22 +51,36 @@ export const useClassManagement = (): UseClassManagementReturn => {
     setLoading(true);
     setLoadingTable(true);
     try {
-      const params = {
+      const params: any = {
         page: pageNum,
         limit: 10,
       };
 
-      // Handle filters with {} format
       if (debouncedSearch) {
-        (params as any).name = debouncedSearch;
+        params.name = debouncedSearch;
+      }
+      if (yearFilter) {
+        params.year = Number(yearFilter);
+      }
+      if (gradeFilter) {
+        params.grade = Number(gradeFilter);
+      }
+      if (statusFilter) {
+        params.status = statusFilter;
       }
 
       const response = await getAllClassesAPI(params);
 
       if (response && response.data && response.data.data) {
         const { data } = response.data;
-        const classesArray = data.result || [];
-        setClasses(classesArray);
+        const classesArray: Class[] = data.result || [];
+        // Đẩy lớp "Đã kết thúc" (closed) xuống cuối danh sách
+        const sorted = [...classesArray].sort((a, b) => {
+          const aEnded = a.status === 'closed' ? 1 : 0;
+          const bEnded = b.status === 'closed' ? 1 : 0;
+          return aEnded - bEnded;
+        });
+        setClasses(sorted);
         setTotalPages(data.meta?.totalPages || 1);
         setTotalRecords(data.meta?.totalItems || 0);
       } else if (response && response.data) {

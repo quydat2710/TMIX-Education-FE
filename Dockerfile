@@ -1,30 +1,23 @@
-FROM node:22-alpine AS development
+# ── Stage 1: Build ──
+FROM node:22-alpine AS builder
 
-WORKDIR /eng-center/client
-
+WORKDIR /app
 COPY package*.json ./
+RUN npm install --legacy-peer-deps
+COPY . .
 
-RUN npm ci
-COPY . /eng-center/client
-
+# Use docker-specific env for build
+COPY .env.docker .env.production
 RUN npm run build
 
-ENV CI=true
-ENV PORT=3000
-
-FROM development AS build
-
-RUN npm run build
-
+# ── Stage 2: Serve with Nginx ──
 FROM nginx:alpine
 
-COPY --from=build /eng-center/client/.nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/.nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 WORKDIR /usr/share/nginx/html
-
 RUN rm -rf ./*
-
-COPY --from=build /eng-center/client/dist .
+COPY --from=builder /app/dist .
 
 EXPOSE 3000
 

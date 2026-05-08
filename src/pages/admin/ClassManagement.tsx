@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { Box, Typography, Button, Paper, TextField, Grid, Pagination } from '@mui/material';
-import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Box, Typography, Button, Pagination } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import ClassTable from '../../components/features/class/ClassTable';
 import ClassForm from '../../components/features/class/ClassFormUpdated';
+import { ClassFilters } from '../../components/features/class';
 import { useClassManagement } from '../../hooks/features/useClassManagement';
 import { Class } from '../../types';
 import { createClassAPI, updateClassAPI, deleteClassAPI } from '../../services/classes';
@@ -41,6 +42,7 @@ const ClassManagement: React.FC = () => {
     setStatusFilter,
     fetchClasses,
     handlePageChange,
+    resetFilters,
   } = useClassManagement();
 
   // Dialog handlers
@@ -144,70 +146,17 @@ const ClassManagement: React.FC = () => {
           </Box>
 
           {/* Search and Filters */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm theo tên lớp học..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Năm học"
-                  value={yearFilter}
-                  onChange={(e) => setYearFilter(e.target.value)}
-                  type="number"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Khối"
-                  value={gradeFilter}
-                  onChange={(e) => setGradeFilter(e.target.value)}
-                  select
-                  SelectProps={{ native: true }}
-                  InputLabelProps={{ shrink: true }}
-                >
-                  <option value="">Tất cả</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                </TextField>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Trạng thái"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  select
-                  SelectProps={{ native: true }}
-                  InputLabelProps={{ shrink: true }}
-                >
-                  <option value="">Tất cả</option>
-                  <option value="active">Đang hoạt động</option>
-                  <option value="closed">Đã đóng</option>
-                </TextField>
-              </Grid>
-            </Grid>
-          </Paper>
+          <ClassFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            gradeFilter={gradeFilter}
+            setGradeFilter={setGradeFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            onReset={resetFilters}
+          />
 
           {/* Class Table */}
           <ClassTable

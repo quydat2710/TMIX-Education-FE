@@ -395,13 +395,13 @@ const PronunciationPractice: React.FC = () => {
                             <Chip
                                 icon={
                                     result.overallScore >= 8 ? <TrophyIcon sx={{ fontSize: 16 }} /> :
-                                    result.overallScore >= 6 ? <TrendingUpIcon sx={{ fontSize: 16 }} /> :
-                                    result.overallScore >= 4 ? <EditIcon sx={{ fontSize: 16 }} /> : <PracticeIcon sx={{ fontSize: 16 }} />
+                                        result.overallScore >= 6 ? <TrendingUpIcon sx={{ fontSize: 16 }} /> :
+                                            result.overallScore >= 4 ? <EditIcon sx={{ fontSize: 16 }} /> : <PracticeIcon sx={{ fontSize: 16 }} />
                                 }
                                 label={
                                     result.overallScore >= 8 ? 'Xuất sắc' :
-                                    result.overallScore >= 6 ? 'Khá tốt' :
-                                    result.overallScore >= 4 ? 'Cần cải thiện' : 'Luyện thêm nhé'
+                                        result.overallScore >= 6 ? 'Khá tốt' :
+                                            result.overallScore >= 4 ? 'Cần cải thiện' : 'Luyện thêm nhé'
                                 }
                                 sx={{ mt: 1, fontWeight: 700, bgcolor: getScoreColor(result.overallScore) + '18', color: getScoreColor(result.overallScore) }}
                             />

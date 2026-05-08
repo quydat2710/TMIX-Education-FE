@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Paper, Pagination, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Grid, MenuItem, Card, CardContent } from '@mui/material';
+import { Box, Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Paper, Pagination, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Grid, MenuItem, Card, CardContent, InputAdornment } from '@mui/material';
 import FormDialog from '../../../../components/common/forms/FormDialog';
 import { getAllTransactionsAPI, createTransactionAPI, updateTransactionAPI, deleteTransactionAPI, getAllTransactionCategoriesAPI, createTransactionCategoryAPI, getTransactionCategoryByIdAPI, updateTransactionCategoryAPI, deleteTransactionCategoryAPI, exportTransactionsReportAPI } from '../../../../services/transactions';
-import { Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Search as SearchIcon } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 
 interface Transaction {
@@ -14,21 +14,19 @@ interface Transaction {
   transactionAt?: string;
 }
 
-interface Props {}
+import type { GlobalTimeFilter } from '../../FinancialStatisticsPanel';
 
-const OtherTransactionsTab: React.FC<Props> = () => {
+interface Props {
+  globalTimeFilter?: GlobalTimeFilter;
+}
+
+const OtherTransactionsTab: React.FC<Props> = ({ globalTimeFilter }) => {
+  const tf = globalTimeFilter || { periodType: 'year', selectedYear: new Date().getFullYear(), selectedMonth: new Date().getMonth() + 1, selectedQuarter: 1, customStart: '', customEnd: '' };
+
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [pagination, setPagination] = React.useState<{ page: number; totalPages: number }>({ page: 1, totalPages: 1 });
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const quarters = [1, 2, 3, 4];
-  const [periodType, setPeriodType] = React.useState<string>('year');
-  const [selectedYear, setSelectedYear] = React.useState<number>(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = React.useState<number>(new Date().getMonth() + 1);
-  const [selectedQuarter, setSelectedQuarter] = React.useState<number>(1);
-  const [customStart, setCustomStart] = React.useState<string>(new Date().toISOString().split('T')[0].substring(0, 8) + '01');
-  const [customEnd, setCustomEnd] = React.useState<string>(new Date().toISOString().split('T')[0]);
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'revenue' | 'expense'>('all');
+  const [searchTerm, setSearchTerm] = React.useState<string>('');
 
   const [openTransactionDialog, setOpenTransactionDialog] = React.useState<boolean>(false);
   const [transactionForm, setTransactionForm] = React.useState<{ amount: string; category_id: string; description: string }>({ amount: '', category_id: '', description: '' });
@@ -57,42 +55,37 @@ const OtherTransactionsTab: React.FC<Props> = () => {
   const [categoryLoading, setCategoryLoading] = React.useState<boolean>(false);
 
   const fetchOtherTransactions = React.useCallback(async (pageNum = 1) => {
-    // Build date range based on selected period
+    // Build date range based on global time filter
     let startDate: string | undefined;
     let endDate: string | undefined;
 
-    // Helper: format to MM/DD/YYYY
     const toMDY = (y: number, m: number, d: number) => {
       const mm = m < 10 ? `0${m}` : `${m}`;
       const dd = d < 10 ? `0${d}` : `${d}`;
       return `${mm}/${dd}/${y}`;
     };
 
-    if (periodType === 'year') {
-      startDate = toMDY(selectedYear, 1, 1);
-      endDate = toMDY(selectedYear, 12, 31);
-    } else if (periodType === 'month') {
-      const year = selectedYear;
-      const month = selectedMonth;
-      const lastDay = new Date(year, month, 0).getDate();
-      startDate = toMDY(year, month, 1);
-      endDate = toMDY(year, month, lastDay);
-    } else if (periodType === 'quarter') {
-      const q = selectedQuarter;
-      const year = selectedYear;
-      const startMonth = q === 1 ? 1 : q === 2 ? 4 : q === 3 ? 7 : 10;
-      const endMonth = q === 1 ? 3 : q === 2 ? 6 : q === 3 ? 9 : 12;
-      const lastDay = new Date(year, endMonth, 0).getDate();
-      startDate = toMDY(year, startMonth, 1);
-      endDate = toMDY(year, endMonth, lastDay);
-    } else if (periodType === 'custom') {
-      // customStart/customEnd are YYYY-MM-DD → convert to MM/DD/YYYY
-      if (customStart) {
-        const [y, m, d] = customStart.split('-').map(Number);
+    if (tf.periodType === 'year') {
+      startDate = toMDY(tf.selectedYear, 1, 1);
+      endDate = toMDY(tf.selectedYear, 12, 31);
+    } else if (tf.periodType === 'month') {
+      const lastDay = new Date(tf.selectedYear, tf.selectedMonth, 0).getDate();
+      startDate = toMDY(tf.selectedYear, tf.selectedMonth, 1);
+      endDate = toMDY(tf.selectedYear, tf.selectedMonth, lastDay);
+    } else if (tf.periodType === 'quarter') {
+      const qMap: Record<number, { s: number; e: number }> = { 1: { s: 1, e: 3 }, 2: { s: 4, e: 6 }, 3: { s: 7, e: 9 }, 4: { s: 10, e: 12 } };
+      const startMonth = qMap[tf.selectedQuarter].s;
+      const endMonth = qMap[tf.selectedQuarter].e;
+      const lastDay = new Date(tf.selectedYear, endMonth, 0).getDate();
+      startDate = toMDY(tf.selectedYear, startMonth, 1);
+      endDate = toMDY(tf.selectedYear, endMonth, lastDay);
+    } else if (tf.periodType === 'custom') {
+      if (tf.customStart) {
+        const [y, m, d] = tf.customStart.split('-').map(Number);
         startDate = toMDY(y, m, d);
       }
-      if (customEnd) {
-        const [y, m, d] = customEnd.split('-').map(Number);
+      if (tf.customEnd) {
+        const [y, m, d] = tf.customEnd.split('-').map(Number);
         endDate = toMDY(y, m, d);
       }
     }
@@ -112,7 +105,7 @@ const OtherTransactionsTab: React.FC<Props> = () => {
       setTransactions([]);
       setPagination({ page: 1, totalPages: 1 });
     }
-  }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd, typeFilter]);
+  }, [tf.periodType, tf.selectedYear, tf.selectedMonth, tf.selectedQuarter, tf.customStart, tf.customEnd, typeFilter]);
 
   const fetchCategories = React.useCallback(async () => {
     setCategoriesLoading(true);
@@ -130,7 +123,7 @@ const OtherTransactionsTab: React.FC<Props> = () => {
   }, []);
 
   React.useEffect(() => { fetchOtherTransactions(1); /* fetchCategories(); */ }, [fetchOtherTransactions, fetchCategories]);
-  React.useEffect(() => { fetchOtherTransactions(1); }, [periodType, selectedYear, selectedMonth, selectedQuarter, customStart, customEnd, typeFilter, fetchOtherTransactions]);
+  React.useEffect(() => { fetchOtherTransactions(1); }, [tf.periodType, tf.selectedYear, tf.selectedMonth, tf.selectedQuarter, tf.customStart, tf.customEnd, typeFilter, fetchOtherTransactions]);
   const exportToExcel = async () => {
     // Reuse current date range logic to pass as query for export
     let startDate: string | undefined;
@@ -140,26 +133,26 @@ const OtherTransactionsTab: React.FC<Props> = () => {
       const dd = d < 10 ? `0${d}` : `${d}`;
       return `${mm}/${dd}/${y}`;
     };
-    if (periodType === 'year') {
-      startDate = toMDY(selectedYear, 1, 1);
-      endDate = toMDY(selectedYear, 12, 31);
-    } else if (periodType === 'month') {
-      const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
-      startDate = toMDY(selectedYear, selectedMonth, 1);
-      endDate = toMDY(selectedYear, selectedMonth, lastDay);
-    } else if (periodType === 'quarter') {
-      const startMonth = selectedQuarter === 1 ? 1 : selectedQuarter === 2 ? 4 : selectedQuarter === 3 ? 7 : 10;
-      const endMonth = selectedQuarter === 1 ? 3 : selectedQuarter === 2 ? 6 : selectedQuarter === 3 ? 9 : 12;
-      const lastDay = new Date(selectedYear, endMonth, 0).getDate();
-      startDate = toMDY(selectedYear, startMonth, 1);
-      endDate = toMDY(selectedYear, endMonth, lastDay);
-    } else if (periodType === 'custom') {
-      if (customStart) {
-        const [y, m, d] = customStart.split('-').map(Number);
+    if (tf.periodType === 'year') {
+      startDate = toMDY(tf.selectedYear, 1, 1);
+      endDate = toMDY(tf.selectedYear, 12, 31);
+    } else if (tf.periodType === 'month') {
+      const lastDay = new Date(tf.selectedYear, tf.selectedMonth, 0).getDate();
+      startDate = toMDY(tf.selectedYear, tf.selectedMonth, 1);
+      endDate = toMDY(tf.selectedYear, tf.selectedMonth, lastDay);
+    } else if (tf.periodType === 'quarter') {
+      const startMonth = tf.selectedQuarter === 1 ? 1 : tf.selectedQuarter === 2 ? 4 : tf.selectedQuarter === 3 ? 7 : 10;
+      const endMonth = tf.selectedQuarter === 1 ? 3 : tf.selectedQuarter === 2 ? 6 : tf.selectedQuarter === 3 ? 9 : 12;
+      const lastDay = new Date(tf.selectedYear, endMonth, 0).getDate();
+      startDate = toMDY(tf.selectedYear, startMonth, 1);
+      endDate = toMDY(tf.selectedYear, endMonth, lastDay);
+    } else if (tf.periodType === 'custom') {
+      if (tf.customStart) {
+        const [y, m, d] = tf.customStart.split('-').map(Number);
         startDate = toMDY(y, m, d);
       }
-      if (customEnd) {
-        const [y, m, d] = customEnd.split('-').map(Number);
+      if (tf.customEnd) {
+        const [y, m, d] = tf.customEnd.split('-').map(Number);
         endDate = toMDY(y, m, d);
       }
     }
@@ -310,48 +303,19 @@ const OtherTransactionsTab: React.FC<Props> = () => {
     <>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <TextField
+            placeholder="Tìm mô tả..."
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }}
+            sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          />
           <TextField select label="Loại" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} sx={{ minWidth: 150 }}>
             <MenuItem value="all">Tất cả</MenuItem>
             <MenuItem value="revenue">Thu</MenuItem>
             <MenuItem value="expense">Chi</MenuItem>
           </TextField>
-          <TextField select label="Thời gian" value={periodType} onChange={(e) => setPeriodType(e.target.value)} sx={{ minWidth: 150 }}>
-            <MenuItem value="year">Năm</MenuItem>
-            <MenuItem value="month">Tháng</MenuItem>
-            <MenuItem value="quarter">Quý</MenuItem>
-            <MenuItem value="custom">Tùy chọn</MenuItem>
-          </TextField>
-          {periodType === 'year' && (
-            <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-              {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
-            </TextField>
-          )}
-          {periodType === 'month' && (
-            <>
-              <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-                {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
-              </TextField>
-              <TextField select label="Tháng" value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} sx={{ minWidth: 120 }}>
-                {months.map((m) => (<MenuItem key={m} value={m}>{m}</MenuItem>))}
-              </TextField>
-            </>
-          )}
-          {periodType === 'quarter' && (
-            <>
-              <TextField select label="Năm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} sx={{ minWidth: 120 }}>
-                {years.map((y) => (<MenuItem key={y} value={y}>{y}</MenuItem>))}
-              </TextField>
-              <TextField select label="Quý" value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} sx={{ minWidth: 120 }}>
-                {quarters.map((q) => (<MenuItem key={q} value={q}>Quý {q}</MenuItem>))}
-              </TextField>
-            </>
-          )}
-          {periodType === 'custom' && (
-            <>
-              <TextField label="Từ ngày" type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} sx={{ minWidth: 160 }} InputLabelProps={{ shrink: true }} />
-              <TextField label="Đến ngày" type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} sx={{ minWidth: 160 }} InputLabelProps={{ shrink: true }} />
-            </>
-          )}
         </Box>
         <Box>
           <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportToExcel}>Xuất Excel</Button>
@@ -378,7 +342,10 @@ const OtherTransactionsTab: React.FC<Props> = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {transactions.map((t, idx) => (
+            {transactions.filter((t) => {
+              if (!searchTerm.trim()) return true;
+              return (t.description || '').toLowerCase().includes(searchTerm.toLowerCase().trim()) || (t.category?.name || '').toLowerCase().includes(searchTerm.toLowerCase().trim());
+            }).map((t, idx) => (
               <TableRow key={t.id || idx} hover>
                 <TableCell><Typography variant="body2">{t.description || '-'}</Typography></TableCell>
                 <TableCell>

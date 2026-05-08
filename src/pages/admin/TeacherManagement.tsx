@@ -13,6 +13,10 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
+  People as PeopleIcon,
+  CheckCircle as CheckCircleIcon,
+  Block as BlockIcon,
+  MonetizationOn as MonetizationOnIcon,
 } from '@mui/icons-material';
 import { COLORS } from "../../utils/colors";
 import DashboardLayout from '../../components/layouts/DashboardLayout';
@@ -326,7 +330,7 @@ const TeacherManagement: React.FC = () => {
                 <StatCard
                   title="Tổng giáo viên"
                   value={summary.totalTeachers}
-                  icon={<AddIcon sx={{ fontSize: 40 }} />}
+                  icon={<PeopleIcon sx={{ fontSize: 40 }} />}
                   color="primary"
                 />
               </Grid>
@@ -334,7 +338,7 @@ const TeacherManagement: React.FC = () => {
                 <StatCard
                   title="Đang hoạt động"
                   value={summary.activeTeachers}
-                  icon={<AddIcon sx={{ fontSize: 40 }} />}
+                  icon={<CheckCircleIcon sx={{ fontSize: 40 }} />}
                   color="success"
                 />
               </Grid>
@@ -342,18 +346,18 @@ const TeacherManagement: React.FC = () => {
                 <StatCard
                   title="Ngừng hoạt động"
                   value={summary.inactiveTeachers}
-                  icon={<AddIcon sx={{ fontSize: 40 }} />}
+                  icon={<BlockIcon sx={{ fontSize: 40 }} />}
                   color="error"
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <StatCard
-                  title="Tổng lương"
+                  title="Lương/buổi trung bình"
                   value={new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND'
-                  }).format(summary.totalSalary)}
-                  icon={<AddIcon sx={{ fontSize: 40 }} />}
+                  }).format(summary.totalTeachers > 0 ? Math.round(summary.totalSalary / summary.totalTeachers) : 0)}
+                  icon={<MonetizationOnIcon sx={{ fontSize: 40 }} />}
                   color="warning"
                 />
               </Grid>
