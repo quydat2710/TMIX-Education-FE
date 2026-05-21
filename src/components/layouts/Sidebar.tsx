@@ -11,6 +11,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import SchoolIcon from '@mui/icons-material/School';
 import ClassIcon from '@mui/icons-material/Class';
 import CampaignIcon from '@mui/icons-material/Campaign';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ListAltIcon from '@mui/icons-material/ListAlt';
@@ -48,6 +49,7 @@ const getMenuItemsByRole = (role: string): MenuItem[] => {
         { text: 'Dashboard', icon: <HomeIcon />, path: '/admin/dashboard', group: 'TỔNG QUAN' },
         { text: 'Quản lý người dùng', icon: <PeopleIcon />, path: '/admin/users', group: 'QUẢN LÝ' },
         { text: 'Quản lý lớp học', icon: <ClassIcon />, path: '/admin/classes' },
+        { text: 'Điểm danh', icon: <FactCheckIcon />, path: '/admin/attendance' },
         { text: 'Quản lý quảng cáo', icon: <CampaignIcon />, path: '/admin/advertisements' },
         { text: 'Đăng ký tư vấn', icon: <ListAltIcon />, path: '/admin/registrations' },
         { text: 'Quản lý Menu', icon: <MenuIcon />, path: '/admin/menu-management', group: 'HỆ THỐNG' },

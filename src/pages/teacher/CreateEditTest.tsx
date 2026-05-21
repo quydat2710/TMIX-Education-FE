@@ -28,7 +28,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { createTest, getTestById, updateTest } from '../../services/tests';
 import { uploadFileAPI } from '../../services/files';
-import { MCQuestion, TestFormData, SkillType } from '../../types/test';
+import { MCQuestion, TestFormData, SkillType, TestSection } from '../../types/test';
 import { useAuth } from '../../contexts/AuthContext';
 import { getTeacherScheduleAPI } from '../../services/teachers';
 import axiosInstance from '../../utils/axios.customize';
@@ -95,6 +95,17 @@ const CreateEditTest: React.FC = () => {
     const [ttsPreviewUrl, setTtsPreviewUrl] = useState('');
     const [ttsGenerating, setTtsGenerating] = useState(false);
 
+    // Section/Part management
+    const [useSections, setUseSections] = useState(false);
+    const [sections, setSections] = useState<TestSection[]>([]);
+
+    // Bulk Paste
+    const [bulkPasteOpen, setBulkPasteOpen] = useState(false);
+    const [bulkPasteText, setBulkPasteText] = useState('');
+    const [bulkPastePreview, setBulkPastePreview] = useState<{ sections: any[]; questions: any[]; errors: string[] } | null>(null);
+
+
+
     const [formData, setFormData] = useState<TestFormData>({
         title: '',
         description: '',
@@ -103,6 +114,7 @@ const CreateEditTest: React.FC = () => {
         duration: 30,
         passingScore: 70,
         questions: [emptyMCQuestion()],
+        sections: [],
         status: 'draft',
     });
 
@@ -160,6 +172,14 @@ const CreateEditTest: React.FC = () => {
         }
     }, [id, isEditing]);
 
+    // Sync sections state from formData
+    useEffect(() => {
+        if (formData.sections && formData.sections.length > 0) {
+            setSections(formData.sections as TestSection[]);
+            setUseSections(true);
+        }
+    }, []); // Only on mount
+
     const handleFieldChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -215,18 +235,218 @@ const CreateEditTest: React.FC = () => {
         });
     };
 
+    // ── Dynamic Options (add/remove) ──
+    const addOption = (qIndex: number) => {
+        setFormData(prev => {
+            const questions = [...prev.questions];
+            if ((questions[qIndex].options?.length || 0) >= 6) return prev;
+            questions[qIndex] = { ...questions[qIndex], options: [...(questions[qIndex].options || []), ''] };
+            return { ...prev, questions };
+        });
+    };
+
+    const removeOption = (qIndex: number, optIndex: number) => {
+        setFormData(prev => {
+            const questions = [...prev.questions];
+            const opts = [...(questions[qIndex].options || [])];
+            if (opts.length <= 2) return prev;
+            opts.splice(optIndex, 1);
+            let correctAnswer = questions[qIndex].correctAnswer;
+            if (correctAnswer >= opts.length) correctAnswer = 0;
+            questions[qIndex] = { ...questions[qIndex], options: opts, correctAnswer };
+            return { ...prev, questions };
+        });
+    };
+
+    // ── Section Management ──
+    const createEmptySection = (): TestSection => ({
+        id: `sec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        title: '',
+        instruction: '',
+        audioUrl: '',
+        passage: '',
+        questionIds: [],
+    });
+
+    const addSection = () => {
+        const newSection = createEmptySection();
+        setSections(prev => [...prev, newSection]);
+    };
+
+    const updateSection = (sIdx: number, field: string, value: any) => {
+        setSections(prev => prev.map((s, i) => i === sIdx ? { ...s, [field]: value } : s));
+    };
+
+    const removeSection = (sIdx: number) => {
+        setSections(prev => {
+            const removed = prev[sIdx];
+            // Remove questions belonging to this section
+            if (removed.questionIds.length > 0) {
+                setFormData(p => ({
+                    ...p,
+                    questions: p.questions.filter(q => !removed.questionIds.includes(q.id)),
+                }));
+            }
+            return prev.filter((_, i) => i !== sIdx);
+        });
+    };
+
+    const addQuestionToSection = (sIdx: number) => {
+        const newQ = emptyMCQuestion();
+        setFormData(prev => ({ ...prev, questions: [...prev.questions, newQ] }));
+        setSections(prev => prev.map((s, i) => i === sIdx ? { ...s, questionIds: [...s.questionIds, newQ.id] } : s));
+    };
+
+    const removeQuestionFromSection = (sIdx: number, qId: string) => {
+        setSections(prev => prev.map((s, i) => i === sIdx ? { ...s, questionIds: s.questionIds.filter(id => id !== qId) } : s));
+        setFormData(prev => ({ ...prev, questions: prev.questions.filter(q => q.id !== qId) }));
+    };
+
+    // Sync sections into formData before save
+    const syncSectionsToForm = (): TestFormData => {
+        if (!useSections || sections.length === 0) {
+            return { ...formData, sections: [] };
+        }
+        // Collect all questionIds from all sections
+        const allSectionQIds = new Set(sections.flatMap(s => s.questionIds));
+        // Only keep questions that belong to a section
+        const filteredQuestions = formData.questions.filter(q => allSectionQIds.has(q.id));
+        return { ...formData, sections, questions: filteredQuestions };
+    };
+
+    // ── Bulk Paste Parser ──
+    const parseBulkText = (text: string) => {
+        const lines = text.split('\n').map(l => l.trimEnd());
+        const parsedSections: any[] = [];
+        const parsedQuestions: any[] = [];
+        const errors: string[] = [];
+        let currentSection: any = null;
+        let currentQ: any = null;
+        let optionCount = 0;
+
+        const finishQuestion = () => {
+            if (currentQ && currentQ.question) {
+                if (currentQ.options.length < 2) {
+                    errors.push(`Câu "${currentQ.question.substring(0, 30)}..." chỉ có ${currentQ.options.length} đáp án`);
+                }
+                const id = `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${parsedQuestions.length}`;
+                currentQ.id = id;
+                parsedQuestions.push(currentQ);
+                if (currentSection) currentSection.questionIds.push(id);
+            }
+            currentQ = null;
+            optionCount = 0;
+        };
+
+        for (const line of lines) {
+            // Section header: === Part 1: Title ===
+            const sectionMatch = line.match(/^===\s*(.+?)\s*===\s*$/);
+            if (sectionMatch) {
+                finishQuestion();
+                currentSection = {
+                    id: `sec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${parsedSections.length}`,
+                    title: sectionMatch[1].trim(),
+                    instruction: '',
+                    questionIds: [],
+                };
+                parsedSections.push(currentSection);
+                continue;
+            }
+
+            // Instruction line
+            const instrMatch = line.match(/^Instruction:\s*(.+)$/i);
+            if (instrMatch && currentSection) {
+                currentSection.instruction = instrMatch[1].trim();
+                continue;
+            }
+
+            // Passage line
+            const passageMatch = line.match(/^Passage:\s*(.+)$/i);
+            if (passageMatch && currentSection) {
+                currentSection.passage = (currentSection.passage ? currentSection.passage + '\n' : '') + passageMatch[1].trim();
+                continue;
+            }
+
+            // Question: 1. What is...?
+            const qMatch = line.match(/^\d+[\.\)\s]+\s*(.+)$/);
+            if (qMatch && !line.match(/^[A-F][\.\)]/i)) {
+                finishQuestion();
+                currentQ = { question: qMatch[1].trim(), options: [], correctAnswer: 0, explanation: '', points: 1 };
+                continue;
+            }
+
+            // Option: A. text or A) text (with optional * for correct)
+            const optMatch = line.match(/^\s*([A-F])[\.\)]\s*(.+)$/i);
+            if (optMatch && currentQ) {
+                const optText = optMatch[2].replace(/\s*\*\s*$/, '').trim();
+                const isCorrect = optMatch[2].trim().endsWith('*');
+                if (isCorrect) currentQ.correctAnswer = optionCount;
+                currentQ.options.push(optText);
+                optionCount++;
+                continue;
+            }
+
+            // Explanation: Exp: ... or Explanation: ... or Giải thích: ...
+            const expMatch = line.match(/^(Exp|Explanation|Giải thích):\s*(.+)$/i);
+            if (expMatch && currentQ) {
+                currentQ.explanation = expMatch[2].trim();
+                continue;
+            }
+        }
+        finishQuestion();
+
+        return { sections: parsedSections, questions: parsedQuestions, errors };
+    };
+
+    const handleBulkPastePreview = () => {
+        const result = parseBulkText(bulkPasteText);
+        setBulkPastePreview(result);
+    };
+
+    const handleBulkPasteImport = () => {
+        if (!bulkPastePreview) return;
+        const { sections: parsedSections, questions: parsedQuestions } = bulkPastePreview;
+
+        if (parsedSections.length > 0) {
+            setSections(prev => [...prev, ...parsedSections]);
+            setUseSections(true);
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            questions: [...prev.questions.filter(q => q.question), ...parsedQuestions],
+        }));
+
+        setBulkPasteOpen(false);
+        setBulkPasteText('');
+        setBulkPastePreview(null);
+        setSuccess(`Đã import ${parsedQuestions.length} câu hỏi${parsedSections.length > 0 ? ` trong ${parsedSections.length} Part` : ''}`);
+    };
+
+
+
     const validateForm = (): string | null => {
         if (!formData.title.trim()) return 'Vui lòng nhập tiêu đề đề thi';
         if (!formData.classId) return 'Vui lòng chọn lớp';
         if (formData.duration < 1) return 'Thời gian phải lớn hơn 0';
-        if (formData.questions.length === 0) return 'Đề thi phải có ít nhất 1 câu hỏi';
+
+        // In section mode, validate sections have questions
+        if (useSections && sections.length > 0) {
+            const allQIds = sections.flatMap(s => s.questionIds);
+            if (allQIds.length === 0) return 'Mỗi Part phải có ít nhất 1 câu hỏi';
+        } else if (formData.questions.length === 0) {
+            return 'Đề thi phải có ít nhất 1 câu hỏi';
+        }
 
         if (formData.skillType === 'reading' || formData.skillType === 'listening') {
-            for (let i = 0; i < formData.questions.length; i++) {
-                const q = formData.questions[i];
+            const questionsToValidate = useSections
+                ? formData.questions.filter(q => sections.some(s => s.questionIds.includes(q.id)))
+                : formData.questions;
+            for (let i = 0; i < questionsToValidate.length; i++) {
+                const q = questionsToValidate[i];
                 if (!q.question?.trim()) return `Câu ${i + 1}: Chưa nhập nội dung câu hỏi`;
                 const emptyOptions = q.options?.filter((o: string) => !o.trim()) || [];
-                if (emptyOptions.length > 0) return `Câu ${i + 1}: Phải điền đủ 4 đáp án`;
+                if (emptyOptions.length > 0) return `Câu ${i + 1}: Phải điền đủ các đáp án`;
             }
         } else if (formData.skillType === 'writing') {
             for (let i = 0; i < formData.questions.length; i++) {
@@ -254,7 +474,7 @@ const CreateEditTest: React.FC = () => {
             setSaving(true);
             setError('');
             const payload = {
-                ...formData,
+                ...syncSectionsToForm(),
                 status: (asDraft ? 'draft' : 'published') as 'draft' | 'published',
             };
 
@@ -684,16 +904,168 @@ const CreateEditTest: React.FC = () => {
                 </Paper>
 
                 {/* ============ QUESTIONS SECTION ============ */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                     <Typography variant="h6" fontWeight={600}>
                         {formData.skillType === 'writing' ? 'Đề bài viết' : formData.skillType === 'speaking' ? 'Bài nói' : `Câu hỏi (${formData.questions.length})`}
                     </Typography>
-                    <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion}>
-                        + Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi'}
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {/* Quick Tools — only for MC tests */}
+                        {(formData.skillType === 'reading' || formData.skillType === 'listening') && (
+                            <>
+                                <Button size="small" variant="outlined" onClick={() => setBulkPasteOpen(true)}
+                                    sx={{ textTransform: 'none', borderColor: '#6b7280', color: '#374151' }}>
+                                    📋 Dán đề nhanh
+                                </Button>
+
+                                <Button size="small" variant={useSections ? 'contained' : 'outlined'}
+                                    onClick={() => {
+                                        setUseSections(!useSections);
+                                        if (!useSections && sections.length === 0) addSection();
+                                    }}
+                                    sx={{
+                                        textTransform: 'none',
+                                        ...(useSections ? { bgcolor: '#1E3A5F', '&:hover': { bgcolor: '#2c5282' } } : { borderColor: '#1E3A5F', color: '#1E3A5F' }),
+                                    }}>
+                                    📂 {useSections ? 'Đang chia Part' : 'Chia theo Part'}
+                                </Button>
+                            </>
+                        )}
+                        {!useSections && (
+                            <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion}>
+                                Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi'}
+                            </Button>
+                        )}
+                    </Box>
                 </Box>
 
-                {formData.questions.map((question, qIndex) => (
+                {/* ===== SECTION MODE ===== */}
+                {useSections && (formData.skillType === 'reading' || formData.skillType === 'listening') && sections.map((section, sIdx) => (
+                    <Paper key={section.id} sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', border: '2px solid #cbd5e1' }}>
+                        {/* Section Header */}
+                        <Box sx={{
+                            p: 2, bgcolor: '#f1f5f9',
+                            borderBottom: '1px solid #cbd5e1',
+                            display: 'flex', alignItems: 'center', gap: 1.5,
+                        }}>
+                            <Chip label={`${formData.skillType === 'reading' ? 'Passage' : 'Part'} ${sIdx + 1}`} color="primary" size="small" />
+                            <TextField size="small" variant="standard" placeholder={`Tiêu đề ${formData.skillType === 'reading' ? 'Passage' : 'Part'}...`}
+                                value={section.title} onChange={(e) => updateSection(sIdx, 'title', e.target.value)}
+                                sx={{ flex: 1 }} inputProps={{ style: { fontWeight: 700 } }}
+                            />
+                            <Tooltip title="Xóa Part này">
+                                <IconButton size="small" color="error" onClick={() => removeSection(sIdx)}>
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+
+                        {/* Section Meta — Instruction + Audio/Passage */}
+                        <Box sx={{ p: 2, bgcolor: '#fafafa', borderBottom: '1px solid #e5e7eb' }}>
+                            <TextField fullWidth size="small" label="Hướng dẫn (Instruction)" placeholder="VD: Choose the best answer for each question..."
+                                value={section.instruction || ''} onChange={(e) => updateSection(sIdx, 'instruction', e.target.value)}
+                                sx={{ mb: 1.5 }}
+                            />
+                            {formData.skillType === 'listening' && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <TextField fullWidth size="small" label="Audio URL (cho Part này)" placeholder="https://..."
+                                        value={section.audioUrl || ''} onChange={(e) => updateSection(sIdx, 'audioUrl', e.target.value)}
+                                    />
+                                </Box>
+                            )}
+                            {formData.skillType === 'reading' && (
+                                <TextField fullWidth multiline rows={3} size="small" label="Đoạn văn đọc hiểu (cho Part này)"
+                                    placeholder="Dán đoạn văn vào đây..."
+                                    value={section.passage || ''} onChange={(e) => updateSection(sIdx, 'passage', e.target.value)}
+                                />
+                            )}
+                        </Box>
+
+                        {/* Questions inside this section */}
+                        <Box sx={{ p: 2 }}>
+                            {section.questionIds.map((qId, qiIdx) => {
+                                const qIndex = formData.questions.findIndex(q => q.id === qId);
+                                if (qIndex < 0) return null;
+                                const question = formData.questions[qIndex];
+                                return (
+                                    <Card key={qId} sx={{ mb: 2, border: '1px solid #e0e0e0' }}>
+                                        <CardContent>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Chip label={`Câu ${qiIdx + 1}`} color="primary" size="small" />
+                                                    <TextField size="small" type="number" label="Điểm" value={question.points}
+                                                        onChange={(e) => handleQuestionChange(qIndex, 'points', parseInt(e.target.value) || 1)}
+                                                        sx={{ width: 80 }} inputProps={{ min: 1 }}
+                                                    />
+                                                </Box>
+                                                <IconButton size="small" color="error" onClick={() => removeQuestionFromSection(sIdx, qId)}>
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+                                            <TextField fullWidth multiline rows={2} label={`Nội dung câu hỏi *`} placeholder="Nhập câu hỏi..."
+                                                value={question.question || ''} onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
+                                                sx={{ mb: 1.5 }}
+                                            />
+                                            <RadioGroup value={question.correctAnswer} onChange={(e) => handleQuestionChange(qIndex, 'correctAnswer', parseInt(e.target.value))}>
+                                                <Grid container spacing={1}>
+                                                    {(question.options || []).map((option: string, optIndex: number) => (
+                                                        <Grid item xs={12} md={6} key={optIndex}>
+                                                            <Box sx={{
+                                                                display: 'flex', alignItems: 'center', gap: 0.5, p: 0.75,
+                                                                borderRadius: 1,
+                                                                bgcolor: question.correctAnswer === optIndex ? '#e8f5e9' : 'transparent',
+                                                                border: question.correctAnswer === optIndex ? '2px solid #4caf50' : '1px solid #e0e0e0',
+                                                            }}>
+                                                                <FormControlLabel value={optIndex} control={<Radio size="small" />} label="" sx={{ m: 0, mr: -1 }} />
+                                                                <Chip label={String.fromCharCode(65 + optIndex)} size="small"
+                                                                    variant={question.correctAnswer === optIndex ? 'filled' : 'outlined'}
+                                                                    color={question.correctAnswer === optIndex ? 'success' : 'default'}
+                                                                />
+                                                                <TextField fullWidth size="small" variant="standard"
+                                                                    placeholder={`Đáp án ${String.fromCharCode(65 + optIndex)}`}
+                                                                    value={option} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
+                                                                />
+                                                                {(question.options?.length || 0) > 2 && (
+                                                                    <IconButton size="small" onClick={() => removeOption(qIndex, optIndex)} sx={{ opacity: 0.5 }}>
+                                                                        <DeleteIcon sx={{ fontSize: 16 }} />
+                                                                    </IconButton>
+                                                                )}
+                                                            </Box>
+                                                        </Grid>
+                                                    ))}
+                                                </Grid>
+                                            </RadioGroup>
+                                            {(question.options?.length || 0) < 6 && (
+                                                <Button size="small" onClick={() => addOption(qIndex)} sx={{ mt: 0.5, textTransform: 'none', color: '#6b7280' }}>
+                                                    + Thêm đáp án
+                                                </Button>
+                                            )}
+                                            <TextField fullWidth size="small" label="Giải thích (tùy chọn)" placeholder="Giải thích cho đáp án đúng..."
+                                                value={question.explanation || ''} onChange={(e) => handleQuestionChange(qIndex, 'explanation', e.target.value)}
+                                                sx={{ mt: 1.5 }}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                            <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={() => addQuestionToSection(sIdx)}
+                                sx={{ textTransform: 'none' }}>
+                                Thêm câu hỏi vào {formData.skillType === 'reading' ? 'Passage' : 'Part'} {sIdx + 1}
+                            </Button>
+                        </Box>
+                    </Paper>
+                ))}
+
+                {/* Add Section button */}
+                {useSections && (formData.skillType === 'reading' || formData.skillType === 'listening') && (
+                    <Box sx={{ textAlign: 'center', py: 1, mb: 2 }}>
+                        <Button variant="outlined" startIcon={<AddIcon />} onClick={addSection} sx={{ textTransform: 'none', borderStyle: 'dashed' }}>
+                            Thêm {formData.skillType === 'reading' ? 'Passage' : 'Part'} mới
+                        </Button>
+                    </Box>
+                )}
+
+                {/* ===== FLAT MODE (non-section) ===== */}
+                {!useSections && formData.questions.map((question, qIndex) => (
                     <Card key={question.id || qIndex} sx={{ mb: 2, border: '1px solid #e0e0e0' }}>
                         <CardContent>
                             {/* Question header */}
@@ -767,11 +1139,21 @@ const CreateEditTest: React.FC = () => {
                                                             value={option}
                                                             onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
                                                         />
+                                                        {(question.options?.length || 0) > 2 && (
+                                                            <IconButton size="small" onClick={() => removeOption(qIndex, optIndex)} sx={{ opacity: 0.5 }}>
+                                                                <DeleteIcon sx={{ fontSize: 16 }} />
+                                                            </IconButton>
+                                                        )}
                                                     </Box>
                                                 </Grid>
                                             ))}
                                         </Grid>
                                     </RadioGroup>
+                                    {(question.options?.length || 0) < 6 && (
+                                        <Button size="small" onClick={() => addOption(qIndex)} sx={{ mt: 0.5, textTransform: 'none', color: '#6b7280' }}>
+                                            + Thêm đáp án
+                                        </Button>
+                                    )}
                                     <TextField fullWidth size="small"
                                         label="Giải thích (tùy chọn)" placeholder="Giải thích cho đáp án đúng..."
                                         value={question.explanation || ''}
@@ -851,11 +1233,63 @@ const CreateEditTest: React.FC = () => {
                 ))}
 
                 {/* Add more button at bottom */}
-                <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion} size="large">
-                        + Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi mới'}
-                    </Button>
-                </Box>
+                {!useSections && (
+                    <Box sx={{ textAlign: 'center', py: 2 }}>
+                        <Button variant="outlined" startIcon={<AddIcon />} onClick={addQuestion} size="large">
+                            Thêm {formData.skillType === 'writing' ? 'đề viết' : formData.skillType === 'speaking' ? 'bài nói' : 'câu hỏi mới'}
+                        </Button>
+                    </Box>
+                )}
+
+                {/* ============ BULK PASTE DIALOG ============ */}
+                <Dialog open={bulkPasteOpen} onClose={() => setBulkPasteOpen(false)} maxWidth="md" fullWidth>
+                    <DialogTitle>📋 Dán đề nhanh từ văn bản</DialogTitle>
+                    <DialogContent>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Hướng dẫn format:</Typography>
+                            <Typography variant="body2" component="div">
+                                • Câu hỏi bắt đầu bằng số: <code>1. Nội dung câu hỏi</code><br />
+                                • Đáp án: <code>A. đáp án</code> (hỗ trợ A-F, 2-6 đáp án)<br />
+                                • Đánh dấu đáp án đúng bằng <code>*</code> cuối dòng<br />
+                                • Giải thích: <code>Exp: nội dung giải thích</code><br />
+                                • Chia Part: <code>=== Part 1: Tiêu đề ===</code><br />
+                                • Hướng dẫn Part: <code>Instruction: nội dung</code>
+                            </Typography>
+                        </Alert>
+                        <TextField fullWidth multiline rows={12} placeholder={`=== Part 1: Photographs ===\nInstruction: Choose the best description.\n\n1. What is the man doing?\nA. Reading a book *\nB. Cooking dinner\nC. Playing guitar\nExp: The man is clearly holding a book.\n\n2. Where is this scene?\nA. In a library *\nB. At a restaurant`}
+                            value={bulkPasteText} onChange={(e) => { setBulkPasteText(e.target.value); setBulkPastePreview(null); }}
+                            sx={{ mb: 2, fontFamily: 'monospace', fontSize: '0.85rem' }}
+                        />
+                        {bulkPastePreview && (
+                            <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: '#16a34a' }}>
+                                    ✅ Nhận diện: {bulkPastePreview.questions.length} câu hỏi
+                                    {bulkPastePreview.sections.length > 0 && ` trong ${bulkPastePreview.sections.length} Part`}
+                                </Typography>
+                                {bulkPastePreview.sections.map((s: any, i: number) => (
+                                    <Typography key={i} variant="body2" color="text.secondary">
+                                        📂 {s.title} — {s.questionIds.length} câu
+                                    </Typography>
+                                ))}
+                                {bulkPastePreview.errors.map((err: string, i: number) => (
+                                    <Typography key={i} variant="body2" color="error">⚠ {err}</Typography>
+                                ))}
+                            </Box>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setBulkPasteOpen(false)}>Hủy</Button>
+                        <Button variant="outlined" onClick={handleBulkPastePreview} disabled={!bulkPasteText.trim()}>
+                            Xem trước
+                        </Button>
+                        <Button variant="contained" onClick={handleBulkPasteImport}
+                            disabled={!bulkPastePreview || bulkPastePreview.questions.length === 0}>
+                            Import {bulkPastePreview?.questions.length || 0} câu hỏi
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+
 
                 {/* Publish confirmation dialog */}
                 <Dialog open={publishDialogOpen} onClose={() => setPublishDialogOpen(false)}>

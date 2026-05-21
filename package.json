@@ -30,7 +30,7 @@
     "autoprefixer": "^10.4.17",
     "axios": "^1.6.7",
     "date-fns": "^2.30.0",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.20",
     "formik": "^2.4.6",
     "framer-motion": "^12.38.0",
     "jquery": "^3.7.1",

@@ -12,8 +12,6 @@ import {
   Button,
   Divider,
   Chip,
-  Snackbar,
-  Alert,
   CircularProgress,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -31,6 +29,7 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 import { Notification } from '../../services/notifications';
+import NotificationToast from './NotificationToast';
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -80,7 +79,7 @@ const NotificationBell: React.FC = () => {
   } = useNotifications();
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [showToast, setShowToast] = useState(false);
+  const [_showToast, setShowToast] = useState(false);
   const [toastNotification, setToastNotification] = useState<Notification | null>(null);
 
   // Show toast when new notification arrives
@@ -350,36 +349,11 @@ const NotificationBell: React.FC = () => {
         )}
       </Popover>
 
-      {/* Toast notification */}
-      <Snackbar
-        open={showToast}
-        autoHideDuration={4000}
-        onClose={() => setShowToast(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setShowToast(false)}
-          severity="info"
-          variant="filled"
-          sx={{
-            width: '100%',
-            borderRadius: 2,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-          }}
-          onClick={() => {
-            if (toastNotification?.link) {
-              navigate(toastNotification.link);
-            }
-            setShowToast(false);
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {toastNotification?.title}
-          </Typography>
-          <Typography variant="caption">{toastNotification?.message}</Typography>
-        </Alert>
-      </Snackbar>
+      {/* Premium floating toast notification */}
+      <NotificationToast
+        notification={toastNotification}
+        onDismiss={() => { setShowToast(false); setToastNotification(null); }}
+      />
     </>
   );
 };

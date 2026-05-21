@@ -261,12 +261,12 @@ const ClassForm: React.FC<ClassFormProps> = ({
       // Determine status based on dates
       const now = new Date();
       const startDate = new Date(formData.schedule.start_date);
-      let status: 'active' | 'inactive' | 'completed' | 'cancelled' | 'closed' = 'active';
+      let status: 'active' | 'upcoming' | 'closed' = 'active';
 
       if (startDate > now) {
-        status = 'active'; // upcoming is not in the type, use active
+        status = 'upcoming';
       } else if (endDate < now) {
-        status = 'completed';
+        status = 'closed';
       }
 
       const submitData = {

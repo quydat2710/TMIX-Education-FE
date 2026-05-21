@@ -137,7 +137,23 @@ export default defineConfig(({ mode }) => {
               console.error('Proxy error:', err);
             }
           });
-          // ✅ Xóa các log request/response không cần thiết
+          // ✅ Handle SSE: flush response immediately, disable buffering
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            if (req.url?.includes('/notifications/stream')) {
+              // Ensure SSE headers are set correctly
+              res.setHeader('Content-Type', 'text/event-stream');
+              res.setHeader('Cache-Control', 'no-cache');
+              res.setHeader('Connection', 'keep-alive');
+              res.setHeader('X-Accel-Buffering', 'no');
+              // Flush data immediately
+              proxyRes.on('data', (chunk: Buffer) => {
+                res.write(chunk);
+                if (typeof (res as any).flush === 'function') {
+                  (res as any).flush();
+                }
+              });
+            }
+          });
         },
       },
     },

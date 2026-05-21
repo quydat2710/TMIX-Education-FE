@@ -9,9 +9,10 @@ interface TestTimerProps {
     durationMinutes: number;
     onTimeUp: () => void;
     isPaused?: boolean;
+    onTimeUpdate?: (seconds: number) => void;
 }
 
-const TestTimer: React.FC<TestTimerProps> = ({ durationMinutes, onTimeUp, isPaused = false }) => {
+const TestTimer: React.FC<TestTimerProps> = ({ durationMinutes, onTimeUp, isPaused = false, onTimeUpdate }) => {
     const [timeRemaining, setTimeRemaining] = useState(durationMinutes * 60); // in seconds
     const totalSeconds = durationMinutes * 60;
 
@@ -20,17 +21,21 @@ const TestTimer: React.FC<TestTimerProps> = ({ durationMinutes, onTimeUp, isPaus
 
         const timer = setInterval(() => {
             setTimeRemaining((prev) => {
-                if (prev <= 1) {
+                const next = prev <= 1 ? 0 : prev - 1;
+                onTimeUpdate?.(next);
+                if (next === 0) {
                     clearInterval(timer);
                     onTimeUp();
-                    return 0;
                 }
-                return prev - 1;
+                return next;
             });
         }, 1000);
 
+        // Fire immediately on mount so floating pill has initial value
+        onTimeUpdate?.(timeRemaining);
+
         return () => clearInterval(timer);
-    }, [isPaused, timeRemaining, onTimeUp]);
+    }, [isPaused]);
 
     const formatTime = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -55,7 +60,7 @@ const TestTimer: React.FC<TestTimerProps> = ({ durationMinutes, onTimeUp, isPaus
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AccessTimeIcon color={getTimeColor()} />
                     <Typography variant="h6" color={`${getTimeColor()}.main`}>
-                        Time Remaining:
+                        Thời gian còn lại:
                     </Typography>
                 </Box>
                 <Chip
@@ -73,7 +78,7 @@ const TestTimer: React.FC<TestTimerProps> = ({ durationMinutes, onTimeUp, isPaus
             />
             {timeRemaining <= 60 && timeRemaining > 0 && (
                 <Typography variant="caption" color="error.main" sx={{ mt: 1, display: 'block' }}>
-                    ⚠️ Less than 1 minute remaining! The test will auto-submit when time runs out.
+                    ⚠️ Còn dưới 1 phút! Bài kiểm tra sẽ được nộp tự động khi hết giờ.
                 </Typography>
             )}
         </Box>

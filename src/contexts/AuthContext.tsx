@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 
 import { loginAPI, refreshTokenAPI } from '../services/auth';
 import { User } from '../types';
+import { normalizeUserRole } from '../utils/normalizeUser';
 
 interface AuthState {
   user: User | null;
@@ -143,16 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (token && userData) {
       try {
-        let user: User = JSON.parse(userData);
-
-        // Normalize role field on restore from localStorage
-        if (user.role && typeof user.role === 'object' && 'id' in user.role) {
-          const roleId = (user.role as any).id;
-          (user as any).role = roleId === 1 ? 'admin' :
-            roleId === 2 ? 'teacher' :
-              roleId === 3 ? 'parent' :
-                roleId === 4 ? 'student' : 'unknown';
-        }
+        let user: User = normalizeUserRole(JSON.parse(userData));
 
         // Nếu là parent và thiếu permissions thì bổ sung mặc định
         if (user.role === 'parent' && !(user as any).permissions) {
@@ -179,16 +171,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Try refresh when we have userData but no token
       (async () => {
         try {
-          let user: User = JSON.parse(userData);
-
-          // Normalize role field
-          if (user.role && typeof user.role === 'object' && 'id' in user.role) {
-            const roleId = (user.role as any).id;
-            (user as any).role = roleId === 1 ? 'admin' :
-              roleId === 2 ? 'teacher' :
-                roleId === 3 ? 'parent' :
-                  roleId === 4 ? 'student' : 'unknown';
-          }
+          let user: User = normalizeUserRole(JSON.parse(userData));
 
           const response = await refreshTokenAPI();
           const newAccessToken = response?.data?.data?.access_token || response?.data?.access_token;
@@ -281,14 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid response structure: missing user data or token');
       }
 
-      // Normalize role field
-      if (userData.role && typeof userData.role === 'object' && 'id' in userData.role) {
-        const roleId = (userData.role as any).id;
-        (userData as any).role = roleId === 1 ? 'admin' :
-          roleId === 2 ? 'teacher' :
-            roleId === 3 ? 'parent' :
-              roleId === 4 ? 'student' : 'unknown';
-      }
+      userData = normalizeUserRole(userData);
 
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('userData', JSON.stringify(userData));
@@ -374,16 +350,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Update user data if provided
       if (response?.data?.data?.user) {
-        const userData = response.data.data.user;
-        // Normalize role field
-        if (userData.role && typeof userData.role === 'object' && 'id' in userData.role) {
-          const roleId = (userData.role as any).id;
-          (userData as any).role = roleId === 1 ? 'admin' :
-            roleId === 2 ? 'teacher' :
-              roleId === 3 ? 'parent' :
-                roleId === 4 ? 'student' : 'unknown';
-        }
-        localStorage.setItem('userData', JSON.stringify(userData));
+        const normalizedUser = normalizeUserRole(response.data.data.user);
+        localStorage.setItem('userData', JSON.stringify(normalizedUser));
       }
 
       localStorage.setItem('access_token', newAccessToken);

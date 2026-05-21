@@ -1,5 +1,5 @@
 // Feedback Card Component
-// Display AI feedback in a styled card
+// Display AI feedback in a modern, clean card
 
 import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
@@ -14,63 +14,56 @@ interface FeedbackCardProps {
 }
 
 const FeedbackCard: React.FC<FeedbackCardProps> = ({ feedback, type = 'info', icon }) => {
-    const getIconByType = () => {
-        if (icon) return icon;
-
-        switch (type) {
-            case 'success':
-                return <CheckCircleIcon sx={{ color: 'success.main' }} />;
-            case 'error':
-                return <ErrorIcon sx={{ color: 'error.main' }} />;
-            case 'suggestion':
-                return <LightbulbIcon sx={{ color: 'warning.main' }} />;
-            default:
-                return <LightbulbIcon sx={{ color: 'info.main' }} />;
-        }
+    const config = {
+        success: {
+            icon: <CheckCircleIcon sx={{ fontSize: 20, color: '#16a34a' }} />,
+            bg: '#f0fdf4',
+            border: '#bbf7d0',
+            leftBorder: '#22c55e',
+        },
+        error: {
+            icon: <ErrorIcon sx={{ fontSize: 20, color: '#dc2626' }} />,
+            bg: '#fef2f2',
+            border: '#fecaca',
+            leftBorder: '#ef4444',
+        },
+        suggestion: {
+            icon: <LightbulbIcon sx={{ fontSize: 20, color: '#d97706' }} />,
+            bg: '#fffbeb',
+            border: '#fde68a',
+            leftBorder: '#f59e0b',
+        },
+        info: {
+            icon: <LightbulbIcon sx={{ fontSize: 20, color: '#2563eb' }} />,
+            bg: '#eff6ff',
+            border: '#bfdbfe',
+            leftBorder: '#3b82f6',
+        },
     };
 
-    const getBgColor = () => {
-        switch (type) {
-            case 'success':
-                return 'success.light';
-            case 'error':
-                return 'error.light';
-            case 'suggestion':
-                return 'warning.light';
-            default:
-                return 'info.light';
-        }
-    };
-
-    const getBorderColor = () => {
-        switch (type) {
-            case 'success':
-                return 'success.main';
-            case 'error':
-                return 'error.main';
-            case 'suggestion':
-                return 'warning.main';
-            default:
-                return 'info.main';
-        }
-    };
+    const c = config[type];
 
     return (
         <Paper
             elevation={0}
             sx={{
                 p: 2,
-                bgcolor: getBgColor(),
-                border: '1px solid',
-                borderColor: getBorderColor(),
-                borderRadius: 1,
+                bgcolor: c.bg,
+                border: `1px solid ${c.border}`,
+                borderLeft: `4px solid ${c.leftBorder}`,
+                borderRadius: 2,
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: 2,
+                gap: 1.5,
+                transition: 'transform 0.15s, box-shadow 0.15s',
+                '&:hover': {
+                    transform: 'translateX(2px)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                },
             }}
         >
-            <Box sx={{ mt: 0.5 }}>{getIconByType()}</Box>
-            <Typography variant="body2" sx={{ flex: 1, lineHeight: 1.6 }}>
+            <Box sx={{ mt: 0.2, flexShrink: 0 }}>{icon || c.icon}</Box>
+            <Typography variant="body2" sx={{ flex: 1, lineHeight: 1.7, color: '#374151' }}>
                 {feedback}
             </Typography>
         </Paper>

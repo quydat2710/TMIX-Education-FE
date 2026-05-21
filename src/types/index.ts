@@ -124,7 +124,7 @@ export interface Class extends BaseEntity {
   section: number; // Changed from string to number to match API
   description?: string;
   feePerLesson: number; // New field from API
-  status: 'active' | 'inactive' | 'completed' | 'cancelled' | 'closed'; // Added 'closed' status
+  status: 'active' | 'upcoming' | 'closed';
   max_student: number; // New field name from API
   room: string; // New required field from API
   schedule: {
@@ -326,7 +326,7 @@ export interface ClassFormData {
   year: number;
   description: string;
   feePerLesson: number;
-  status: 'active' | 'inactive' | 'completed' | 'cancelled' | 'closed';
+  status: 'active' | 'upcoming' | 'closed';
   max_student: number;
   room: string;
   schedule: {

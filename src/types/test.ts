@@ -6,11 +6,21 @@ import { BaseEntity } from './index';
 export interface MCQuestion {
   id: string;
   question: string;
-  options: string[];         // Array of 4 options (A, B, C, D)
-  correctAnswer: number;     // Index of correct option (0-3)
+  options: string[];         // 2-6 options (dynamic)
+  correctAnswer: number;     // Index of correct option
   explanation?: string;      // Optional explanation
   points: number;            // Points for this question
   audioUrl?: string;         // Per-question audio (listening)
+}
+
+// Test Section/Part (for multi-part reading/listening)
+export interface TestSection {
+  id: string;
+  title: string;             // "Part 1: Photographs" or "Passage 1"
+  instruction?: string;      // "For each question, choose the best..."
+  audioUrl?: string;         // Per-section audio (listening)
+  passage?: string;          // Per-section passage (reading)
+  questionIds: string[];     // References to question IDs in questions[]
 }
 
 // Writing Question
@@ -51,6 +61,7 @@ export interface Test extends BaseEntity {
   passage?: string;          // Reading passage or Writing prompt
   speakingPrompt?: string;   // Speaking test general prompt
   status: 'draft' | 'published' | 'archived';
+  sections?: TestSection[];  // Optional multi-part grouping
   // Additional metadata
   className?: string;
   teacherName?: string;
@@ -105,6 +116,7 @@ export interface TestFormData {
   passage?: string;          // Reading passage or Writing prompt
   speakingPrompt?: string;   // Speaking test general prompt
   audioUrl?: string;         // Main audio URL (listening)
+  sections?: TestSection[];  // Optional multi-part grouping
   status: 'draft' | 'published';
 }
 
@@ -120,7 +132,7 @@ export interface TestFormErrors {
 // Question Form Data
 export interface QuestionFormData {
   question: string;
-  options: [string, string, string, string]; // Exactly 4 options
+  options: string[];          // Dynamic 2-6 options
   correctAnswer: number;
   explanation: string;
   points: number;

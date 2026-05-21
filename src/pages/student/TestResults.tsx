@@ -103,38 +103,32 @@ const TestResults: React.FC = () => {
 
     return (
         <DashboardLayout role="student">
-            <Box sx={{ p: { xs: 2, md: 3 } }}>
-                {/* Header */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                    <Tooltip title="Quay lại">
-                        <IconButton
-                            onClick={() => navigate('/student/tests')}
-                            sx={{
-                                bgcolor: 'white',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                '&:hover': { bgcolor: '#f5f5f5', transform: 'scale(1.05)' },
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            <ArrowBackIcon sx={{ color: COLORS.primary.main }} />
-                        </IconButton>
-                    </Tooltip>
-                    <Box>
-                        <Typography variant="h4" sx={{
-                            fontWeight: 700,
-                            color: COLORS.primary.main,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                        }}>
-                            <TrophyIcon sx={{ fontSize: 36 }} />
-                            Kết quả bài kiểm tra
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                            {test.title} — Nộp lúc: {formatDate(attempt.submittedAt)}
-                        </Typography>
+            <Box sx={{ p: { xs: 1.5, md: 2 }, maxWidth: 1400, mx: 'auto' }}>
+                {/* Header Banner */}
+                <Paper sx={{
+                    p: { xs: 2, md: 2.5 }, mb: 3, borderRadius: 3,
+                    background: attempt.passed
+                        ? 'linear-gradient(135deg, #166534 0%, #15803d 50%, #22c55e 100%)'
+                        : 'linear-gradient(135deg, #1E3A5F 0%, #2c5282 50%, #3b82f6 100%)',
+                    color: 'white',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Tooltip title="Quay lại">
+                            <IconButton onClick={() => navigate('/student/tests')} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}>
+                                <ArrowBackIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <TrophyIcon sx={{ fontSize: 28 }} /> Kết quả bài kiểm tra
+                            </Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.3 }}>
+                                {test.title} — Nộp lúc: {formatDate(attempt.submittedAt)}
+                            </Typography>
+                        </Box>
                     </Box>
-                </Box>
+                </Paper>
 
                 <Grid container spacing={3}>
                     {/* Left Column - Score Overview */}
@@ -142,9 +136,10 @@ const TestResults: React.FC = () => {
                         <Paper sx={{
                             p: 3,
                             position: 'sticky',
-                            top: 20,
-                            borderRadius: 3,
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                            top: 80,
+                            borderRadius: 4,
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                            border: '1px solid #e5e7eb',
                         }}>
                             <ScoreBadge
                                 score={attempt.score}
@@ -294,18 +289,17 @@ const TestResults: React.FC = () => {
 
                     {/* Right Column - Detailed Results */}
                     <Grid item xs={12} md={8}>
-                        {/* Overall Feedback */}
-                        {attempt.feedback && attempt.feedback.length > 0 && (
+                        {/* Overall Feedback — only for AI-graded tests (writing/speaking) */}
+                        {(isWritingTest || isSpeakingTest) && attempt.feedback && attempt.feedback.length > 0 && (
                             <Paper sx={{
-                                p: 3,
-                                mb: 3,
-                                borderRadius: 3,
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                                p: 3, mb: 3, borderRadius: 4,
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                                border: '1px solid #e5e7eb',
                             }}>
-                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: COLORS.primary.main as string }}>
-                                    Nhận xét & Gợi ý
+                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: COLORS.primary.main as string, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    💬 Nhận xét & Gợi ý
                                 </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                     {attempt.feedback.slice(0, 3).map((feedback, index) => (
                                         <FeedbackCard key={index} feedback={feedback} type="suggestion" />
                                     ))}
@@ -315,31 +309,93 @@ const TestResults: React.FC = () => {
 
                         {/* MC Question Review */}
                         {!isWritingTest && !isSpeakingTest && (
-                            <Paper sx={{
-                                p: 3,
-                                borderRadius: 3,
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                            }}>
-                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: COLORS.primary.main }}>
-                                    📝 Chi tiết câu trả lời
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                    Xem lại các câu trả lời và đáp án đúng
-                                </Typography>
-                                {test.questions.map((question: any, index: number) => (
-                                    <QuestionCard
-                                        key={question.id}
-                                        question={question}
-                                        questionNumber={index + 1}
-                                        selectedAnswer={attempt.answers?.[index]}
-                                        studentAnswer={attempt.answers?.[index]}
-                                        showCorrectAnswer={true}
-                                        showResult={true}
-                                        feedback={attempt.feedback?.[index]}
-                                        disabled={true}
-                                    />
-                                ))}
-                            </Paper>
+                            <>
+                                {/* Section-grouped mode */}
+                                {(test as any)?.sections?.length > 0 ? (
+                                    ((test as any).sections as any[]).map((section: any, sIdx: number) => {
+                                        const sectionQuestions = section.questionIds
+                                            .map((qId: string) => {
+                                                const qIndex = test.questions.findIndex((q: any) => q.id === qId);
+                                                return qIndex >= 0 ? { question: test.questions[qIndex], index: qIndex } : null;
+                                            })
+                                            .filter(Boolean) as { question: any; index: number }[];
+
+                                        return (
+                                            <Paper key={section.id} sx={{
+                                                mb: 3, borderRadius: 4, overflow: 'hidden',
+                                                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                                                border: '1px solid #e5e7eb',
+                                            }}>
+                                                {/* Section Header */}
+                                                <Box sx={{
+                                                    p: 2, bgcolor: '#f8fafc',
+                                                    borderBottom: '1px solid #e5e7eb',
+                                                }}>
+                                                    <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        {(test as any)?.skillType === 'listening' ? '🎧' : '📖'} {section.title || `Part ${sIdx + 1}`}
+                                                    </Typography>
+                                                    {section.instruction && (
+                                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
+                                                            {section.instruction}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+
+                                                {/* Section Passage (reading) */}
+                                                {section.passage && (
+                                                    <Box sx={{ p: 2.5, bgcolor: '#fafafa', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <Box sx={{ fontFamily: '"Georgia", serif', fontSize: '0.95rem', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                                                            {section.passage}
+                                                        </Box>
+                                                    </Box>
+                                                )}
+
+                                                {/* Questions */}
+                                                <Box sx={{ p: 2 }}>
+                                                    {sectionQuestions.map(({ question, index }) => (
+                                                        <QuestionCard
+                                                            key={question.id}
+                                                            question={question}
+                                                            questionNumber={index + 1}
+                                                            selectedAnswer={attempt.answers?.[index]}
+                                                            studentAnswer={attempt.answers?.[index]}
+                                                            showCorrectAnswer={true}
+                                                            showResult={true}
+                                                            disabled={true}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            </Paper>
+                                        );
+                                    })
+                                ) : (
+                                    /* Flat mode (backward compatible) */
+                                    <Paper sx={{
+                                        p: 3, borderRadius: 4,
+                                        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                                        border: '1px solid #e5e7eb',
+                                    }}>
+                                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: COLORS.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            📝 Chi tiết câu trả lời
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                            Xem lại các câu trả lời và đáp án đúng
+                                        </Typography>
+                                        {test.questions.map((question: any, index: number) => (
+                                            <QuestionCard
+                                                key={question.id}
+                                                question={question}
+                                                questionNumber={index + 1}
+                                                selectedAnswer={attempt.answers?.[index]}
+                                                studentAnswer={attempt.answers?.[index]}
+                                                showCorrectAnswer={true}
+                                                showResult={true}
+                                                disabled={true}
+                                            />
+                                        ))}
+                                    </Paper>
+                                )}
+                            </>
                         )}
 
                         {/* Speaking Results */}

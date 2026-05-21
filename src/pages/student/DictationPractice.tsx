@@ -15,6 +15,7 @@ import {
     Box, Typography, Button, Paper, TextField, Grid,
     CircularProgress, Alert, Chip, LinearProgress,
     Card, CardContent, Slider, IconButton, Tooltip,
+    Dialog, DialogContent, DialogTitle,
 } from '@mui/material';
 import {
     Hearing as HearingIcon,
@@ -27,6 +28,10 @@ import {
     EmojiEvents as TrophyIcon,
     NavigateNext as NextIcon,
     Edit as EditIcon,
+    Close as CloseIcon,
+    SignalCellularAlt1Bar as Level1Icon,
+    SignalCellularAlt2Bar as Level2Icon,
+    SignalCellularAlt as Level3Icon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import axiosInstance from '../../utils/axios.customize';
@@ -47,10 +52,12 @@ interface DictationResult {
 }
 
 const LEVELS = [
-    { value: 'easy', label: 'Cơ bản', color: '#16a34a', desc: 'Câu ngắn, từ vựng đơn giản' },
-    { value: 'medium', label: 'Trung bình', color: '#d97706', desc: 'Câu dài hơn, từ vựng phong phú' },
-    { value: 'hard', label: 'Nâng cao', color: '#dc2626', desc: 'Câu phức tạp, chủ đề chuyên sâu' },
+    { value: 'easy', label: 'Cơ bản', color: '#16a34a', desc: 'Câu ngắn, từ vựng đơn giản', icon: <Level1Icon sx={{ fontSize: 36 }} /> },
+    { value: 'medium', label: 'Trung bình', color: '#d97706', desc: 'Câu dài hơn, từ vựng phong phú', icon: <Level2Icon sx={{ fontSize: 36 }} /> },
+    { value: 'hard', label: 'Nâng cao', color: '#dc2626', desc: 'Câu phức tạp, chủ đề chuyên sâu', icon: <Level3Icon sx={{ fontSize: 36 }} /> },
 ];
+
+const MAX_ATTEMPTS = 5;
 
 const DictationPractice: React.FC = () => {
     const [level, setLevel] = useState('');
@@ -62,6 +69,7 @@ const DictationPractice: React.FC = () => {
     const [userAnswer, setUserAnswer] = useState('');
     const [checking, setChecking] = useState(false);
     const [result, setResult] = useState<DictationResult | null>(null);
+    const [isResultModalOpen, setIsResultModalOpen] = useState(false);
     const [error, setError] = useState('');
     const [attempts, setAttempts] = useState(0);
     const [stats, setStats] = useState({ total: 0, correct: 0 });
@@ -139,14 +147,19 @@ const DictationPractice: React.FC = () => {
             setChecking(true);
             setError('');
 
+            const nextAttempt = attempts + 1;
+            const isLastAttempt = nextAttempt >= MAX_ATTEMPTS;
+
             const res = await axiosInstance.post('/tts/dictation/check', {
                 id: sentenceId,
                 answer: userAnswer.trim(),
+                forceReveal: isLastAttempt,
             });
 
             const data = res?.data?.data || res?.data;
             setResult(data);
-            setAttempts(prev => prev + 1);
+            setAttempts(nextAttempt);
+            setIsResultModalOpen(true);
             setStats(prev => ({
                 total: prev.total + 1,
                 correct: prev.correct + (data.isCorrect ? 1 : 0),
@@ -166,12 +179,12 @@ const DictationPractice: React.FC = () => {
     // ── Try again (same sentence) ──
     const handleRetry = () => {
         setResult(null);
-        setUserAnswer('');
+        setIsResultModalOpen(false);
     };
 
     return (
         <DashboardLayout>
-            <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 3 } }}>
+            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
 
                 {/* Header */}
                 <Paper
@@ -229,18 +242,21 @@ const DictationPractice: React.FC = () => {
                                             },
                                         }}
                                     >
-                                        <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                                        <CardContent sx={{ textAlign: 'center', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <Box sx={{ color: lv.color, mb: 1.5, p: 2, borderRadius: '50%', bgcolor: lv.color + '15' }}>
+                                                {lv.icon}
+                                            </Box>
                                             <Chip
                                                 label={lv.label}
                                                 sx={{
                                                     bgcolor: lv.color + '15',
                                                     color: lv.color,
-                                                    fontWeight: 700,
-                                                    fontSize: '0.85rem',
-                                                    mb: 1,
+                                                    fontWeight: 800,
+                                                    fontSize: '0.95rem',
+                                                    mb: 1.5,
                                                 }}
                                             />
-                                            <Typography variant="body2" color="text.secondary">
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                                                 {lv.desc}
                                             </Typography>
                                         </CardContent>
@@ -359,7 +375,14 @@ const DictationPractice: React.FC = () => {
                                     }}
                                     sx={{ mb: 2 }}
                                 />
-                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between' }}>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => { setSentenceId(''); setResult(null); setUserAnswer(''); setAttempts(0); }}
+                                        sx={{ borderRadius: 2 }}
+                                    >
+                                        Quay lại
+                                    </Button>
                                     <Button
                                         variant="contained"
                                         onClick={handleCheck}
@@ -373,134 +396,136 @@ const DictationPractice: React.FC = () => {
                             </>
                         )}
 
-                        {/* Results */}
-                        {result && (
-                            <Box sx={{ mt: 2 }}>
-                                {/* Score bar */}
-                                <Box sx={{
-                                    p: 2, borderRadius: 2, mb: 2,
-                                    bgcolor: result.isCorrect ? '#f0fdf4' : '#fef2f2',
-                                    border: `1px solid ${result.isCorrect ? '#bbf7d0' : '#fecaca'}`,
-                                }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                        <Typography variant="subtitle1" fontWeight={700} sx={{
-                                            color: result.isCorrect ? '#16a34a' : '#dc2626',
-                                            display: 'flex', alignItems: 'center', gap: 0.5,
+                        {/* Results Modal */}
+                        <Dialog
+                            open={isResultModalOpen}
+                            onClose={handleRetry}
+                            maxWidth="md"
+                            fullWidth
+                            PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden' } }}
+                            scroll="paper"
+                        >
+                            {result && (
+                                <>
+                                    <DialogTitle sx={{ bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2.5 }}>
+                                        <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <TrophyIcon sx={{ color: '#2563eb' }} /> Báo cáo Chính tả
+                                        </Typography>
+                                        <IconButton onClick={handleRetry} size="small" sx={{ bgcolor: '#e2e8f0', '&:hover': { bgcolor: '#cbd5e1' } }}>
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </DialogTitle>
+                                    <DialogContent sx={{ p: { xs: 2, md: 4 } }}>
+                                        {/* Score bar */}
+                                        <Box sx={{
+                                            p: 3, borderRadius: 3, mb: 4,
+                                            bgcolor: result.isCorrect ? '#f0fdf4' : '#fef2f2',
+                                            border: `2px dashed ${result.isCorrect ? '#86efac' : '#fca5a5'}`,
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center'
                                         }}>
-                                            {result.isCorrect
-                                                ? <><TrophyIcon sx={{ fontSize: 20 }} /> Chính xác!</>
-                                                : <><WrongIcon sx={{ fontSize: 20 }} /> Chưa đúng</>
-                                            }
-                                        </Typography>
-                                        <Typography variant="h5" fontWeight={800} sx={{
-                                            color: result.isCorrect ? '#16a34a' : '#dc2626',
-                                        }}>
-                                            {result.score}%
-                                        </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                        variant="determinate"
-                                        value={result.score}
-                                        sx={{
-                                            height: 8, borderRadius: 4,
-                                            bgcolor: result.isCorrect ? '#dcfce7' : '#fee2e2',
-                                            '& .MuiLinearProgress-bar': {
-                                                bgcolor: result.isCorrect ? '#16a34a' : '#dc2626',
-                                                borderRadius: 4,
-                                            },
-                                        }}
-                                    />
-                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                        {result.correctWords}/{result.totalWords} từ đúng
-                                    </Typography>
-                                </Box>
+                                            <Typography variant="h4" fontWeight={900} sx={{
+                                                color: result.isCorrect ? '#16a34a' : '#dc2626', mb: 1,
+                                                display: 'flex', alignItems: 'center', gap: 1,
+                                            }}>
+                                                {result.isCorrect ? <CheckIcon sx={{ fontSize: 32 }} /> : <WrongIcon sx={{ fontSize: 32 }} />}
+                                                {result.score}%
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight={600} color="text.secondary" sx={{ mb: 2 }}>
+                                                {result.correctWords}/{result.totalWords} từ đúng
+                                            </Typography>
+                                            
+                                            <LinearProgress
+                                                variant="determinate"
+                                                value={result.score}
+                                                sx={{
+                                                    width: '100%', height: 10, borderRadius: 5,
+                                                    bgcolor: result.isCorrect ? '#dcfce7' : '#fee2e2',
+                                                    '& .MuiLinearProgress-bar': {
+                                                        bgcolor: result.isCorrect ? '#16a34a' : '#dc2626',
+                                                        borderRadius: 5,
+                                                    },
+                                                }}
+                                            />
+                                        </Box>
 
-                                {/* Word-by-word result */}
-                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2, bgcolor: '#fafafa' }}>
-                                    <Typography variant="subtitle2" fontWeight={700} gutterBottom color="text.secondary">
-                                        <EditIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
-                                        Kết quả chi tiết:
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, lineHeight: 2.2 }}>
-                                        {result.wordResults.map((wr, i) => (
-                                            <Tooltip
-                                                key={i}
-                                                title={wr.correct ? 'Đúng' : `Từ đúng: ${wr.expected}`}
-                                                arrow
-                                            >
-                                                <Chip
-                                                    label={wr.word}
-                                                    size="small"
-                                                    sx={{
-                                                        bgcolor: wr.correct ? '#dcfce7' : '#fee2e2',
-                                                        color: wr.correct ? '#16a34a' : '#dc2626',
-                                                        fontWeight: 600,
-                                                        border: `1px solid ${wr.correct ? '#bbf7d0' : '#fecaca'}`,
-                                                        fontSize: '0.85rem',
-                                                    }}
-                                                />
-                                            </Tooltip>
-                                        ))}
-                                    </Box>
-                                </Paper>
+                                        {/* Word-by-word result */}
+                                        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: '#fafafa' }}>
+                                            <Typography variant="subtitle1" fontWeight={800} gutterBottom color="#475569">
+                                                <EditIcon sx={{ fontSize: 18, verticalAlign: 'middle', mr: 0.5 }} />
+                                                Bài làm của bạn:
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                                {result.wordResults.map((wr, i) => {
+                                                    const isFinished = result.isCorrect || attempts >= MAX_ATTEMPTS;
+                                                    return (
+                                                        <Tooltip
+                                                            key={i}
+                                                            title={wr.correct ? 'Đúng' : (isFinished ? `Từ đúng: ${wr.expected}` : 'Chưa đúng')}
+                                                            arrow
+                                                        >
+                                                            <Chip
+                                                                label={wr.word}
+                                                                sx={{
+                                                                    bgcolor: wr.correct ? '#dcfce7' : '#fee2e2',
+                                                                    color: wr.correct ? '#16a34a' : '#dc2626',
+                                                                    fontWeight: 700,
+                                                                    border: `1px solid ${wr.correct ? '#bbf7d0' : '#fecaca'}`,
+                                                                    fontSize: '1rem', py: 2
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    );
+                                                })}
+                                            </Box>
+                                        </Paper>
 
-                                {/* Reveal sentence only when 100% correct */}
-                                {result.isCorrect && result.originalSentence && (
-                                    <Paper variant="outlined" sx={{
-                                        p: 2, borderRadius: 2, mb: 2,
-                                        bgcolor: '#f0fdf4', borderColor: '#86efac',
-                                    }}>
-                                        <Typography variant="subtitle2" fontWeight={700} color="#16a34a" gutterBottom>
-                                            <CheckIcon sx={{ fontSize: 16, verticalAlign: 'middle', mr: 0.5 }} />
-                                            Câu gốc:
-                                        </Typography>
-                                        <Typography variant="body1" sx={{ fontStyle: 'italic', color: '#374151', fontWeight: 500 }}>
-                                            "{result.originalSentence}"
-                                        </Typography>
-                                    </Paper>
-                                )}
+                                        {/* Reveal sentence logic */}
+                                        {(result.isCorrect || attempts >= MAX_ATTEMPTS) ? (
+                                            <Paper variant="outlined" sx={{
+                                                p: 3, borderRadius: 3, mb: 4,
+                                                bgcolor: '#f0fdf4', borderColor: '#86efac',
+                                            }}>
+                                                <Typography variant="subtitle1" fontWeight={800} color="#16a34a" gutterBottom>
+                                                    <CheckIcon sx={{ fontSize: 18, verticalAlign: 'middle', mr: 0.5 }} />
+                                                    {result.isCorrect ? 'Hoàn hảo! Đây là câu gốc:' : 'Hết số lần thử. Đáp án đúng là:'}
+                                                </Typography>
+                                                <Typography variant="h6" sx={{ fontStyle: 'italic', color: '#064e3b', fontWeight: 700, mt: 1 }}>
+                                                    "{result.originalSentence}"
+                                                </Typography>
+                                            </Paper>
+                                        ) : (
+                                            <Alert severity="warning" sx={{ mb: 4, borderRadius: 2, fontWeight: 600, fontSize: '1rem' }}>
+                                                Chưa đúng rồi. Bạn còn {MAX_ATTEMPTS - attempts} lần thử. Hãy nghe thật kỹ lại nhé!
+                                            </Alert>
+                                        )}
 
-                                {!result.isCorrect && (
-                                    <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
-                                        Nghe lại và thử lần nữa! Câu gốc chỉ hiện khi bạn viết đúng 100%.
-                                    </Alert>
-                                )}
-
-                                {/* Action buttons */}
-                                <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', mt: 2 }}>
-                                    {!result.isCorrect && (
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleRetry}
-                                            startIcon={<ReplayIcon />}
-                                            sx={{ bgcolor: '#2563eb', '&:hover': { bgcolor: '#1d4ed8' }, borderRadius: 3 }}
-                                        >
-                                            Thử lại
-                                        </Button>
-                                    )}
-                                    <Button
-                                        variant={result.isCorrect ? 'contained' : 'outlined'}
-                                        onClick={handleNext}
-                                        startIcon={<NextIcon />}
-                                        sx={{
-                                            borderRadius: 3,
-                                            ...(result.isCorrect && {
-                                                bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' },
-                                            }),
-                                        }}
-                                    >
-                                        Câu tiếp theo
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => { setSentenceId(''); setResult(null); setUserAnswer(''); }}
-                                        sx={{ borderRadius: 3 }}
-                                    >
-                                        Đổi level
-                                    </Button>
-                                </Box>
-                            </Box>
-                        )}
+                                        {/* Action buttons */}
+                                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+                                            {(!result.isCorrect && attempts < MAX_ATTEMPTS) && (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={handleRetry}
+                                                    startIcon={<ReplayIcon />}
+                                                    sx={{ bgcolor: '#2563eb', '&:hover': { bgcolor: '#1d4ed8' }, borderRadius: 3, px: 4, py: 1.5, fontWeight: 700 }}
+                                                >
+                                                    Đóng & Nghe lại
+                                                </Button>
+                                            )}
+                                            {(result.isCorrect || attempts >= MAX_ATTEMPTS) && (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => { setIsResultModalOpen(false); handleNext(); }}
+                                                    startIcon={<NextIcon />}
+                                                    sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, borderRadius: 3, px: 4, py: 1.5, fontWeight: 700 }}
+                                                >
+                                                    Câu tiếp theo
+                                                </Button>
+                                            )}
+                                        </Box>
+                                    </DialogContent>
+                                </>
+                            )}
+                        </Dialog>
                     </Paper>
                 )}
 

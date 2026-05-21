@@ -414,7 +414,7 @@ const ReviewAttemptPage: React.FC = () => {
                                     py: 1.5,
                                 }}
                             >
-                                {saving ? 'Đang lưu...' : '💾 Lưu thay đổi'}
+                                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
                             </Button>
                         </Paper>
                     </Box>

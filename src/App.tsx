@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, CircularProgress } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/vi';
 
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -42,6 +45,7 @@ const TestimonialsManagement = React.lazy(() => import('./pages/admin/Testimonia
 const AdminProfile = React.lazy(() => import('./pages/profile/AdminProfile'));
 const AuditLog = React.lazy(() => import('./pages/admin/AuditLog'));
 const LayoutBuilder = React.lazy(() => import('./pages/admin/LayoutBuilder'));
+const AttendanceManagement = React.lazy(() => import('./pages/admin/AttendanceManagement'));
 
 // ── Teacher Pages (lazy loaded) ──
 const TeacherDashboard = React.lazy(() => import('./pages/teacher/Dashboard'));
@@ -92,6 +96,7 @@ const AppContent: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi">
       <CssBaseline />
       <Router>
         <ScrollToTop />
@@ -118,16 +123,9 @@ const AppContent: React.FC = () => {
           {/* Teacher Detail Route - Must be before dynamic menu routes */}
           <Route path="/gioi-thieu/doi-ngu-giang-vien/:slug" element={<TeacherDetail />} />
 
-          {/* Các khóa học */}
+          {/* Các khóa học — parameterized route replaces 8 duplicate routes */}
           <Route path="/cac-khoa-hoc" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-1" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-2" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-cap-3" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-tieu-hoc" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-thcs" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-thpt" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-trung-hoc-co-so" element={<CoursesPage />} />
-          <Route path="/khoa-hoc/khoa-hoc-danh-cho-hoc-sinh-trung-hoc-pho-thong" element={<CoursesPage />} />
+          <Route path="/khoa-hoc/:level" element={<CoursesPage />} />
 
           {/* Schedule Page - Upcoming classes */}
           <Route path="/lich-khai-giang" element={<SchedulePage />} />
@@ -172,6 +170,7 @@ const AppContent: React.FC = () => {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="advertisements" element={<AdvertisementManagement />} />
                   <Route path="classes" element={<ClassManagement />} />
+                  <Route path="attendance" element={<AttendanceManagement />} />
 
                   {/* New user management routes */}
                   <Route path="users" element={<Navigate to="/admin/users/students" replace />} />
@@ -274,6 +273,7 @@ const AppContent: React.FC = () => {
         </Routes>
         </Suspense>
       </Router>
+    </LocalizationProvider>
     </ThemeProvider>
   );
 };

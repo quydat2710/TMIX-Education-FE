@@ -13,6 +13,7 @@ import {
     Box, Typography, Button, Paper, TextField, Grid,
     CircularProgress, Alert, Chip, LinearProgress,
     Card, CardContent, Tooltip, Divider,
+    Dialog, DialogContent, DialogTitle, IconButton,
 } from '@mui/material';
 import {
     Mic as MicIcon,
@@ -42,6 +43,7 @@ import {
     TheaterComedy as CultureIcon,
     FilterList as FilterListIcon,
     GraphicEq as GraphicEqIcon,
+    Close as CloseIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useTTS } from '../../components/TTSButton';
@@ -101,6 +103,7 @@ const PronunciationPractice: React.FC = () => {
     const [audioUrl, setAudioUrl] = useState('');
     const [evaluating, setEvaluating] = useState(false);
     const [result, setResult] = useState<GradingResult | null>(null);
+    const [isResultModalOpen, setIsResultModalOpen] = useState(false);
     const [error, setError] = useState('');
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -179,6 +182,7 @@ const PronunciationPractice: React.FC = () => {
             const data = response?.data?.data || response?.data;
             if (data) {
                 setResult(data);
+                setIsResultModalOpen(true);
             } else {
                 setError('Không nhận được kết quả từ server.');
             }
@@ -194,9 +198,9 @@ const PronunciationPractice: React.FC = () => {
         }
     };
 
-    // ── Reset ──
     const handleReset = () => {
         setResult(null);
+        setIsResultModalOpen(false);
         setAudioBlob(null);
         if (audioUrl) URL.revokeObjectURL(audioUrl);
         setAudioUrl('');
@@ -304,7 +308,7 @@ const PronunciationPractice: React.FC = () => {
 
     return (
         <DashboardLayout>
-            <Box sx={{ maxWidth: 900, mx: 'auto', p: { xs: 2, md: 3 } }}>
+            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
 
                 {/* ═══ Header ═══ */}
                 <Paper
@@ -387,7 +391,7 @@ const PronunciationPractice: React.FC = () => {
                                 {filteredSentences.map((s, i) => {
                                     const isSelected = referenceText === s.text && !customMode;
                                     return (
-                                        <Grid item xs={12} key={i}>
+                                        <Grid item xs={12} md={isSelected ? 12 : 6} key={i} sx={{ transition: 'all 0.3s ease-in-out' }}>
                                             <Card
                                                 variant="outlined"
                                                 onClick={() => { if (!isSelected) { setReferenceText(s.text); handleReset(); } }}
@@ -495,138 +499,156 @@ const PronunciationPractice: React.FC = () => {
                     </Paper>
                 )}
 
-                {/* ═══ Step 3: Results ═══ */}
-                {result && (
-                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip label="3" size="small" sx={{ bgcolor: '#7c3aed', color: 'white', fontWeight: 700 }} />
-                            Kết quả đánh giá
+                {/* ═══ Step 3: Results Modal ═══ */}
+                <Dialog 
+                    open={isResultModalOpen} 
+                    onClose={() => setIsResultModalOpen(false)}
+                    maxWidth="md"
+                    fullWidth
+                    PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden' } }}
+                    scroll="paper"
+                >
+                    <DialogTitle sx={{ bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2.5 }}>
+                        <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TrophyIcon sx={{ color: '#7c3aed' }} /> Báo cáo Phát âm
                         </Typography>
+                        <IconButton onClick={() => setIsResultModalOpen(false)} size="small" sx={{ bgcolor: '#e2e8f0', '&:hover': { bgcolor: '#cbd5e1' } }}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent sx={{ p: { xs: 2, md: 4 } }}>
+                        {result && (
+                            <Box>
+                                {/* Overall score */}
+                                <Box sx={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexDirection: 'column', py: 4, mb: 4,
+                                    borderRadius: 3, bgcolor: '#faf5ff', border: '2px dashed #c4b5fd',
+                                }}>
+                                    <Typography variant="h1" sx={{ fontWeight: 900, color: getScoreColor(result.overallScore) }}>
+                                        {result.overallScore.toFixed(1)}
+                                    </Typography>
+                                    <Typography variant="body1" color="text.secondary" fontWeight={600}>
+                                        / 10 điểm
+                                    </Typography>
+                                    <Chip
+                                        icon={
+                                            result.overallScore >= 8 ? <TrophyIcon sx={{ fontSize: 18 }} /> :
+                                                result.overallScore >= 6 ? <TrendingUpIcon sx={{ fontSize: 18 }} /> :
+                                                    result.overallScore >= 4 ? <EditIcon sx={{ fontSize: 18 }} /> : <PracticeIcon sx={{ fontSize: 18 }} />
+                                        }
+                                        label={
+                                            result.overallScore >= 8 ? 'Xuất sắc' :
+                                                result.overallScore >= 6 ? 'Khá tốt' :
+                                                    result.overallScore >= 4 ? 'Cần cải thiện' : 'Luyện thêm nhé'
+                                        }
+                                        sx={{ mt: 2, fontWeight: 800, fontSize: '0.9rem', py: 2.5, px: 1, bgcolor: getScoreColor(result.overallScore) + '18', color: getScoreColor(result.overallScore) }}
+                                    />
+                                </Box>
 
-                        {/* Overall score */}
-                        <Box sx={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexDirection: 'column', py: 3, mb: 3,
-                            borderRadius: 3, bgcolor: '#faf5ff', border: '2px solid #ddd6fe',
-                        }}>
-                            <Typography variant="h2" sx={{ fontWeight: 900, color: getScoreColor(result.overallScore) }}>
-                                {result.overallScore.toFixed(1)}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                                / 10 điểm
-                            </Typography>
-                            <Chip
-                                icon={
-                                    result.overallScore >= 8 ? <TrophyIcon sx={{ fontSize: 16 }} /> :
-                                        result.overallScore >= 6 ? <TrendingUpIcon sx={{ fontSize: 16 }} /> :
-                                            result.overallScore >= 4 ? <EditIcon sx={{ fontSize: 16 }} /> : <PracticeIcon sx={{ fontSize: 16 }} />
-                                }
-                                label={
-                                    result.overallScore >= 8 ? 'Xuất sắc' :
-                                        result.overallScore >= 6 ? 'Khá tốt' :
-                                            result.overallScore >= 4 ? 'Cần cải thiện' : 'Luyện thêm nhé'
-                                }
-                                sx={{ mt: 1, fontWeight: 700, bgcolor: getScoreColor(result.overallScore) + '18', color: getScoreColor(result.overallScore) }}
-                            />
-                        </Box>
+                                {/* AI Transcription */}
+                                {result.transcription && (
+                                    <Box sx={{ mb: 4, p: 3, borderRadius: 3, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                        <Typography variant="subtitle2" fontWeight={800} color="#475569" gutterBottom>
+                                            <HearingIcon sx={{ fontSize: 18, verticalAlign: 'middle', mr: 0.5 }} />
+                                            Hệ thống nghe được (Transcription):
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ fontStyle: 'italic', color: '#1e293b', fontSize: '1.1rem' }}>
+                                            "{result.transcription}"
+                                        </Typography>
+                                    </Box>
+                                )}
 
-                        {/* AI Transcription */}
-                        {result.transcription && (
-                            <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                                <Typography variant="subtitle2" fontWeight={700} color="text.secondary" gutterBottom>
-                                    <HearingIcon sx={{ fontSize: 16, verticalAlign: 'middle', mr: 0.5 }} />
-                                    Hệ thống nghe được (Transcription):
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontStyle: 'italic', color: '#374151' }}>
-                                    "{result.transcription}"
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {/* Score breakdown */}
-                        <Grid container spacing={2} sx={{ mb: 3 }}>
-                            {[
-                                { label: 'Phát âm', icon: <SpeakIcon sx={{ fontSize: 16, color: '#7c3aed', mr: 0.5 }} />, score: result.pronunciation?.score, feedback: result.pronunciation?.feedback },
-                                { label: 'Độ trôi chảy', icon: <FluencyIcon sx={{ fontSize: 16, color: '#2563eb', mr: 0.5 }} />, score: result.fluency?.score, feedback: result.fluency?.feedback },
-                                { label: 'Độ chính xác', icon: <AccuracyIcon sx={{ fontSize: 16, color: '#059669', mr: 0.5 }} />, score: result.accuracy?.score, feedback: result.accuracy?.feedback },
-                                ...(result.vocabulary ? [{ label: 'Từ vựng', icon: <VocabIcon sx={{ fontSize: 16, color: '#d97706', mr: 0.5 }} />, score: result.vocabulary?.score, feedback: result.vocabulary?.feedback }] : []),
-                            ].map((item, i) => (
-                                <Grid item xs={12} sm={6} key={i}>
-                                    <Card variant="outlined" sx={{ borderRadius: 2 }}>
-                                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                                                <Typography variant="subtitle2" fontWeight={700} sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    {(item as any).icon}{item.label}
-                                                </Typography>
-                                                <Typography variant="h6" fontWeight={800} sx={{ color: getScoreColor(item.score || 0) }}>
-                                                    {item.score?.toFixed(1) || '0.0'}
-                                                </Typography>
-                                            </Box>
-                                            <LinearProgress
-                                                variant="determinate" value={(item.score || 0) * 10}
-                                                sx={{ height: 6, borderRadius: 3, bgcolor: '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: getScoreColor(item.score || 0), borderRadius: 3 } }}
-                                            />
-                                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                                {item.feedback}
-                                            </Typography>
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            ))}
-                        </Grid>
-
-                        {/* Mispronunciations */}
-                        {result.pronunciation?.mispronunciations && result.pronunciation.mispronunciations.length > 0 && (
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <WarningIcon sx={{ fontSize: 18, color: '#d97706' }} />
-                                    Từ phát âm sai:
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                    {result.pronunciation.mispronunciations.map((m, i) => (
-                                        <Tooltip key={i} title={`Expected: ${m.expected} → Actual: ${m.actual}`}>
-                                            <Chip
-                                                label={m.word}
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{
-                                                    borderColor: m.severity === 'major' ? '#dc2626' : '#d97706',
-                                                    color: m.severity === 'major' ? '#dc2626' : '#d97706',
-                                                    fontWeight: 600,
-                                                }}
-                                            />
-                                        </Tooltip>
+                                {/* Score breakdown */}
+                                <Grid container spacing={2} sx={{ mb: 4 }}>
+                                    {[
+                                        { label: 'Phát âm', icon: <SpeakIcon sx={{ fontSize: 18, color: '#7c3aed', mr: 0.5 }} />, score: result.pronunciation?.score, feedback: result.pronunciation?.feedback },
+                                        { label: 'Độ trôi chảy', icon: <FluencyIcon sx={{ fontSize: 18, color: '#2563eb', mr: 0.5 }} />, score: result.fluency?.score, feedback: result.fluency?.feedback },
+                                        { label: 'Độ chính xác', icon: <AccuracyIcon sx={{ fontSize: 18, color: '#059669', mr: 0.5 }} />, score: result.accuracy?.score, feedback: result.accuracy?.feedback },
+                                        ...(result.vocabulary ? [{ label: 'Từ vựng', icon: <VocabIcon sx={{ fontSize: 18, color: '#d97706', mr: 0.5 }} />, score: result.vocabulary?.score, feedback: result.vocabulary?.feedback }] : []),
+                                    ].map((item, i) => (
+                                        <Grid item xs={12} sm={6} key={i}>
+                                            <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
+                                                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                        <Typography variant="subtitle1" fontWeight={800} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            {(item as any).icon}{item.label}
+                                                        </Typography>
+                                                        <Typography variant="h6" fontWeight={900} sx={{ color: getScoreColor(item.score || 0) }}>
+                                                            {item.score?.toFixed(1) || '0.0'}
+                                                        </Typography>
+                                                    </Box>
+                                                    <LinearProgress
+                                                        variant="determinate" value={(item.score || 0) * 10}
+                                                        sx={{ height: 8, borderRadius: 4, bgcolor: '#f1f5f9', mb: 1, '& .MuiLinearProgress-bar': { bgcolor: getScoreColor(item.score || 0), borderRadius: 4 } }}
+                                                    />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1, display: 'block', lineHeight: 1.5 }}>
+                                                        {item.feedback}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
                                     ))}
+                                </Grid>
+
+                                {/* Mispronunciations */}
+                                {result.pronunciation?.mispronunciations && result.pronunciation.mispronunciations.length > 0 && (
+                                    <Box sx={{ mb: 4 }}>
+                                        <Typography variant="subtitle1" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <WarningIcon sx={{ fontSize: 20, color: '#d97706' }} />
+                                            Từ phát âm sai:
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
+                                            {result.pronunciation.mispronunciations.map((m, i) => (
+                                                <Tooltip key={i} title={`Chuẩn: ${m.expected} → Bạn đọc: ${m.actual}`}>
+                                                    <Chip
+                                                        label={m.word}
+                                                        variant="outlined"
+                                                        sx={{
+                                                            borderColor: m.severity === 'major' ? '#dc2626' : '#d97706',
+                                                            color: m.severity === 'major' ? '#dc2626' : '#d97706',
+                                                            fontWeight: 700, fontSize: '0.9rem', py: 2
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </Box>
+                                    </Box>
+                                )}
+
+                                {/* Detailed feedback */}
+                                <Box sx={{ p: 3, borderRadius: 3, bgcolor: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                                    <Typography variant="subtitle1" fontWeight={800} color="#1d4ed8" gutterBottom>
+                                        <InfoIcon sx={{ fontSize: 20, mr: 0.5, verticalAlign: 'middle' }} />
+                                        Nhận xét chi tiết của AI:
+                                    </Typography>
+                                    <Typography variant="body1" color="#1e293b" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                                        {result.detailedFeedback}
+                                    </Typography>
+                                </Box>
+
+                                {/* Actions */}
+                                <Box sx={{ textAlign: 'center', mt: 4 }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => { setIsResultModalOpen(false); handleReset(); }}
+                                        startIcon={<RefreshIcon />}
+                                        sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, borderRadius: 3, px: 4, py: 1.5, fontWeight: 700, fontSize: '1.05rem' }}
+                                    >
+                                        Luyện lại câu này
+                                    </Button>
+                                    <Button
+                                        variant="text"
+                                        onClick={() => setIsResultModalOpen(false)}
+                                        sx={{ ml: 2, color: '#64748b', fontWeight: 600, py: 1.5 }}
+                                    >
+                                        Đóng
+                                    </Button>
                                 </Box>
                             </Box>
                         )}
-
-                        <Divider sx={{ my: 2 }} />
-
-                        {/* Detailed feedback */}
-                        <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                            <Typography variant="subtitle2" fontWeight={700} color="#1d4ed8" gutterBottom>
-                                <InfoIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
-                                Nhận xét chi tiết:
-                            </Typography>
-                            <Typography variant="body2" color="#374151" sx={{ whiteSpace: 'pre-line' }}>
-                                {result.detailedFeedback}
-                            </Typography>
-                        </Box>
-
-                        {/* Try again */}
-                        <Box sx={{ textAlign: 'center', mt: 3 }}>
-                            <Button
-                                variant="contained"
-                                onClick={handleReset}
-                                startIcon={<RefreshIcon />}
-                                sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, borderRadius: 3, px: 4, py: 1.5 }}
-                            >
-                                Luyện lại
-                            </Button>
-                        </Box>
-                    </Paper>
-                )}
+                    </DialogContent>
+                </Dialog>
             </Box>
         </DashboardLayout>
     );

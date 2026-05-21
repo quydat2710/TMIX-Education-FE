@@ -105,25 +105,56 @@ export const useNotifications = (): UseNotificationsReturn => {
       eventSourceRef.current.close();
     }
 
-    // Build SSE URL — EventSource doesn't support custom headers,
-    // so we pass the token as a query parameter
+    // Build SSE URL through the same origin (Vite proxy in dev, same server in prod)
     const streamUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.NOTIFICATIONS.STREAM}?token=${token}`;
 
-    const eventSource = new EventSource(streamUrl, { withCredentials: true });
+    const eventSource = new EventSource(streamUrl);
     eventSourceRef.current = eventSource;
 
+    // Listen for typed 'notification' events (standard SSE)
     eventSource.addEventListener('notification', (event: MessageEvent) => {
       try {
         const notification: Notification = JSON.parse(event.data);
         setLatestNotification(notification);
-
-        // Prepend to list
         setNotifications((prev) => [notification, ...prev]);
         setUnreadCount((prev) => prev + 1);
       } catch (err) {
-        console.error('Failed to parse SSE notification:', err);
+        console.error('[SSE] Failed to parse notification:', err);
       }
     });
+
+    // Fallback: listen for generic 'message' events
+    // NestJS SSE through Vite proxy wraps data as: {"data": "JSON_STRING", "type": "notification"}
+    eventSource.onmessage = (event: MessageEvent) => {
+      try {
+        const wrapper = JSON.parse(event.data);
+
+        // Skip heartbeats
+        if (wrapper.type === 'heartbeat') return;
+
+        // Handle notification events (wrapped format)
+        if (wrapper.type === 'notification' && wrapper.data) {
+          const notification: Notification = typeof wrapper.data === 'string'
+            ? JSON.parse(wrapper.data)
+            : wrapper.data;
+
+          setLatestNotification(notification);
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+          return;
+        }
+
+        // Direct notification format (no wrapper)
+        if (wrapper.id && wrapper.title) {
+          const notification = wrapper as Notification;
+          setLatestNotification(notification);
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        }
+      } catch {
+        // Not JSON, ignore
+      }
+    };
 
     eventSource.onerror = () => {
       eventSource.close();

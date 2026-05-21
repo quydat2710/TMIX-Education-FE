@@ -3,7 +3,6 @@ import { Box, Typography, Button, Pagination } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { commonStyles } from '../../utils/styles';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import NotificationSnackbar from '../../components/common/NotificationSnackbar';
 import ClassTable from '../../components/features/class/ClassTable';
 import ClassForm from '../../components/features/class/ClassFormUpdated';
@@ -21,8 +20,6 @@ interface SnackbarState {
 const ClassManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
-  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
 
   // Custom hooks
@@ -58,28 +55,7 @@ const ClassManagement: React.FC = () => {
     }, 100);
   }, []);
 
-  const handleOpenDeleteDialog = useCallback((classItem: Class): void => {
-    setClassToDelete(classItem);
-    setOpenDeleteDialog(true);
-  }, []);
 
-  const handleCloseDeleteDialog = useCallback((): void => {
-    setClassToDelete(null);
-    setOpenDeleteDialog(false);
-  }, []);
-
-  const handleDeleteClass = useCallback(async (): Promise<void> => {
-    if (!classToDelete) return;
-
-    try {
-      await deleteClassAPI(classToDelete.id);
-      setSnackbar({ open: true, message: 'Xóa lớp học thành công!', severity: 'success' });
-      handleCloseDeleteDialog();
-      fetchClasses();
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Có lỗi xảy ra khi xóa lớp học!', severity: 'error' });
-    }
-  }, [classToDelete, handleCloseDeleteDialog, fetchClasses]);
 
   const handleSubmitClass = useCallback(async (classData: any): Promise<void> => {
     try {
@@ -163,9 +139,15 @@ const ClassManagement: React.FC = () => {
             classes={classes}
             loading={loadingTable}
             onEdit={handleOpenDialog}
-            onDelete={(classId: string) => {
-              const classItem = classes.find(c => c.id === classId);
-              if (classItem) handleOpenDeleteDialog(classItem);
+            onDelete={async (classId: string) => {
+              try {
+                await deleteClassAPI(classId);
+                setSnackbar({ open: true, message: 'Xóa lớp học thành công!', severity: 'success' });
+                fetchClasses();
+              } catch (error: any) {
+                const msg = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi xóa lớp học!';
+                setSnackbar({ open: true, message: msg, severity: 'error' });
+              }
             }}
             onViewDetails={(_classItem) => {
               // Handle view details
@@ -192,14 +174,7 @@ const ClassManagement: React.FC = () => {
         </Box>
       </Box>
 
-      <ConfirmDialog
-        open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
-        onConfirm={handleDeleteClass}
-        title="Xác nhận xóa lớp học"
-        message={classToDelete ? `Bạn có chắc chắn muốn xóa lớp học "${classToDelete.name}"? Hành động này không thể hoàn tác.` : ''}
-        loading={loading}
-      />
+
 
       <ClassForm
         open={openDialog}
