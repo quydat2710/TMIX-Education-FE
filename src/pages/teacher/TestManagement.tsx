@@ -252,7 +252,7 @@ const TestManagement: React.FC = () => {
                                                 </Typography>
                                             )}
                                         </TableCell>
-                                        <TableCell>{test.className || '—'}</TableCell>
+                                        <TableCell>{(test as any).class?.name || test.className || '—'}</TableCell>
                                         <TableCell align="center">{test.questions?.length || 0}</TableCell>
                                         <TableCell align="center">{test.duration} phút</TableCell>
                                         <TableCell align="center">{test.passingScore}%</TableCell>
