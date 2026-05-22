@@ -33,3 +33,15 @@ export const getStudentStatisticsAPI = () => {
     }
   });
 };
+
+/**
+ * Get test attempts for a student (used by parent portal).
+ * GET /students/:studentId/test-attempts
+ */
+export const getStudentTestAttemptsAPI = (
+  studentId: string,
+  page = 1,
+  limit = 20,
+) => axiosInstance.get(API_CONFIG.ENDPOINTS.STUDENTS.TEST_ATTEMPTS(studentId), {
+  params: { page, limit },
+});

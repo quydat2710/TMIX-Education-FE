@@ -188,11 +188,22 @@ const StatCard: React.FC<StatCardProps> = ({
         sx={{ 
           fontWeight: 700, 
           color: 'text.primary',
-          fontSize: compact ? '1.25rem' : '1.75rem',
+          fontSize: compact
+            ? '1.25rem'
+            : {
+                xs: String(displayValue).length > 12 ? '0.95rem' : String(displayValue).length > 8 ? '1.15rem' : '1.5rem',
+                sm: String(displayValue).length > 12 ? '1.05rem' : String(displayValue).length > 8 ? '1.25rem' : '1.5rem',
+                md: String(displayValue).length > 12 ? '1.1rem' : String(displayValue).length > 8 ? '1.35rem' : '1.75rem',
+              },
           letterSpacing: '-0.5px',
           lineHeight: 1.2,
           mt: 0.5,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: '100%',
         }}
+        title={String(displayValue)}
       >
         {displayValue}
       </Typography>

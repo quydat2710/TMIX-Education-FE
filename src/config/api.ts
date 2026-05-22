@@ -45,6 +45,7 @@ export interface ApiEndpoints {
     ATTENDANCE: (id: string) => string;
     MONTHLY_CHANGES: string;
     STATISTICS: string;
+    TEST_ATTEMPTS: (id: string) => string;
   };
   CLASSES: {
     GET_ALL: string;
@@ -267,6 +268,7 @@ export const API_CONFIG: ApiConfig = {
       ATTENDANCE: (id: string) => `/students/${id}/attendance`,
       MONTHLY_CHANGES: '/students/monthly-changes',
       STATISTICS: '/students/statistics',
+      TEST_ATTEMPTS: (id: string) => `/students/${id}/test-attempts`,
     },
     // Class endpoints
     CLASSES: {

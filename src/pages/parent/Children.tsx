@@ -4,6 +4,7 @@ import {
   Chip, LinearProgress, Alert, Button,
   Dialog, DialogContent, Divider, Collapse, IconButton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  Tabs, Tab,
 } from '@mui/material';
 import {
   FamilyRestroom as FamilyIcon, School as SchoolIcon, Person as PersonIcon,
@@ -21,6 +22,7 @@ import { getStudentByIdAPI } from '../../services/students';
 import { getSessionsByStudentAPI } from '../../services/sessions';
 import { commonStyles } from '../../utils/styles';
 import StatCard from '../../components/common/StatCard';
+import ChildTestResults from '../../components/features/parent/ChildTestResults';
 import { motion } from 'framer-motion';
 
 interface ChildClass {
@@ -82,6 +84,7 @@ const Children: React.FC = () => {
   const [classDetails, setClassDetails] = useState<Record<string, any>>({});
   const [attendanceData, setAttendanceData] = useState<any>({});
   const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>({});
+  const [detailTab, setDetailTab] = useState<number>(0);
 
   useEffect(() => {
     if (user) {
@@ -353,6 +356,7 @@ const Children: React.FC = () => {
   const handleCloseChildDetails = (): void => {
     setChildDetailsOpen(false);
     setSelectedChild(null);
+    setDetailTab(0);
   };
 
   if (loading) {
@@ -641,7 +645,32 @@ const Children: React.FC = () => {
 
             {selectedChild && (
               <Box>
-                {/* Danh sách lớp học */}
+                {/* Tabs: Lớp học | Kết quả học tập */}
+                <Tabs
+                  value={detailTab}
+                  onChange={(_e, v) => setDetailTab(v)}
+                  sx={{
+                    mb: 3,
+                    '& .MuiTab-root': {
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                    },
+                    '& .Mui-selected': {
+                      color: '#D32F2F !important',
+                    },
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: '#D32F2F',
+                    },
+                  }}
+                >
+                  <Tab label="📚 Lớp học" />
+                  <Tab label="📊 Kết quả học tập" />
+                </Tabs>
+
+                {/* Tab 0: Danh sách lớp học (existing content) */}
+                {detailTab === 0 && (
+                <Box>
                 <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 700 }}>
                   Danh sách lớp học
                 </Typography>
@@ -1069,6 +1098,13 @@ const Children: React.FC = () => {
                    })}
                  </Grid>
               </Box>
+              )}
+
+              {/* Tab 1: Kết quả học tập */}
+              {detailTab === 1 && selectedChild && (
+                <ChildTestResults studentId={selectedChild.id} />
+              )}
+            </Box>
             )}
           </DialogContent>
         </Dialog>

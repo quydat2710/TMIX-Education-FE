@@ -146,7 +146,7 @@ const Dashboard = () => {
             hidden: { opacity: 0 },
             visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
           }}>
-            <Grid item xs={12} sm={6} md={2.4 as any}>
+            <Grid item xs={6} sm={4} md={2.4 as any}>
               <StatCard
                 title="Số con đang học"
                 value={stats.totalChildren || 0}
@@ -155,7 +155,7 @@ const Dashboard = () => {
                 index={0}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4 as any}>
+            <Grid item xs={6} sm={4} md={2.4 as any}>
               <StatCard
                 title="Tổng số lớp"
                 value={stats.totalClasses || 0}
@@ -164,7 +164,7 @@ const Dashboard = () => {
                 index={1}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4 as any}>
+            <Grid item xs={6} sm={4} md={2.4 as any}>
               <StatCard
                 title="Tổng học phí"
                 value={formatCurrency(stats.totalFees || 0)}
@@ -173,7 +173,7 @@ const Dashboard = () => {
                 index={2}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4 as any}>
+            <Grid item xs={6} sm={4} md={2.4 as any}>
               <StatCard
                 title="Đã thanh toán"
                 value={formatCurrency(stats.paidFees || 0)}
@@ -182,7 +182,7 @@ const Dashboard = () => {
                 index={3}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.4 as any}>
+            <Grid item xs={6} sm={4} md={2.4 as any}>
               <StatCard
                 title="Còn thiếu"
                 value={formatCurrency(stats.pendingPayments || 0)}
