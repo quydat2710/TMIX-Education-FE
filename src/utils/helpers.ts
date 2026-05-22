@@ -20,11 +20,19 @@ export const formatDate = (date: string | Date | null | undefined, format: strin
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
 
-  const day = d.getDate().toString().padStart(2, '0');
-  const month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const year = d.getFullYear();
-  const hours = d.getHours().toString().padStart(2, '0');
-  const minutes = d.getMinutes().toString().padStart(2, '0');
+  // Use Intl to get parts in Vietnam timezone
+  const vnParts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(d);
+
+  const get = (type: string) => vnParts.find(p => p.type === type)?.value || '';
+  const day = get('day');
+  const month = get('month');
+  const year = get('year');
+  const hours = get('hour');
+  const minutes = get('minute');
 
   switch (format) {
     case 'dd/MM/yyyy':
@@ -40,7 +48,7 @@ export const formatDate = (date: string | Date | null | undefined, format: strin
     case 'relative':
       return formatRelativeTime(d);
     default:
-      return d.toLocaleDateString('vi-VN');
+      return d.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   }
 };
 
@@ -75,7 +83,8 @@ export const formatTime = (time: string | Date | null | undefined): string => {
   return date.toLocaleTimeString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
+    timeZone: 'Asia/Ho_Chi_Minh',
   });
 };
 

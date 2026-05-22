@@ -12,7 +12,7 @@ export const formatters = {
   // Date formatting with Vietnamese locale
   date: (dateString: string | Date | null | undefined): string => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   },
 
   // Time formatting (HH:mm)
