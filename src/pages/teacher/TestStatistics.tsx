@@ -64,6 +64,7 @@ const TestStatisticsPage: React.FC = () => {
         return new Date(dateString).toLocaleDateString('vi-VN', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
+            timeZone: 'Asia/Ho_Chi_Minh',
         });
     };
 
@@ -92,7 +93,7 @@ const TestStatisticsPage: React.FC = () => {
                             </Typography>
                             {test && (
                                 <Typography variant="body2" color="text.secondary">
-                                    {test.title} — {test.className || 'N/A'}
+                                    {test.title} — {(test as any).class?.name || test.className || 'N/A'}
                                 </Typography>
                             )}
                         </Box>
