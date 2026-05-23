@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Box, Typography, ToggleButtonGroup, ToggleButton,
-  CircularProgress, IconButton
+  IconButton
 } from '@mui/material';
 import { Print as PrintIcon, Close as CloseIcon, Description as DescIcon } from '@mui/icons-material';
 import { useInvoicePrint } from '../../hooks/useInvoicePrint';
