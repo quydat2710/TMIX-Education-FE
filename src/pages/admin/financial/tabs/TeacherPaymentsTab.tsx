@@ -27,8 +27,7 @@ import {
   InputAdornment
 } from '@mui/material';
 import { History as HistoryIcon, Payment as PaymentIcon, AttachMoney as AttachMoneyIcon, Paid as PaidIcon, AccountBalanceWallet as WalletIcon, Download as DownloadIcon, Search as SearchIcon } from '@mui/icons-material';
-// @ts-ignore: Allow using xlsx without local type resolution
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import PaymentHistoryModal from '../../../../components/common/PaymentHistoryModal';
 import {
   getAllTeacherPaymentsAPI,
@@ -134,36 +133,67 @@ const TeacherPaymentsTab: React.FC<Props> = ({ globalTimeFilter }) => {
       const payload = (res as any)?.data?.data || (res as any)?.data || {};
       const list = Array.isArray(payload.result) ? payload.result as TeacherPayment[] : payments;
 
-      const rows = list.map((p) => ({
-        'Giáo viên': p.teacher?.name || p.teacherId?.userId?.name || p.teacherId?.name || '',
-        'Tháng/Năm': `${p.month || ''}/${p.year || ''}`,
-        'Lương/buổi (₫)': p.teacher?.salaryPerLesson ?? p.salaryPerLesson ?? 0,
-        'Số buổi dạy': p.classes && Array.isArray(p.classes) ? p.classes.reduce((s, c) => s + (c.totalLessons || 0), 0) : 0,
-        'Tổng lương (₫)': p.totalAmount ?? 0,
-        'Đã trả (₫)': p.paidAmount ?? 0,
-        'Trạng thái': p.status === 'paid' ? 'Đã thanh toán' : p.status === 'partial' ? 'Nhận một phần' : p.status === 'pending' ? 'Chờ thanh toán' : 'Chưa thanh toán',
-      }));
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'TMIX Education';
+      const ws = wb.addWorksheet('L\u01B0\u01A1ng gi\u00E1o vi\u00EAn', { views: [{ state: 'frozen', ySplit: 2 }] });
 
-      const totalLessons = rows.reduce((s, r) => s + Number((r as any)['Số buổi dạy'] || 0), 0);
-      const totalAmount = rows.reduce((s, r) => s + Number((r as any)['Tổng lương (₫)'] || 0), 0);
-      const totalPaid = rows.reduce((s, r) => s + Number((r as any)['Đã trả (₫)'] || 0), 0);
-      rows.push({
-        'Giáo viên': 'Tổng',
-        'Tháng/Năm': '',
-        'Lương/buổi (₫)': '',
-        'Số buổi dạy': totalLessons,
-        'Tổng lương (₫)': totalAmount,
-        'Đã trả (₫)': totalPaid,
-        'Trạng thái': '',
-      } as any);
+      // Title
+      ws.mergeCells('A1:G1');
+      const titleCell = ws.getCell('A1');
+      titleCell.value = `B\u00C1O C\u00C1O L\u01AF\u01A0NG GI\u00C1O VI\u00CAN \u2014 ${tf.periodType === 'month' ? `Th\u00E1ng ${tf.selectedMonth}/${tf.selectedYear}` : `N\u0103m ${tf.selectedYear}`}`;
+      titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF1E3A5F' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 30;
 
-      const ws = XLSX.utils.json_to_sheet(rows);
-      const colWidths = Object.keys(rows[0] || {}).map((k) => ({ wch: Math.max(k.length, ...rows.map(r => String((r as any)[k] ?? '').length)) + 2 }));
-      (ws as any)['!cols'] = colWidths;
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'ChiTietGiaoVien');
+      // Headers
+      const headers = ['Gi\u00E1o vi\u00EAn', 'Th\u00E1ng/N\u0103m', 'L\u01B0\u01A1ng/bu\u1ED5i (\u20AB)', 'S\u1ED1 bu\u1ED5i d\u1EA1y', 'T\u1ED5ng l\u01B0\u01A1ng (\u20AB)', '\u0110\u00E3 tr\u1EA3 (\u20AB)', 'Tr\u1EA1ng th\u00E1i'];
+      const headerRow = ws.addRow(headers);
+      headerRow.height = 24;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } };
+      });
+
+      let totalLessons = 0, totalAmount = 0, totalPaid = 0;
+      list.forEach((p, i) => {
+        const lessons = p.classes && Array.isArray(p.classes) ? p.classes.reduce((s, c) => s + (c.totalLessons || 0), 0) : 0;
+        totalLessons += lessons;
+        totalAmount += p.totalAmount || 0;
+        totalPaid += p.paidAmount || 0;
+
+        const statusText = p.status === 'paid' ? '\u0110\u00E3 thanh to\u00E1n' : p.status === 'partial' ? 'Nh\u1EADn m\u1ED9t ph\u1EA7n' : 'Ch\u01B0a thanh to\u00E1n';
+        const row = ws.addRow([p.teacher?.name || p.teacherId?.userId?.name || '', `${p.month || ''}/${p.year || ''}`, p.teacher?.salaryPerLesson ?? p.salaryPerLesson ?? 0, lessons, p.totalAmount || 0, p.paidAmount || 0, statusText]);
+
+        if (i % 2 === 1) row.eachCell((cell) => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; });
+        const sc = row.getCell(7);
+        sc.font = { name: 'Arial', size: 10, bold: true, color: { argb: p.status === 'paid' ? 'FF16A34A' : p.status === 'partial' ? 'FFD97706' : 'FFDC2626' } };
+        sc.alignment = { horizontal: 'center' };
+        [3, 5, 6].forEach(col => { row.getCell(col).numFmt = '#,##0'; row.getCell(col).alignment = { horizontal: 'right' }; });
+        row.getCell(2).alignment = { horizontal: 'center' };
+        row.getCell(4).alignment = { horizontal: 'center' };
+      });
+
+      const totalRow = ws.addRow(['T\u1ED4NG C\u1ED8NG', '', '', totalLessons, totalAmount, totalPaid, '']);
+      totalRow.height = 24;
+      totalRow.eachCell((cell) => {
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF1E3A5F' } };
+        cell.border = { top: { style: 'medium', color: { argb: 'FF1E3A5F' } } };
+      });
+      [3, 5, 6].forEach(col => { totalRow.getCell(col).numFmt = '#,##0'; totalRow.getCell(col).alignment = { horizontal: 'right' }; });
+
+      ws.columns = [{ width: 24 }, { width: 12 }, { width: 16 }, { width: 12 }, { width: 16 }, { width: 14 }, { width: 18 }];
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
       const now = new Date();
-      XLSX.writeFile(wb, `BaoCao_GiaoVien_${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}.xlsx`);
+      a.href = url;
+      a.download = `BaoCao_GiaoVien_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       console.error('Export teacher payments error:', e);
     }

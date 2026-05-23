@@ -138,7 +138,7 @@ const AdminNotificationCenter: React.FC = () => {
 
       setSnackbar({
         open: true,
-        message: `✅ Đã gửi thông báo thành công tới ${count} người`,
+        message: `Đã gửi thông báo thành công tới ${count} người`,
         severity: 'success',
       });
 

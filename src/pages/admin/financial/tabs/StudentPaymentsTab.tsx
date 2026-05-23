@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box, TextField, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Typography, Grid, Paper, Divider, InputAdornment } from '@mui/material';
-import { Download as DownloadIcon, Payment as PaymentIcon, History as HistoryIcon, Cancel as CancelIcon, Save as SaveIcon, AttachMoney as AttachMoneyIcon, Paid as PaidIcon, AccountBalanceWallet as WalletIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Download as DownloadIcon, Payment as PaymentIcon, History as HistoryIcon, Cancel as CancelIcon, Save as SaveIcon, AttachMoney as AttachMoneyIcon, Paid as PaidIcon, AccountBalanceWallet as WalletIcon, Search as SearchIcon, Print as PrintIcon } from '@mui/icons-material';
 import PaymentHistoryModal from '../../../../components/common/PaymentHistoryModal';
+import InvoicePreviewDialog from '../../../../components/invoice/InvoicePreviewDialog';
 import { getAllPaymentsAPI, payStudentAPI, exportPaymentsReportAPI } from '../../../../services/payments';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface PaymentHistory {
   id: string;
@@ -49,6 +50,10 @@ const StudentPaymentsTab: React.FC<Props> = ({ globalTimeFilter }) => {
   const [studentPaymentForm, setStudentPaymentForm] = React.useState<{ amount: string; method: string; note: string }>({ amount: '', method: 'cash', note: '' });
   const [studentPaymentLoading, setStudentPaymentLoading] = React.useState<boolean>(false);
   const [exportLoading, setExportLoading] = React.useState<boolean>(false);
+
+  // Invoice preview
+  const [invoiceOpen, setInvoiceOpen] = React.useState<boolean>(false);
+  const [selectedInvoicePayment, setSelectedInvoicePayment] = React.useState<StudentPayment | null>(null);
 
   const fetchPayments = React.useCallback(async (page: number = 1) => {
     let params: any = { page, limit: 10 };
@@ -107,49 +112,96 @@ const StudentPaymentsTab: React.FC<Props> = ({ globalTimeFilter }) => {
         filters.endMonth = new Date(tf.customEnd).getMonth() + 1;
       }
 
-      // Backend returns JSON: { statusCode, message, data: { meta, result } }
       const res = await exportPaymentsReportAPI(filters);
       const data = (res as any)?.data?.data || (res as any)?.data || {};
       const list = Array.isArray(data.result) ? (data.result as StudentPayment[]) : [];
 
-      const rows = list.map((p) => ({
-        'Học sinh': p.student?.name || '',
-        'Lớp': p.class?.name || '',
-        'Tháng/Năm': `${p.month}/${p.year}`,
-        'Số buổi học': p.totalLessons || 0,
-        'Số tiền gốc (₫)': p.totalAmount || 0,
-        'Giảm giá (₫)': p.discountAmount || 0,
-        'Số tiền cuối (₫)': (p.totalAmount || 0) - (p.discountAmount || 0),
-        'Đã đóng (₫)': p.paidAmount || 0,
-        'Còn thiếu (₫)': ((p.totalAmount || 0) - (p.discountAmount || 0)) - (p.paidAmount || 0),
-        'Trạng thái': p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng',
-      }));
-      const totalLessons = rows.reduce((s, r) => s + Number((r as any)['Số buổi học'] || 0), 0);
-      const totalOriginal = rows.reduce((s, r) => s + Number((r as any)['Số tiền gốc (₫)'] || 0), 0);
-      const totalDiscount = rows.reduce((s, r) => s + Number((r as any)['Giảm giá (₫)'] || 0), 0);
-      const totalFinal = rows.reduce((s, r) => s + Number((r as any)['Số tiền cuối (₫)'] || 0), 0);
-      const totalPaid = rows.reduce((s, r) => s + Number((r as any)['Đã đóng (₫)'] || 0), 0);
-      const totalRemaining = rows.reduce((s, r) => s + Number((r as any)['Còn thiếu (₫)'] || 0), 0);
-      rows.push({
-        'Học sinh': 'Tổng',
-        'Lớp': '',
-        'Tháng/Năm': '',
-        'Số buổi học': totalLessons,
-        'Số tiền gốc (₫)': totalOriginal,
-        'Giảm giá (₫)': totalDiscount,
-        'Số tiền cuối (₫)': totalFinal,
-        'Đã đóng (₫)': totalPaid,
-        'Còn thiếu (₫)': totalRemaining,
-        'Trạng thái': '',
-      } as any);
+      // ExcelJS styled workbook
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'TMIX Education';
+      const ws = wb.addWorksheet('Học phí học sinh', { views: [{ state: 'frozen', ySplit: 2 }] });
 
-      const ws = XLSX.utils.json_to_sheet(rows);
-      const colWidths = Object.keys(rows[0] || {}).map((k) => ({ wch: Math.max(k.length, ...rows.map(r => String((r as any)[k] ?? '').length)) + 2 }));
-      (ws as any)['!cols'] = colWidths;
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'ChiTietHocSinh');
+      // Title row
+      ws.mergeCells('A1:J1');
+      const titleCell = ws.getCell('A1');
+      titleCell.value = `BÁO CÁO HỌC PHÍ HỌC SINH — ${tf.periodType === 'month' ? `Tháng ${tf.selectedMonth}/${tf.selectedYear}` : `Năm ${tf.selectedYear}`}`;
+      titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF1E3A5F' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 30;
+
+      // Header row
+      const headers = ['Học sinh', 'Lớp', 'Tháng/Năm', 'Số buổi', 'Học phí gốc (₫)', 'Giảm giá (₫)', 'Thành tiền (₫)', 'Đã đóng (₫)', 'Còn thiếu (₫)', 'Trạng thái'];
+      const headerRow = ws.addRow(headers);
+      headerRow.height = 24;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } };
+      });
+
+      // Data rows
+      let totalLessons = 0, totalOriginal = 0, totalDiscount = 0, totalFinal = 0, totalPaid = 0, totalRemaining = 0;
+      list.forEach((p, i) => {
+        const final = (p.totalAmount || 0) - (p.discountAmount || 0);
+        const rem = final - (p.paidAmount || 0);
+        totalLessons += p.totalLessons || 0;
+        totalOriginal += p.totalAmount || 0;
+        totalDiscount += p.discountAmount || 0;
+        totalFinal += final;
+        totalPaid += p.paidAmount || 0;
+        totalRemaining += rem;
+
+        const statusText = p.status === 'paid' ? 'Đã đóng đủ' : p.status === 'partial' ? 'Đóng một phần' : 'Chưa đóng';
+        const row = ws.addRow([p.student?.name || '', p.class?.name || '', `${p.month}/${p.year}`, p.totalLessons || 0, p.totalAmount || 0, p.discountAmount || 0, final, p.paidAmount || 0, rem, statusText]);
+
+        // Zebra striping
+        if (i % 2 === 1) {
+          row.eachCell((cell) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          });
+        }
+
+        // Status color
+        const statusCell = row.getCell(10);
+        statusCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: p.status === 'paid' ? 'FF16A34A' : p.status === 'partial' ? 'FFD97706' : 'FFDC2626' } };
+        statusCell.alignment = { horizontal: 'center' };
+
+        // Money columns align right
+        [5, 6, 7, 8, 9].forEach(col => {
+          const c = row.getCell(col);
+          c.numFmt = '#,##0';
+          c.alignment = { horizontal: 'right' };
+        });
+        row.getCell(4).alignment = { horizontal: 'center' };
+        row.getCell(3).alignment = { horizontal: 'center' };
+      });
+
+      // Total row
+      const totalRow = ws.addRow(['TỔNG CỘNG', '', '', totalLessons, totalOriginal, totalDiscount, totalFinal, totalPaid, totalRemaining, '']);
+      totalRow.height = 24;
+      totalRow.eachCell((cell) => {
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF1E3A5F' } };
+        cell.border = { top: { style: 'medium', color: { argb: 'FF1E3A5F' } } };
+      });
+      [5, 6, 7, 8, 9].forEach(col => { totalRow.getCell(col).numFmt = '#,##0'; totalRow.getCell(col).alignment = { horizontal: 'right' }; });
+
+      // Column widths
+      ws.columns = [
+        { width: 22 }, { width: 14 }, { width: 12 }, { width: 10 },
+        { width: 16 }, { width: 14 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 18 }
+      ];
+
+      // Export
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
       const now = new Date();
-      XLSX.writeFile(wb, `BaoCao_HocSinh_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`);
+      a.href = url;
+      a.download = `BaoCao_HocPhi_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Lỗi khi xuất báo cáo:', error);
       alert('Có lỗi xảy ra khi xuất báo cáo. Vui lòng thử lại.');
@@ -346,6 +398,11 @@ const StudentPaymentsTab: React.FC<Props> = ({ globalTimeFilter }) => {
                       <Tooltip title="Lịch sử thanh toán">
                         <IconButton size="small" onClick={() => onOpenHistory(p)} sx={{ color: 'info.main', bgcolor: 'info.50', '&:hover': { bgcolor: 'info.100' } }}>
                           <HistoryIcon fontSize="small"/>
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="In hóa đơn">
+                        <IconButton size="small" onClick={() => { setSelectedInvoicePayment(p); setInvoiceOpen(true); }} sx={{ color: '#1E3A5F', bgcolor: 'rgba(30,58,95,0.06)', '&:hover': { bgcolor: 'rgba(30,58,95,0.12)' } }}>
+                          <PrintIcon fontSize="small"/>
                         </IconButton>
                       </Tooltip>
                       {p.status !== 'paid' && (
@@ -565,6 +622,13 @@ const StudentPaymentsTab: React.FC<Props> = ({ globalTimeFilter }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Invoice Preview Dialog */}
+      <InvoicePreviewDialog
+        open={invoiceOpen}
+        onClose={() => { setInvoiceOpen(false); setSelectedInvoicePayment(null); }}
+        paymentData={selectedInvoicePayment}
+      />
     </>
   );
 };

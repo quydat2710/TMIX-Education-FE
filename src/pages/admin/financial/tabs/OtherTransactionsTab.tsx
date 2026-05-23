@@ -3,7 +3,7 @@ import { Box, Button, TextField, Table, TableBody, TableCell, TableContainer, Ta
 import FormDialog from '../../../../components/common/forms/FormDialog';
 import { getAllTransactionsAPI, createTransactionAPI, updateTransactionAPI, deleteTransactionAPI, getAllTransactionCategoriesAPI, createTransactionCategoryAPI, getTransactionCategoryByIdAPI, updateTransactionCategoryAPI, deleteTransactionCategoryAPI, exportTransactionsReportAPI } from '../../../../services/transactions';
 import { Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Search as SearchIcon } from '@mui/icons-material';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface Transaction {
   id: string;
@@ -125,7 +125,6 @@ const OtherTransactionsTab: React.FC<Props> = ({ globalTimeFilter }) => {
   React.useEffect(() => { fetchOtherTransactions(1); /* fetchCategories(); */ }, [fetchOtherTransactions, fetchCategories]);
   React.useEffect(() => { fetchOtherTransactions(1); }, [tf.periodType, tf.selectedYear, tf.selectedMonth, tf.selectedQuarter, tf.customStart, tf.customEnd, typeFilter, fetchOtherTransactions]);
   const exportToExcel = async () => {
-    // Reuse current date range logic to pass as query for export
     let startDate: string | undefined;
     let endDate: string | undefined;
     const toMDY = (y: number, m: number, d: number) => {
@@ -147,14 +146,8 @@ const OtherTransactionsTab: React.FC<Props> = ({ globalTimeFilter }) => {
       startDate = toMDY(tf.selectedYear, startMonth, 1);
       endDate = toMDY(tf.selectedYear, endMonth, lastDay);
     } else if (tf.periodType === 'custom') {
-      if (tf.customStart) {
-        const [y, m, d] = tf.customStart.split('-').map(Number);
-        startDate = toMDY(y, m, d);
-      }
-      if (tf.customEnd) {
-        const [y, m, d] = tf.customEnd.split('-').map(Number);
-        endDate = toMDY(y, m, d);
-      }
+      if (tf.customStart) { const [y, m, d] = tf.customStart.split('-').map(Number); startDate = toMDY(y, m, d); }
+      if (tf.customEnd) { const [y, m, d] = tf.customEnd.split('-').map(Number); endDate = toMDY(y, m, d); }
     }
 
     const params: any = {};
@@ -166,28 +159,61 @@ const OtherTransactionsTab: React.FC<Props> = ({ globalTimeFilter }) => {
     const payload = (res as any)?.data?.data || (res as any)?.data || {};
     const list = Array.isArray(payload.result) ? payload.result as Transaction[] : transactions;
 
-    const rows = list.map((t) => ({
-      'Mô tả': t.description || '-',
-      'Loại': t.category?.type === 'revenue' ? 'Thu' : 'Chi',
-      'Danh mục': t.category?.name || '-',
-      'Số tiền (₫)': t.amount || 0,
-      'Ngày thực hiện': (t.transactionAt || t.transaction_at) ? new Date(t.transactionAt || (t.transaction_at as string)).toLocaleDateString('vi-VN') : '-',
-    }));
-    const totalAmount = rows.reduce((s, r) => s + Number((r as any)['Số tiền (₫)'] || 0), 0);
-    rows.push({
-      'Mô tả': 'Tổng',
-      'Loại': '',
-      'Danh mục': '',
-      'Số tiền (₫)': totalAmount,
-      'Ngày thực hiện': '',
-    } as any);
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const colWidths = Object.keys(rows[0] || {}).map((k) => ({ wch: Math.max(k.length, ...rows.map(r => String((r as any)[k] ?? '').length)) + 2 }));
-    (ws as any)['!cols'] = colWidths;
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'ThuChiKhac');
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'TMIX Education';
+    const ws = wb.addWorksheet('Thu chi kh\u00E1c', { views: [{ state: 'frozen', ySplit: 2 }] });
+
+    ws.mergeCells('A1:E1');
+    const titleCell = ws.getCell('A1');
+    titleCell.value = `B\u00C1O C\u00C1O THU CHI KH\u00C1C \u2014 ${tf.periodType === 'month' ? `Th\u00E1ng ${tf.selectedMonth}/${tf.selectedYear}` : `N\u0103m ${tf.selectedYear}`}`;
+    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF1E3A5F' } };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getRow(1).height = 30;
+
+    const headers = ['M\u00F4 t\u1EA3', 'Lo\u1EA1i', 'Danh m\u1EE5c', 'S\u1ED1 ti\u1EC1n (\u20AB)', 'Ng\u00E0y th\u1EF1c hi\u1EC7n'];
+    const headerRow = ws.addRow(headers);
+    headerRow.height = 24;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } };
+    });
+
+    let totalAmount = 0;
+    list.forEach((t, i) => {
+      totalAmount += t.amount || 0;
+      const dateStr = (t.transactionAt || t.transaction_at) ? new Date(t.transactionAt || (t.transaction_at as string)).toLocaleDateString('vi-VN') : '-';
+      const row = ws.addRow([t.description || '-', t.category?.type === 'revenue' ? 'Thu' : 'Chi', t.category?.name || '-', t.amount || 0, dateStr]);
+
+      if (i % 2 === 1) row.eachCell((cell) => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; });
+      const typeCell = row.getCell(2);
+      typeCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: t.category?.type === 'revenue' ? 'FF16A34A' : 'FFDC2626' } };
+      typeCell.alignment = { horizontal: 'center' };
+      row.getCell(4).numFmt = '#,##0';
+      row.getCell(4).alignment = { horizontal: 'right' };
+    });
+
+    const totalRow = ws.addRow(['T\u1ED4NG C\u1ED8NG', '', '', totalAmount, '']);
+    totalRow.height = 24;
+    totalRow.eachCell((cell) => {
+      cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF1E3A5F' } };
+      cell.border = { top: { style: 'medium', color: { argb: 'FF1E3A5F' } } };
+    });
+    totalRow.getCell(4).numFmt = '#,##0';
+    totalRow.getCell(4).alignment = { horizontal: 'right' };
+
+    ws.columns = [{ width: 30 }, { width: 10 }, { width: 18 }, { width: 16 }, { width: 16 }];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     const now = new Date();
-    XLSX.writeFile(wb, `BaoCao_ThuChiKhac_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`);
+    a.href = url;
+    a.download = `BaoCao_ThuChiKhac_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const onPageChange = (p: number) => fetchOtherTransactions(p);
