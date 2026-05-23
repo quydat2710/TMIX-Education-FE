@@ -14,3 +14,6 @@ export const getDashboardPaymentsAPI = (params?: {
     status?: string;
     search?: string;
 }) => axiosInstance.get('/dashboard/all-payments', { params });
+
+export const getLearningAnalyticsAPI = (params?: { year?: number }) =>
+    axiosInstance.get('/dashboard/learning-analytics', { params });

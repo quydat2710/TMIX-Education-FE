@@ -38,6 +38,8 @@ const ParentManagement = React.lazy(() => import('./pages/admin/ParentManagement
 const Statistics = React.lazy(() => import('./pages/admin/Statistics'));
 const FinancialStatistics = React.lazy(() => import('./pages/admin/FinancialStatistics'));
 const StudentStatistics = React.lazy(() => import('./pages/admin/StudentStatistics'));
+const LearningStatistics = React.lazy(() => import('./pages/admin/LearningStatistics'));
+const AdminNotificationCenter = React.lazy(() => import('./pages/admin/AdminNotificationCenter'));
 const RoleManagement = React.lazy(() => import('./pages/admin/RoleManagement'));
 const RegistrationManagement = React.lazy(() => import('./pages/admin/RegistrationManagement'));
 const MenuManagement = React.lazy(() => import('./pages/admin/MenuManagement'));
@@ -186,9 +188,11 @@ const AppContent: React.FC = () => {
                   <Route path="statistics" element={<Statistics />} />
                   <Route path="statistics/financial" element={<FinancialStatistics />} />
                   <Route path="statistics/students" element={<StudentStatistics />} />
+                  <Route path="statistics/learning" element={<LearningStatistics />} />
                   <Route path="roles-management" element={<RoleManagement />} />
                   <Route path="registrations" element={<RegistrationManagement />} />
                   <Route path="audit-log" element={<AuditLog />} />
+                  <Route path="notifications/send" element={<AdminNotificationCenter />} />
 
                   {/* Testimonials Management Route */}
                   <Route path="testimonials" element={<TestimonialsManagement />} />

@@ -22,6 +22,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import MicIcon from '@mui/icons-material/Mic';
 import HearingIcon from '@mui/icons-material/Hearing';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import AiSparkleIcon from '../icons/AiSparkleIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -55,6 +56,7 @@ const getMenuItemsByRole = (role: string): MenuItem[] => {
         { text: 'Quản lý Menu', icon: <MenuIcon />, path: '/admin/menu-management', group: 'HỆ THỐNG' },
         { text: 'Quản lý vai trò', icon: <SecurityIcon />, path: '/admin/roles-management' },
         { text: 'Thống kê', icon: <AssessmentIcon />, path: '/admin/statistics', group: 'BÁO CÁO' },
+        { text: 'Gửi thông báo', icon: <NotificationsActiveIcon />, path: '/admin/notifications/send' },
         { text: 'Cảm nhận học viên', icon: <SchoolIcon />, path: '/admin/testimonials' },
         { text: 'Audit Logs', icon: <ListAltIcon />, path: '/admin/audit-log' },
       ];
@@ -471,6 +473,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                 [
                   { label: 'Thống kê tài chính', path: '/admin/statistics/financial' },
                   { label: 'Thống kê học sinh', path: '/admin/statistics/students' },
+                  { label: 'Thống kê học tập', path: '/admin/statistics/learning' },
                 ],
               )}
             </React.Fragment>
