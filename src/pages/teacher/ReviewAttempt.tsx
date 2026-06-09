@@ -161,8 +161,31 @@ const ReviewAttemptPage: React.FC = () => {
                         {isSpeakingTest && (
                             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#ea580c' }}>
-                                    🎤 Bài ghi âm của học sinh
+                                    🎤 Đề bài & Bài ghi âm
                                 </Typography>
+                                
+                                {/* Speaking Prompt */}
+                                {test?.questions?.[0]?.prompt && (
+                                    <Box sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: '#fbfbfb', border: '1px solid #e5e7eb' }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#4b5563', mb: 0.5 }}>
+                                            ❓ Câu hỏi / Chủ đề nói:
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                            {test.questions[0].prompt}
+                                        </Typography>
+                                        {test.questions[0]?.referenceText && (
+                                            <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 1.5, bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0369a1', mb: 0.5 }}>
+                                                    📖 Văn bản gốc cần đọc (Reference Text):
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ fontFamily: '"Georgia", serif', whiteSpace: 'pre-wrap' }}>
+                                                    {test.questions[0].referenceText}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                )}
+
                                 {attempt?.recordingUrl ? (
                                     <Box sx={{
                                         p: 2, borderRadius: 2,
@@ -242,7 +265,10 @@ const ReviewAttemptPage: React.FC = () => {
                                     {aiGrading.fluency && (
                                         <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: '#fff7ed', border: '1px solid #fed7aa' }}>
                                             <Typography variant="body2" color="text.secondary">Trôi chảy</Typography>
-                                            <Typography variant="h6" fontWeight={700}>{typeof aiGrading.fluency === 'object' ? aiGrading.fluency.score : aiGrading.fluency}/10</Typography>
+                                            <Typography variant="h6" fontWeight={700}>
+                                                {typeof aiGrading.fluency === 'object' ? aiGrading.fluency.score : aiGrading.fluency}/10
+                                                {typeof aiGrading.fluency === 'object' && aiGrading.fluency?.wordsPerMinute ? ` (${aiGrading.fluency.wordsPerMinute} WPM)` : ''}
+                                            </Typography>
                                         </Box>
                                     )}
                                     {aiGrading.accuracy && (

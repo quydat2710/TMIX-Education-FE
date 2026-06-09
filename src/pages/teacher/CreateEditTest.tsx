@@ -457,7 +457,6 @@ const CreateEditTest: React.FC = () => {
             for (let i = 0; i < formData.questions.length; i++) {
                 const q = formData.questions[i];
                 if (!q.prompt?.trim()) return `Câu ${i + 1}: Chưa nhập yêu cầu nói`;
-                if (!q.referenceText?.trim()) return `Câu ${i + 1}: Chưa nhập văn bản tham chiếu`;
             }
         }
         return null;
@@ -1214,8 +1213,8 @@ const CreateEditTest: React.FC = () => {
                                         sx={{ mb: 2 }}
                                     />
                                     <TextField fullWidth multiline rows={3}
-                                        label="Văn bản tham chiếu (reference text) *"
-                                        placeholder="Đoạn văn mà học viên cần đọc/nói — AI sẽ so sánh với kết quả ghi âm"
+                                        label="Văn bản tham chiếu (Để trống nếu muốn chấm Nói Tự Do - Free Speaking)"
+                                        placeholder="Đoạn văn học viên cần đọc (nếu là Read Aloud). Nếu để trống, hệ thống tự động chấm theo IELTS Nói Tự Do."
                                         value={question.referenceText || ''}
                                         onChange={(e) => handleQuestionChange(qIndex, 'referenceText', e.target.value)}
                                         sx={{ mb: 2 }}

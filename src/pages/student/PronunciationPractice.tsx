@@ -13,7 +13,7 @@ import {
     Box, Typography, Button, Paper, TextField, Grid,
     CircularProgress, Alert, Chip, LinearProgress,
     Card, CardContent, Tooltip, Divider,
-    Dialog, DialogContent, DialogTitle, IconButton,
+    Dialog, DialogContent, DialogTitle, IconButton, Tabs, Tab,
 } from '@mui/material';
 import {
     Mic as MicIcon,
@@ -62,6 +62,14 @@ const SAMPLE_SENTENCES = [
     { level: 'Hard', text: 'The pharmaceutical company announced a breakthrough in vaccine development technology.', category: 'Science' },
 ];
 
+const FREE_SPEAKING_TOPICS = [
+    { title: 'Sở thích (Hobby)', text: 'Describe your favorite hobby. Why do you enjoy it and how long have you been doing it?', category: 'Daily Life' },
+    { title: 'Du lịch (Travel)', text: 'Talk about a recent trip you took. Where did you go and what did you do?', category: 'Travel' },
+    { title: 'Công việc/Học tập (Work/Study)', text: 'Describe your current job or studies. What do you like most about it?', category: 'Education' },
+    { title: 'Quê hương (Hometown)', text: 'Describe your hometown. What is the most interesting part of your town?', category: 'Direction' },
+    { title: 'Ẩm thực (Food)', text: 'Describe your favorite food or restaurant. Why do you like it?', category: 'Restaurant' },
+];
+
 const levelColors: Record<string, string> = {
     Easy: '#16a34a',
     Medium: '#d97706',
@@ -94,7 +102,9 @@ interface GradingResult {
 }
 
 const PronunciationPractice: React.FC = () => {
+    const [mode, setMode] = useState<'read_aloud' | 'free_speaking'>('read_aloud');
     const [referenceText, setReferenceText] = useState(SAMPLE_SENTENCES[0].text);
+    const [freeSpeakingTopic, setFreeSpeakingTopic] = useState(FREE_SPEAKING_TOPICS[0].text);
     const [customMode, setCustomMode] = useState(false);
     const [filterCategory, setFilterCategory] = useState<string>('All');
     const [filterLevel, setFilterLevel] = useState<string>('All');
@@ -172,7 +182,16 @@ const PronunciationPractice: React.FC = () => {
 
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
-            formData.append('referenceText', referenceText.trim());
+            formData.append('mode', mode);
+            
+            if (mode === 'read_aloud') {
+                formData.append('referenceText', referenceText.trim());
+            } else {
+                formData.append('prompt', freeSpeakingTopic.trim());
+                // Dummy referenceText to satisfy any strict checks if needed, 
+                // but our backend handles it gracefully now.
+                formData.append('referenceText', 'free_speaking_mode'); 
+            }
 
             const response = await axiosInstance.post('/tts/evaluate-pronunciation', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -228,11 +247,12 @@ const PronunciationPractice: React.FC = () => {
     const renderAudioControls = () => (
         <Box>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center' }}>
-                <Button
-                    variant="outlined"
-                    onClick={handleListen}
-                    disabled={!referenceText.trim()}
-                    startIcon={tts.isLoading ? <CircularProgress size={18} /> : <VolumeUpIcon />}
+                {mode === 'read_aloud' && (
+                    <Button
+                        variant="outlined"
+                        onClick={handleListen}
+                        disabled={!referenceText.trim()}
+                        startIcon={tts.isLoading ? <CircularProgress size={18} /> : <VolumeUpIcon />}
                     sx={{
                         borderColor: '#7c3aed', color: '#7c3aed',
                         '&:hover': { borderColor: '#6d28d9', bgcolor: '#f5f3ff' },
@@ -244,7 +264,8 @@ const PronunciationPractice: React.FC = () => {
                     }}
                 >
                     {tts.isSpeaking ? 'Đang phát...' : 'Nghe mẫu'}
-                </Button>
+                    </Button>
+                )}
 
                 <Button
                     variant={isRecording ? 'contained' : 'outlined'}
@@ -339,15 +360,24 @@ const PronunciationPractice: React.FC = () => {
                     </Box>
                 </Paper>
 
+                {/* ═══ Mode Selection Tabs ═══ */}
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                    <Tabs value={mode} onChange={(e, val) => { setMode(val); handleReset(); }} textColor="secondary" indicatorColor="secondary">
+                        <Tab label="Luyện đọc câu mẫu" value="read_aloud" sx={{ fontWeight: 700, fontSize: '1rem', textTransform: 'none' }} />
+                        <Tab label="Nói tự do theo chủ đề" value="free_speaking" sx={{ fontWeight: 700, fontSize: '1rem', textTransform: 'none' }} />
+                    </Tabs>
+                </Box>
+
                 {/* ═══ Main Practice Area ═══ */}
                 <Paper sx={{ p: { xs: 2, md: 4 }, mb: 3, borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                     
-                    {!customMode ? (
-                        <>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                                <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <PracticeIcon sx={{ color: '#7c3aed' }} /> Chọn câu luyện tập
-                                </Typography>
+                    {mode === 'read_aloud' ? (
+                        !customMode ? (
+                            <>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                                    <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <PracticeIcon sx={{ color: '#7c3aed' }} /> Chọn câu luyện tập
+                                    </Typography>
                                 <Button size="small" variant="outlined" onClick={() => { setCustomMode(true); handleReset(); setReferenceText(''); }} sx={{ borderRadius: 2, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>
                                     <EditIcon sx={{ fontSize: 16, mr: 0.5 }} /> Tự nhập câu
                                 </Button>
@@ -481,6 +511,67 @@ const PronunciationPractice: React.FC = () => {
                                 {renderAudioControls()}
                             </Box>
                         </Box>
+                    ) ) : (
+                        // ═══ Free Speaking Mode ═══
+                        <Box sx={{ animation: 'fadeIn 0.3s' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                                <Typography variant="h6" fontWeight={800} color="#0f172a" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <SpeakIcon sx={{ color: '#7c3aed' }} /> Chọn chủ đề luyện nói tự do
+                                </Typography>
+                            </Box>
+                            
+                            <Grid container spacing={2}>
+                                {FREE_SPEAKING_TOPICS.map((topic, i) => {
+                                    const isSelected = freeSpeakingTopic === topic.text;
+                                    return (
+                                        <Grid item xs={12} md={isSelected ? 12 : 6} key={i} sx={{ transition: 'all 0.3s ease-in-out' }}>
+                                            <Card
+                                                variant="outlined"
+                                                onClick={() => { if (!isSelected) { setFreeSpeakingTopic(topic.text); handleReset(); } }}
+                                                sx={{
+                                                    cursor: isSelected ? 'default' : 'pointer',
+                                                    borderColor: isSelected ? '#7c3aed' : '#e2e8f0',
+                                                    bgcolor: isSelected ? '#faf5ff' : 'white',
+                                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    transform: isSelected ? 'scale(1.005)' : 'translateY(0)',
+                                                    boxShadow: isSelected ? '0 12px 24px -8px rgba(124, 58, 237, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
+                                                    '&:hover': { 
+                                                        transform: isSelected ? 'scale(1.005)' : 'translateY(-2px)', 
+                                                        boxShadow: isSelected ? undefined : '0 6px 16px rgba(0,0,0,0.06)',
+                                                        borderColor: isSelected ? '#7c3aed' : '#cbd5e1'
+                                                    },
+                                                }}
+                                            >
+                                                <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                                                        <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            {getCategoryIcon(topic.category)} {topic.title}
+                                                        </Typography>
+                                                        {isSelected && <CheckIcon sx={{ color: '#7c3aed', fontSize: 28 }} />}
+                                                    </Box>
+                                                    
+                                                    <Typography variant="body1" sx={{ 
+                                                        fontWeight: 600, 
+                                                        color: isSelected ? '#1e293b' : '#334155', 
+                                                        fontSize: isSelected ? '1.15rem' : '1.05rem', 
+                                                        mb: isSelected ? 3 : 0,
+                                                        transition: 'all 0.3s'
+                                                    }}>
+                                                        "{topic.text}"
+                                                    </Typography>
+                                                    
+                                                    {isSelected && (
+                                                        <Box sx={{ pt: 3, borderTop: '1px dashed #c4b5fd', animation: 'fadeIn 0.5s' }}>
+                                                            {renderAudioControls()}
+                                                        </Box>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                })}
+                            </Grid>
+                        </Box>
                     )}
                 </Paper>
 
@@ -564,8 +655,9 @@ const PronunciationPractice: React.FC = () => {
                                     {[
                                         { label: 'Phát âm', icon: <SpeakIcon sx={{ fontSize: 18, color: '#7c3aed', mr: 0.5 }} />, score: result.pronunciation?.score, feedback: result.pronunciation?.feedback },
                                         { label: 'Độ trôi chảy', icon: <FluencyIcon sx={{ fontSize: 18, color: '#2563eb', mr: 0.5 }} />, score: result.fluency?.score, feedback: result.fluency?.feedback },
-                                        { label: 'Độ chính xác', icon: <AccuracyIcon sx={{ fontSize: 18, color: '#059669', mr: 0.5 }} />, score: result.accuracy?.score, feedback: result.accuracy?.feedback },
+                                        ...(mode === 'read_aloud' && result.accuracy ? [{ label: 'Độ chính xác', icon: <AccuracyIcon sx={{ fontSize: 18, color: '#059669', mr: 0.5 }} />, score: result.accuracy?.score, feedback: result.accuracy?.feedback }] : []),
                                         ...(result.vocabulary ? [{ label: 'Từ vựng', icon: <VocabIcon sx={{ fontSize: 18, color: '#d97706', mr: 0.5 }} />, score: result.vocabulary?.score, feedback: result.vocabulary?.feedback }] : []),
+                                        ...(result.grammar ? [{ label: 'Ngữ pháp', icon: <EditIcon sx={{ fontSize: 18, color: '#dc2626', mr: 0.5 }} />, score: result.grammar?.score, feedback: result.grammar?.feedback }] : []),
                                     ].map((item, i) => (
                                         <Grid item xs={12} sm={6} key={i}>
                                             <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
@@ -592,7 +684,7 @@ const PronunciationPractice: React.FC = () => {
                                 </Grid>
 
                                 {/* Mispronunciations */}
-                                {result.pronunciation?.mispronunciations && result.pronunciation.mispronunciations.length > 0 && (
+                                {mode === 'read_aloud' && result.pronunciation?.mispronunciations && result.pronunciation.mispronunciations.length > 0 && (
                                     <Box sx={{ mb: 4 }}>
                                         <Typography variant="subtitle1" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                             <WarningIcon sx={{ fontSize: 20, color: '#d97706' }} />

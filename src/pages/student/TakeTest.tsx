@@ -187,6 +187,14 @@ const TakeTest: React.FC = () => {
         setRecordingTime(0);
     };
 
+    // Tự động dừng ghi âm khi đạt giới hạn thời gian
+    useEffect(() => {
+        const limit = test?.questions?.[0]?.duration || 60;
+        if (isRecording && recordingTime >= limit) {
+            stopRecording();
+        }
+    }, [recordingTime, isRecording, test]);
+
     const handleSubmitClick = () => {
         if (isWritingTest) {
             if (getWordCount() < 10) {
