@@ -55,8 +55,13 @@ export const formatChildCount = (children: Student[]): string => {
 export const formatDate = (dateString: string): string => {
   if (!dateString) return '-';
   try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    // Ensure UTC: append 'Z' if no timezone info present
+    let s = dateString.trim();
+    if (!/Z$|[+-]\d{2}:\d{2}$|[+-]\d{4}$/.test(s)) {
+      s = s.replace(' ', 'T') + 'Z';
+    }
+    const date = new Date(s);
+    return date.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   } catch (error) {
     return dateString;
   }

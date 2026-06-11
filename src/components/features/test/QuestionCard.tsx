@@ -157,6 +157,26 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     </Box>
                 </Box>
 
+                {/* Per-Question Audio (Listening) */}
+                {question.audioUrl && (
+                    <Box sx={{
+                        mb: 2, p: 2, borderRadius: 2.5,
+                        background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                        border: '1px solid #e0d4f5',
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#6d28d9', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                🎧 Nghe audio câu {questionNumber}
+                            </Typography>
+                        </Box>
+                        <audio
+                            controls
+                            src={question.audioUrl}
+                            style={{ width: '100%', borderRadius: 8 }}
+                        />
+                    </Box>
+                )}
+
                 {/* Options */}
                 <FormControl component="fieldset" fullWidth disabled={disabled}>
                     <RadioGroup

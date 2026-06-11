@@ -155,7 +155,12 @@ const TestManagement: React.FC = () => {
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '—';
-        return new Date(dateString).toLocaleDateString('vi-VN', {
+        // Ensure UTC timestamps from DB (without 'Z' suffix) are parsed correctly
+        let s = dateString.trim();
+        if (!/Z$|[+-]\d{2}:\d{2}$|[+-]\d{4}$/.test(s)) {
+            s = s.replace(' ', 'T') + 'Z';
+        }
+        return new Date(s).toLocaleDateString('vi-VN', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
             timeZone: 'Asia/Ho_Chi_Minh',

@@ -263,7 +263,15 @@ const RegistrationManagement: React.FC = () => {
                       <TableCell>
                         <Chip size="small" label={r.processed ? 'Đã xử lý' : 'Chưa xử lý'} color={r.processed ? 'success' : 'warning'} />
                       </TableCell>
-                      <TableCell>{r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '-'}</TableCell>
+                      <TableCell>
+                        {r.createdAt
+                          ? new Date(
+                              /Z$|[+-]\d{2}:\d{2}$|[+-]\d{4}$/.test(r.createdAt.trim())
+                                ? r.createdAt
+                                : r.createdAt.trim().replace(' ', 'T') + 'Z'
+                            ).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+                          : '-'}
+                      </TableCell>
                       <TableCell>
                         <Tooltip title="Xem chi tiết">
                           <IconButton size="small" color="info" onClick={() => handleView(r.id)}>
@@ -381,7 +389,13 @@ const RegistrationManagement: React.FC = () => {
                     />
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <ScheduleIcon sx={{ fontSize: 16 }} />
-                      {viewDialog.data.createdAt ? new Date(viewDialog.data.createdAt).toLocaleString('vi-VN') : '-'}
+                      {viewDialog.data.createdAt
+                        ? new Date(
+                            /Z$|[+-]\d{2}:\d{2}$|[+-]\d{4}$/.test(viewDialog.data.createdAt.trim())
+                              ? viewDialog.data.createdAt
+                              : viewDialog.data.createdAt.trim().replace(' ', 'T') + 'Z'
+                          ).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+                        : '-'}
                     </Typography>
                   </Box>
                 </Box>

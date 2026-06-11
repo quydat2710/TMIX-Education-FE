@@ -1,6 +1,17 @@
 // Utility functions for TMix Education Application
 import { USER_ROLES, UserRole } from '../constants';
 
+const ensureUTC = (dateInput: string | Date): Date => {
+  if (dateInput instanceof Date) return dateInput;
+  const s = dateInput.trim();
+  // If already has timezone info (Z, +HH:MM, -HH:MM), parse directly
+  if (/Z$|[+-]\d{2}:\d{2}$|[+-]\d{4}$/.test(s)) {
+    return new Date(s);
+  }
+  // Otherwise append 'Z' to treat as UTC
+  return new Date(s.replace(' ', 'T') + 'Z');
+};
+
 // Format currency (VND)
 export const formatCurrency = (amount: number | null | undefined, currency: string = 'VND'): string => {
   if (amount === null || amount === undefined) return '0 ₫';
@@ -17,7 +28,7 @@ export const formatCurrency = (amount: number | null | undefined, currency: stri
 export const formatDate = (date: string | Date | null | undefined, format: string = 'dd/MM/yyyy'): string => {
   if (!date) return '';
 
-  const d = new Date(date);
+  const d = ensureUTC(typeof date === 'string' ? date : date);
   if (isNaN(d.getTime())) return '';
 
   // Use Intl to get parts in Vietnam timezone
@@ -57,7 +68,7 @@ export const formatRelativeTime = (date: string | Date | null | undefined): stri
   if (!date) return '';
 
   const now = new Date();
-  const diff = now.getTime() - new Date(date).getTime();
+  const diff = now.getTime() - ensureUTC(typeof date === 'string' ? date : date).getTime();
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
@@ -79,7 +90,7 @@ export const formatTime = (time: string | Date | null | undefined): string => {
     return time;
   }
 
-  const date = new Date(time);
+  const date = ensureUTC(time);
   return date.toLocaleTimeString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',

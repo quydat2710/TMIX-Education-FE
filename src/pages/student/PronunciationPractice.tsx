@@ -362,7 +362,7 @@ const PronunciationPractice: React.FC = () => {
 
                 {/* ═══ Mode Selection Tabs ═══ */}
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                    <Tabs value={mode} onChange={(e, val) => { setMode(val); handleReset(); }} textColor="secondary" indicatorColor="secondary">
+                    <Tabs value={mode} onChange={(_, val) => { setMode(val); handleReset(); }} textColor="secondary" indicatorColor="secondary">
                         <Tab label="Luyện đọc câu mẫu" value="read_aloud" sx={{ fontWeight: 700, fontSize: '1rem', textTransform: 'none' }} />
                         <Tab label="Nói tự do theo chủ đề" value="free_speaking" sx={{ fontWeight: 700, fontSize: '1rem', textTransform: 'none' }} />
                     </Tabs>
