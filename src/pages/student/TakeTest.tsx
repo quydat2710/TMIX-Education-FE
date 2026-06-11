@@ -321,8 +321,8 @@ const TakeTest: React.FC = () => {
                     {/* ===== LEFT COLUMN: Questions ===== */}
                     <Box sx={{ flex: 1, minWidth: 0 }}>
 
-                {/* Audio Player for Listening — only when NO sections (global audio) */}
-                {(test as any)?.skillType === 'listening' && (test as any)?.audioUrl && !((test as any)?.sections?.length > 0) && (
+                {/* Audio Player for Listening */}
+                {(test as any)?.skillType === 'listening' && (test as any)?.audioUrl && (
                     <Paper sx={{
                         p: 3, mb: 3, borderRadius: 3,
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -349,8 +349,8 @@ const TakeTest: React.FC = () => {
                     </Paper>
                 )}
 
-                {/* Passage for Reading/Listening — only when NO sections */}
-                {(test as any)?.passage && (test as any)?.skillType !== 'writing' && !((test as any)?.sections?.length > 0) && (
+                {/* Passage for Reading — only when NO sections */}
+                {(test as any)?.passage && (test as any)?.skillType !== 'writing' && (test as any)?.skillType !== 'listening' && !((test as any)?.sections?.length > 0) && (
                     <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             {(test as any)?.skillType === 'listening' ? '📝 Transcript (tham khảo)' : '📖 Đoạn văn đọc hiểu'}
