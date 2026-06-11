@@ -159,6 +159,7 @@ const CreateEditTest: React.FC = () => {
                             passage: test.passage,
                             speakingPrompt: test.speakingPrompt,
                             audioUrl: test.audioUrl,
+                            sections: test.sections || [],
                             status: test.status as 'draft' | 'published',
                         });
                     }
@@ -172,13 +173,13 @@ const CreateEditTest: React.FC = () => {
         }
     }, [id, isEditing]);
 
-    // Sync sections state from formData
+    // Sync sections state from formData (runs when formData.sections changes, e.g. after API load)
     useEffect(() => {
         if (formData.sections && formData.sections.length > 0) {
             setSections(formData.sections as TestSection[]);
             setUseSections(true);
         }
-    }, []); // Only on mount
+    }, [formData.sections]);
 
     const handleFieldChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
