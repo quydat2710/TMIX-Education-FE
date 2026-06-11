@@ -162,6 +162,10 @@ const CreateEditTest: React.FC = () => {
                             sections: test.sections || [],
                             status: test.status as 'draft' | 'published',
                         });
+                        // Restore TTS transcript when editing a listening test
+                        if (test.skillType === 'listening' && test.passage) {
+                            setTtsTranscript(test.passage);
+                        }
                     }
                 } catch (err: any) {
                     setError('Không thể tải thông tin đề thi');
@@ -529,6 +533,18 @@ const CreateEditTest: React.FC = () => {
         }
     };
 
+    /** Derive the backend origin URL for serving static files */
+    const getBackendOriginUrl = (): string => {
+        const baseURL = axiosInstance.defaults.baseURL || '';
+        // In production: baseURL = 'http://host:port/api/v1' → strip /api/v1
+        if (baseURL.startsWith('http')) {
+            return baseURL.replace(/\/api\/v\d+$/, '');
+        }
+        // In dev mode: baseURL = '/api' (Vite proxy) → use actual backend URL from env
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+        return apiUrl.replace(/\/api\/v\d+$/, '');
+    };
+
     /** Generate audio, save to server, and set audioUrl in form */
     const handleTtsGenerate = async () => {
         if (!ttsTranscript.trim()) return;
@@ -543,9 +559,7 @@ const CreateEditTest: React.FC = () => {
 
             const data = response?.data?.data || response?.data;
             if (data?.url) {
-                // Build full URL for audio playback
-                const backendUrl = axiosInstance.defaults.baseURL?.replace('/api/v1', '') || '';
-                const fullUrl = backendUrl + data.url;
+                const fullUrl = getBackendOriginUrl() + data.url;
                 handleFieldChange('audioUrl', fullUrl);
                 // Also save transcript to passage field for reference
                 handleFieldChange('passage', ttsTranscript);
