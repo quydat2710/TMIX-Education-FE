@@ -315,6 +315,53 @@ const TestResults: React.FC = () => {
                         {/* MC Question Review */}
                         {!isWritingTest && !isSpeakingTest && (
                             <>
+                                {/* Audio Player for Listening — only when NO sections (global audio) */}
+                                {(test as any)?.skillType === 'listening' && (test as any)?.audioUrl && !((test as any)?.sections?.length > 0) && (
+                                    <Paper sx={{
+                                        p: 3, mb: 3, borderRadius: 3,
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white',
+                                        boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
+                                    }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            🎧 Bài nghe
+                                        </Typography>
+                                        <Box sx={{
+                                            p: 2, borderRadius: 2,
+                                            bgcolor: 'rgba(255,255,255,0.15)',
+                                            backdropFilter: 'blur(10px)',
+                                        }}>
+                                            <audio
+                                                controls
+                                                src={(test as any).audioUrl}
+                                                style={{ width: '100%' }}
+                                            />
+                                        </Box>
+                                        <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                                            💡 Nghe lại để hiểu rõ các câu trả lời của bạn
+                                        </Typography>
+                                    </Paper>
+                                )}
+
+                                {/* Passage for Reading/Listening — only when NO sections */}
+                                {(test as any)?.passage && (test as any)?.skillType !== 'writing' && !((test as any)?.sections?.length > 0) && (
+                                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            {(test as any)?.skillType === 'listening' ? '📝 Transcript (tham khảo)' : '📖 Đoạn văn đọc hiểu'}
+                                        </Typography>
+                                        <Box sx={{
+                                            p: 2.5, borderRadius: 2,
+                                            bgcolor: '#fafafa', border: '1px solid #e5e7eb',
+                                            fontFamily: '"Georgia", serif',
+                                            fontSize: '1rem',
+                                            lineHeight: 1.8,
+                                            whiteSpace: 'pre-wrap',
+                                        }}>
+                                            {(test as any).passage}
+                                        </Box>
+                                    </Paper>
+                                )}
+
                                 {/* Section-grouped mode */}
                                 {(test as any)?.sections?.length > 0 ? (
                                     ((test as any).sections as any[]).map((section: any, sIdx: number) => {
@@ -345,6 +392,13 @@ const TestResults: React.FC = () => {
                                                         </Typography>
                                                     )}
                                                 </Box>
+
+                                                {/* Section Audio (listening) */}
+                                                {section.audioUrl && (
+                                                    <Box sx={{ p: 2, bgcolor: '#f5f3ff', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <audio controls src={section.audioUrl} style={{ width: '100%' }} />
+                                                    </Box>
+                                                )}
 
                                                 {/* Section Passage (reading) */}
                                                 {section.passage && (

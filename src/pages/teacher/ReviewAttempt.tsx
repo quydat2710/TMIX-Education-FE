@@ -18,6 +18,7 @@ import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { commonStyles } from '../../utils/styles';
 import { COLORS } from '../../utils/colors';
 import { getAttemptById, reviewAttempt } from '../../services/tests';
+import { QuestionCard } from '../../components/features/test';
 
 const ReviewAttemptPage: React.FC = () => {
     const navigate = useNavigate();
@@ -307,24 +308,122 @@ const ReviewAttemptPage: React.FC = () => {
 
                         {/* MC Answers for non-writing/speaking tests */}
                         {!isWritingTest && !isSpeakingTest && attempt?.answers && attempt.answers.length > 0 && (
-                            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main }}>
-                                    📝 Câu trả lời
-                                </Typography>
-                                {test?.questions?.map((q: any, i: number) => (
-                                    <Box key={q.id || i} sx={{ p: 1.5, mb: 1, borderRadius: 1.5, bgcolor: attempt.answers[i] === q.correctAnswer ? '#f0fdf4' : '#fef2f2', border: `1px solid ${attempt.answers[i] === q.correctAnswer ? '#bbf7d0' : '#fecaca'}` }}>
-                                        <Typography variant="body2" fontWeight={600}>
-                                            Câu {i + 1}: {q.question}
+                            <>
+                                {/* Global Audio Player for Listening */}
+                                {test?.skillType === 'listening' && test?.audioUrl && !(test?.sections?.length > 0) && (
+                                    <Paper sx={{
+                                        p: 3, mb: 3, borderRadius: 3,
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white',
+                                    }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            🎧 Bài nghe (Audio toàn đề)
                                         </Typography>
-                                        <Typography variant="body2">
-                                            Trả lời: <strong>{attempt.answers[i] || '—'}</strong>
-                                            {attempt.answers[i] !== q.correctAnswer && (
-                                                <span style={{ color: '#16a34a' }}> (Đáp án: {q.correctAnswer})</span>
-                                            )}
+                                        <audio controls src={test.audioUrl} style={{ width: '100%' }} />
+                                    </Paper>
+                                )}
+
+                                {/* Passage / Transcript for Reading/Listening */}
+                                {test?.passage && !(test?.sections?.length > 0) && (
+                                    <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main }}>
+                                            {test?.skillType === 'listening' ? '📝 Transcript (Đề bài)' : '📖 Đoạn văn đọc hiểu'}
                                         </Typography>
-                                    </Box>
-                                ))}
-                            </Paper>
+                                        <Box sx={{
+                                            p: 2.5, borderRadius: 2,
+                                            bgcolor: '#fafafa', border: '1px solid #e5e7eb',
+                                            fontFamily: '"Georgia", serif',
+                                            fontSize: '1rem',
+                                            lineHeight: 1.8,
+                                            whiteSpace: 'pre-wrap',
+                                        }}>
+                                            {test.passage}
+                                        </Box>
+                                    </Paper>
+                                )}
+
+                                {/* Section-grouped questions if sections exist */}
+                                {test?.sections?.length > 0 ? (
+                                    (test.sections as any[]).map((section: any, sIdx: number) => {
+                                        const sectionQuestions = section.questionIds
+                                            .map((qId: string) => {
+                                                const qIndex = test.questions.findIndex((q: any) => q.id === qId);
+                                                return qIndex >= 0 ? { question: test.questions[qIndex], index: qIndex } : null;
+                                            })
+                                            .filter(Boolean) as { question: any; index: number }[];
+
+                                        return (
+                                            <Paper key={section.id || sIdx} sx={{
+                                                mb: 3, borderRadius: 3, overflow: 'hidden',
+                                                border: '1px solid #e5e7eb',
+                                            }}>
+                                                {/* Section Header */}
+                                                <Box sx={{ p: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+                                                    <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.primary.main }}>
+                                                        {test?.skillType === 'listening' ? '🎧' : '📖'} {section.title || `Part ${sIdx + 1}`}
+                                                    </Typography>
+                                                    {section.instruction && (
+                                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                            {section.instruction}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+
+                                                {/* Section Audio */}
+                                                {section.audioUrl && (
+                                                    <Box sx={{ p: 2, bgcolor: '#f5f3ff', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <audio controls src={section.audioUrl} style={{ width: '100%' }} />
+                                                    </Box>
+                                                )}
+
+                                                {/* Section Passage */}
+                                                {section.passage && (
+                                                    <Box sx={{ p: 2.5, bgcolor: '#fafafa', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <Box sx={{ fontFamily: '"Georgia", serif', fontSize: '0.95rem', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                                                            {section.passage}
+                                                        </Box>
+                                                    </Box>
+                                                )}
+
+                                                {/* Section Questions */}
+                                                <Box sx={{ p: 2 }}>
+                                                    {sectionQuestions.map(({ question, index }) => (
+                                                        <QuestionCard
+                                                            key={question.id}
+                                                            question={question}
+                                                            questionNumber={index + 1}
+                                                            selectedAnswer={attempt.answers?.[index]}
+                                                            studentAnswer={attempt.answers?.[index]}
+                                                            showCorrectAnswer={true}
+                                                            showResult={true}
+                                                            disabled={true}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            </Paper>
+                                        );
+                                    })
+                                ) : (
+                                    /* Flat Mode */
+                                    <Paper sx={{ p: 3, borderRadius: 3 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.primary.main }}>
+                                            📝 Câu trả lời chi tiết
+                                        </Typography>
+                                        {test.questions.map((question: any, index: number) => (
+                                            <QuestionCard
+                                                key={question.id || index}
+                                                question={question}
+                                                questionNumber={index + 1}
+                                                selectedAnswer={attempt.answers?.[index]}
+                                                studentAnswer={attempt.answers?.[index]}
+                                                showCorrectAnswer={true}
+                                                showResult={true}
+                                                disabled={true}
+                                            />
+                                        ))}
+                                    </Paper>
+                                )}
+                            </>
                         )}
                     </Box>
 
